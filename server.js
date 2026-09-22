@@ -15,7 +15,7 @@ const io = new Server(server, {
   }
 });
 
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 const PORT = process.env.PORT || 10000;
@@ -28,11 +28,38 @@ if (DATABASE_URL) {
     connectionString: DATABASE_URL,
     ssl: { rejectUnauthorized: false }
   });
+
+  pool.on("error", (err) => {
+    console.error("POSTGRES ERROR:", err.message);
+  });
 }
 
-/* ==================================================
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function cleanUsername(value) {
+  return String(value || "").trim();
+}
+
+function hashPassword(password, salt) {
+  return crypto
+    .createHash("sha256")
+    .update(String(password) + salt)
+    .digest("hex");
+}
+
+function createToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function makeClubId() {
+  return crypto.randomBytes(4).toString("hex");
+}
+
+/* =====================================================
    DATABASE
-================================================== */
+===================================================== */
 
 async function initDatabase() {
   if (!pool) {
@@ -54,7 +81,6 @@ async function initDatabase() {
     )
   `);
 
-  /* Existing DB yoo ta'e columns haaraa dabali */
   await pool.query(`
     ALTER TABLE users
     ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT ''
@@ -75,7 +101,6 @@ async function initDatabase() {
     )
   `);
 
-  /* Private messages */
   await pool.query(`
     CREATE TABLE IF NOT EXISTS private_messages (
       id SERIAL PRIMARY KEY,
@@ -86,7 +111,6 @@ async function initDatabase() {
     )
   `);
 
-  /* Follow system */
   await pool.query(`
     CREATE TABLE IF NOT EXISTS follows (
       id SERIAL PRIMARY KEY,
@@ -97,13 +121,12 @@ async function initDatabase() {
     )
   `);
 
-  /* Notifications */
   await pool.query(`
     CREATE TABLE IF NOT EXISTS notifications (
       id SERIAL PRIMARY KEY,
       username TEXT NOT NULL,
       type TEXT NOT NULL,
-      from_user TEXT NOT NULL,
+      from_user TEXT,
       message TEXT NOT NULL,
       is_read BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -113,45 +136,27 @@ async function initDatabase() {
   console.log("✅ Database ready.");
 }
 
-/* ==================================================
-   HELPERS
-================================================== */
-
-function hashPassword(password, salt) {
-  return crypto
-    .createHash("sha256")
-    .update(String(password) + salt)
-    .digest("hex");
-}
-
-function createToken() {
-  return crypto.randomBytes(32).toString("hex");
-}
-
-function makeClubId() {
-  return crypto.randomBytes(4).toString("hex");
-}
-
-function cleanUsername(value) {
-  return String(value || "").trim();
-}
+/* =====================================================
+   FIND USER
+===================================================== */
 
 async function findUser(username) {
   if (!pool) return null;
 
   const result = await pool.query(
-    `SELECT id, username, email, bio, avatar, created_at
+    `SELECT id,username,email,bio,avatar,created_at
      FROM users
-     WHERE username=$1`,
+     WHERE username=$1
+     LIMIT 1`,
     [username]
   );
 
   return result.rows[0] || null;
 }
 
-/* ==================================================
+/* =====================================================
    REGISTER
-================================================== */
+===================================================== */
 
 app.post("/api/register", async (req, res) => {
   try {
@@ -188,7 +193,7 @@ app.post("/api/register", async (req, res) => {
       [email]
     );
 
-    if (emailExists.rows.length > 0) {
+    if (emailExists.rows.length) {
       return res.status(409).json({
         success: false,
         message: "Email kun duraan jira."
@@ -196,11 +201,11 @@ app.post("/api/register", async (req, res) => {
     }
 
     const usernameExists = await pool.query(
-      "SELECT id FROM users WHERE LOWER(username)=LOWER($1)",
+      "SELECT id FROM users WHERE username=$1",
       [username]
     );
 
-    if (usernameExists.rows.length > 0) {
+    if (usernameExists.rows.length) {
       return res.status(409).json({
         success: false,
         message: "Username kun duraan jira."
@@ -208,14 +213,17 @@ app.post("/api/register", async (req, res) => {
     }
 
     const salt = crypto.randomBytes(16).toString("hex");
-    const passwordHash = hashPassword(password, salt);
+
+    const passwordHash =
+      hashPassword(password, salt);
+
     const token = createToken();
 
     const result = await pool.query(
       `INSERT INTO users
        (username,email,password_hash,salt,token)
        VALUES ($1,$2,$3,$4,$5)
-       RETURNING id,username,email,bio,avatar,token`,
+       RETURNING id,username,email,token,bio,avatar`,
       [
         username,
         email,
@@ -241,9 +249,9 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-/* ==================================================
+/* =====================================================
    LOGIN
-================================================== */
+===================================================== */
 
 app.post("/api/login", async (req, res) => {
   try {
@@ -258,14 +266,15 @@ app.post("/api/login", async (req, res) => {
       .trim()
       .toLowerCase();
 
-    const password = String(req.body.password || "");
+    const password =
+      String(req.body.password || "");
 
     const result = await pool.query(
       "SELECT * FROM users WHERE email=$1",
       [email]
     );
 
-    if (result.rows.length === 0) {
+    if (!result.rows.length) {
       return res.status(401).json({
         success: false,
         message: "Email ykn password sirrii miti."
@@ -274,12 +283,16 @@ app.post("/api/login", async (req, res) => {
 
     const user = result.rows[0];
 
-    const passwordHash = hashPassword(
-      password,
-      user.salt
-    );
+    const passwordHash =
+      hashPassword(
+        password,
+        user.salt
+      );
 
-    if (passwordHash !== user.password_hash) {
+    if (
+      passwordHash !==
+      user.password_hash
+    ) {
       return res.status(401).json({
         success: false,
         message: "Email ykn password sirrii miti."
@@ -299,9 +312,9 @@ app.post("/api/login", async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
+        token,
         bio: user.bio || "",
-        avatar: user.avatar || "",
-        token
+        avatar: user.avatar || ""
       }
     });
 
@@ -315,9 +328,9 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-/* ==================================================
+/* =====================================================
    LOGOUT
-================================================== */
+===================================================== */
 
 app.post("/api/logout", async (req, res) => {
   try {
@@ -328,34 +341,23 @@ app.post("/api/logout", async (req, res) => {
       );
     }
 
-    res.json({
-      success: true
-    });
+    res.json({ success: true });
 
   } catch (err) {
-    res.json({
-      success: true
-    });
+    res.json({ success: true });
   }
 });
 
-/* ==================================================
+/* =====================================================
    PROFILE
-================================================== */
+===================================================== */
 
-/* Get profile */
 app.get("/api/profile/:username", async (req, res) => {
   try {
-    if (!pool) {
-      return res.status(500).json({
-        success: false,
-        message: "Database hin jiru."
-      });
-    }
-
-    const username = cleanUsername(
-      req.params.username
-    );
+    const username =
+      cleanUsername(
+        decodeURIComponent(req.params.username)
+      );
 
     const user = await findUser(username);
 
@@ -366,38 +368,23 @@ app.get("/api/profile/:username", async (req, res) => {
       });
     }
 
-    const followers = await pool.query(
-      `SELECT COUNT(*)::int AS count
-       FROM follows
-       WHERE following=$1`,
-      [username]
-    );
-
-    const following = await pool.query(
-      `SELECT COUNT(*)::int AS count
-       FROM follows
-       WHERE follower=$1`,
-      [username]
-    );
-
     res.json({
       success: true,
-      user,
-      followers: followers.rows[0].count,
-      following: following.rows[0].count
+      user
     });
 
   } catch (err) {
-    console.error("PROFILE ERROR:", err);
-
     res.status(500).json({
       success: false,
-      message: "Profile fiduu."
+      message: "Profile fiduu hin dandeenye."
     });
   }
 });
 
-/* Update profile */
+/* =====================================================
+   PROFILE UPDATE
+===================================================== */
+
 app.post("/api/profile/update", async (req, res) => {
   try {
     if (!pool) {
@@ -407,35 +394,38 @@ app.post("/api/profile/update", async (req, res) => {
       });
     }
 
-    const token = String(req.body.token || "");
-    const username = cleanUsername(req.body.username);
-    const bio = String(req.body.bio || "").trim();
-    const avatar = String(req.body.avatar || "").trim();
+    const username =
+      cleanUsername(req.body.username);
 
-    if (!token || !username) {
+    const bio =
+      String(req.body.bio || "").trim();
+
+    const avatar =
+      String(req.body.avatar || "").trim();
+
+    if (!username) {
       return res.status(400).json({
         success: false,
-        message: "Token fi username barbaachisa."
+        message: "Username barbaachisa."
       });
     }
 
     const result = await pool.query(
       `UPDATE users
        SET bio=$1, avatar=$2
-       WHERE username=$3 AND token=$4
+       WHERE username=$3
        RETURNING id,username,email,bio,avatar`,
       [
         bio,
         avatar,
-        username,
-        token
+        username
       ]
     );
 
-    if (result.rows.length === 0) {
-      return res.status(401).json({
+    if (!result.rows.length) {
+      return res.status(404).json({
         success: false,
-        message: "Login kee mirkaneessi."
+        message: "User hin argamne."
       });
     }
 
@@ -445,7 +435,7 @@ app.post("/api/profile/update", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("PROFILE UPDATE ERROR:", err);
+    console.error("PROFILE UPDATE:", err);
 
     res.status(500).json({
       success: false,
@@ -454,20 +444,21 @@ app.post("/api/profile/update", async (req, res) => {
   }
 });
 
-/* ==================================================
+/* =====================================================
    USER SEARCH
-================================================== */
+===================================================== */
 
 app.get("/api/users/search", async (req, res) => {
   try {
     if (!pool) {
-      return res.status(500).json({
+      return res.json({
         success: false,
-        message: "Database hin jiru."
+        users: []
       });
     }
 
-    const q = String(req.query.q || "").trim();
+    const q =
+      String(req.query.q || "").trim();
 
     if (!q) {
       return res.json({
@@ -477,7 +468,7 @@ app.get("/api/users/search", async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT id,username,bio,avatar
+      `SELECT id,username,email,bio,avatar,created_at
        FROM users
        WHERE username ILIKE $1
        ORDER BY username
@@ -495,14 +486,14 @@ app.get("/api/users/search", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Search irratti rakkoo uumame."
+      users: []
     });
   }
 });
 
-/* ==================================================
-   FOLLOW / UNFOLLOW
-================================================== */
+/* =====================================================
+   FOLLOW
+===================================================== */
 
 app.post("/api/follow", async (req, res) => {
   try {
@@ -513,18 +504,16 @@ app.post("/api/follow", async (req, res) => {
       });
     }
 
-    const follower = cleanUsername(
-      req.body.follower
-    );
+    const follower =
+      cleanUsername(req.body.follower);
 
-    const following = cleanUsername(
-      req.body.following
-    );
+    const following =
+      cleanUsername(req.body.following);
 
     if (!follower || !following) {
       return res.status(400).json({
         success: false,
-        message: "Follower fi following barbaachisa."
+        message: "Follow data guutuu miti."
       });
     }
 
@@ -535,7 +524,8 @@ app.post("/api/follow", async (req, res) => {
       });
     }
 
-    const target = await findUser(following);
+    const target =
+      await findUser(following);
 
     if (!target) {
       return res.status(404).json({
@@ -547,15 +537,23 @@ app.post("/api/follow", async (req, res) => {
     const exists = await pool.query(
       `SELECT id
        FROM follows
-       WHERE follower=$1 AND following=$2`,
-      [follower, following]
+       WHERE follower=$1
+       AND following=$2`,
+      [
+        follower,
+        following
+      ]
     );
 
-    if (exists.rows.length > 0) {
+    if (exists.rows.length) {
       await pool.query(
         `DELETE FROM follows
-         WHERE follower=$1 AND following=$2`,
-        [follower, following]
+         WHERE follower=$1
+         AND following=$2`,
+        [
+          follower,
+          following
+        ]
       );
 
       return res.json({
@@ -570,7 +568,10 @@ app.post("/api/follow", async (req, res) => {
        (follower,following)
        VALUES ($1,$2)
        ON CONFLICT DO NOTHING`,
-      [follower, following]
+      [
+        follower,
+        following
+      ]
     );
 
     await pool.query(
@@ -585,16 +586,14 @@ app.post("/api/follow", async (req, res) => {
       ]
     );
 
-    /* Notification real-time */
-    for (const s of io.sockets.sockets.values()) {
-      if (s.username === following) {
-        s.emit("notification", {
-          type: "follow",
-          from: follower,
-          message: `${follower} si follow godhe.`
-        });
+    notifyUser(
+      following,
+      {
+        type: "follow",
+        from: follower,
+        message: `${follower} si follow godhe.`
       }
-    }
+    );
 
     res.json({
       success: true,
@@ -607,36 +606,39 @@ app.post("/api/follow", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Follow irratti rakkoo uumame."
+      message: "Follow irratti rakkoo."
     });
   }
 });
 
-/* ==================================================
+/* =====================================================
    FOLLOW STATUS
-================================================== */
+===================================================== */
 
 app.get("/api/follow/status", async (req, res) => {
   try {
     if (!pool) {
-      return res.status(500).json({
-        success: false
+      return res.json({
+        success: false,
+        following: false
       });
     }
 
-    const follower = cleanUsername(
-      req.query.follower
-    );
+    const follower =
+      cleanUsername(req.query.follower);
 
-    const following = cleanUsername(
-      req.query.following
-    );
+    const following =
+      cleanUsername(req.query.following);
 
     const result = await pool.query(
       `SELECT id
        FROM follows
-       WHERE follower=$1 AND following=$2`,
-      [follower, following]
+       WHERE follower=$1
+       AND following=$2`,
+      [
+        follower,
+        following
+      ]
     );
 
     res.json({
@@ -645,121 +647,133 @@ app.get("/api/follow/status", async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({
-      success: false
-    });
-  }
-});
-
-/* ==================================================
-   NOTIFICATIONS
-================================================== */
-
-app.get("/api/notifications/:username", async (req, res) => {
-  try {
-    if (!pool) {
-      return res.status(500).json({
-        success: false
-      });
-    }
-
-    const username = cleanUsername(
-      req.params.username
-    );
-
-    const result = await pool.query(
-      `SELECT *
-       FROM notifications
-       WHERE username=$1
-       ORDER BY created_at DESC
-       LIMIT 50`,
-      [username]
-    );
-
     res.json({
-      success: true,
-      notifications: result.rows
-    });
-
-  } catch (err) {
-    console.error("NOTIFICATION ERROR:", err);
-
-    res.status(500).json({
       success: false,
-      notifications: []
+      following: false
     });
   }
 });
 
-/* Mark notifications read */
-app.post("/api/notifications/read", async (req, res) => {
-  try {
-    if (!pool) {
-      return res.status(500).json({
-        success: false
+/* =====================================================
+   NOTIFICATIONS
+===================================================== */
+
+app.get(
+  "/api/notifications/:username",
+  async (req, res) => {
+
+    try {
+      if (!pool) {
+        return res.json({
+          success: false,
+          notifications: []
+        });
+      }
+
+      const username =
+        cleanUsername(
+          decodeURIComponent(
+            req.params.username
+          )
+        );
+
+      const result = await pool.query(
+        `SELECT *
+         FROM notifications
+         WHERE username=$1
+         ORDER BY created_at DESC
+         LIMIT 100`,
+        [username]
+      );
+
+      res.json({
+        success: true,
+        notifications: result.rows
+      });
+
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        notifications: []
       });
     }
-
-    const username = cleanUsername(
-      req.body.username
-    );
-
-    await pool.query(
-      `UPDATE notifications
-       SET is_read=TRUE
-       WHERE username=$1`,
-      [username]
-    );
-
-    res.json({
-      success: true
-    });
-
-  } catch (err) {
-    res.status(500).json({
-      success: false
-    });
   }
-});
+);
 
-/* ==================================================
-   PRIVATE CHAT API
-================================================== */
+/* =====================================================
+   READ NOTIFICATIONS
+===================================================== */
+
+app.post(
+  "/api/notifications/read",
+  async (req, res) => {
+
+    try {
+      if (pool && req.body.username) {
+
+        await pool.query(
+          `UPDATE notifications
+           SET is_read=true
+           WHERE username=$1`,
+          [
+            cleanUsername(
+              req.body.username
+            )
+          ]
+        );
+      }
+
+      res.json({
+        success: true
+      });
+
+    } catch (err) {
+      res.json({
+        success: true
+      });
+    }
+  }
+);
+
+/* =====================================================
+   PRIVATE MESSAGE HISTORY
+===================================================== */
 
 app.get("/api/messages", async (req, res) => {
   try {
     if (!pool) {
-      return res.status(500).json({
+      return res.json({
         success: false,
         messages: []
       });
     }
 
-    const user1 = cleanUsername(req.query.user1);
-    const user2 = cleanUsername(req.query.user2);
+    const user1 =
+      cleanUsername(req.query.user1);
+
+    const user2 =
+      cleanUsername(req.query.user2);
 
     if (!user1 || !user2) {
-      return res.status(400).json({
-        success: false,
+      return res.json({
+        success: true,
         messages: []
       });
     }
 
     const result = await pool.query(
-      `SELECT
-        id,
-        sender,
-        receiver,
-        message,
-        created_at
+      `SELECT id,sender,receiver,message,created_at
        FROM private_messages
        WHERE
-        (sender=$1 AND receiver=$2)
-        OR
-        (sender=$2 AND receiver=$1)
+       (sender=$1 AND receiver=$2)
+       OR
+       (sender=$2 AND receiver=$1)
        ORDER BY created_at ASC
        LIMIT 200`,
-      [user1, user2]
+      [
+        user1,
+        user2
+      ]
     );
 
     res.json({
@@ -768,7 +782,7 @@ app.get("/api/messages", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("MESSAGES ERROR:", err);
+    console.error("MESSAGE HISTORY:", err);
 
     res.status(500).json({
       success: false,
@@ -777,37 +791,81 @@ app.get("/api/messages", async (req, res) => {
   }
 });
 
-/* ==================================================
+/* =====================================================
+   SOCKET USER NOTIFY
+===================================================== */
+
+function notifyUser(username, data) {
+
+  for (
+    const s of io.sockets.sockets.values()
+  ) {
+
+    if (
+      s.username ===
+      cleanUsername(username)
+    ) {
+      s.emit(
+        "notification",
+        data
+      );
+    }
+  }
+}
+
+/* =====================================================
    CLUB SYSTEM
-================================================== */
+===================================================== */
 
 const clubs = new Map();
 
-function createClub(name, owner, ownerSocketId) {
+function createClub(
+  name,
+  owner,
+  ownerSocketId
+) {
 
   const id = makeClubId();
 
   const club = {
     id,
-    name: name || "Waliin-GM Club",
+    name:
+      name ||
+      "Waliin-GM Club",
+
     owner,
-    members: new Map(),
+
+    members:
+      new Map(),
+
     requests: [],
-    seats: Array(15).fill(null),
+
+    seats:
+      Array(15).fill(null),
+
     messages: [],
-    createdAt: Date.now()
+
+    createdAt:
+      Date.now()
   };
 
-  club.members.set(owner, {
-    username: owner,
-    socketId: ownerSocketId,
-    muted: false,
-    seat: 0
-  });
+  club.members.set(
+    owner,
+    {
+      username: owner,
+      socketId: ownerSocketId,
+      muted: false,
+      seat: 0
+    }
+  );
 
-  club.seats[0] = owner;
+  club.seats[0] =
+    owner;
 
-  clubs.set(id, club);
+  clubs.set(
+    id,
+    club
+  );
 
   return club;
 }
@@ -818,105 +876,146 @@ function publicClub(club) {
     id: club.id,
     name: club.name,
     owner: club.owner,
-    members: [...club.members.values()],
-    requests: club.requests,
-    seats: club.seats,
-    messages: club.messages,
-    listenerCount: Math.max(
-      0,
-      club.members.size -
-      club.seats.filter(Boolean).length
-    )
+
+    members:
+      [...club.members.values()],
+
+    requests:
+      club.requests,
+
+    seats:
+      club.seats,
+
+    messages:
+      club.messages,
+
+    listenerCount:
+      Math.max(
+        0,
+        club.members.size -
+        club.seats.filter(Boolean).length
+      )
   };
 }
 
-/* ==================================================
-   SOCKET CONNECTION
-================================================== */
+/* =====================================================
+   SOCKET
+===================================================== */
 
 io.on("connection", (socket) => {
 
-  console.log("🟢 Connected:", socket.id);
+  console.log(
+    "🟢 Connected:",
+    socket.id
+  );
 
-  /* =========================
-     REGISTER SOCKET USER
-  ========================= */
+  /* IDENTIFY */
 
-  socket.on("identify", ({ username }) => {
+  socket.on(
+    "identify",
+    ({ username }) => {
 
-    if (!username) return;
+      socket.username =
+        cleanUsername(username);
 
-    socket.username = cleanUsername(username);
+      console.log(
+        "IDENTIFIED:",
+        socket.username
+      );
+    }
+  );
 
-    console.log(
-      "👤 Identified:",
-      socket.username
-    );
-  });
-
-  /* =========================
-     PRIVATE CHAT
-  ========================= */
+  /* ===================================================
+     PRIVATE MESSAGE
+  =================================================== */
 
   socket.on(
     "privateMessage",
-    async ({ receiver, message }) => {
+    async ({
+      receiver,
+      message
+    }) => {
 
       try {
 
         const sender =
-          cleanUsername(socket.username);
+          cleanUsername(
+            socket.username
+          );
 
         receiver =
           cleanUsername(receiver);
 
         message =
-          String(message || "").trim();
+          String(
+            message || ""
+          ).trim();
 
-        if (!sender || !receiver || !message) {
+        if (
+          !sender ||
+          !receiver ||
+          !message
+        ) {
           return;
         }
 
-        if (!pool) return;
+        if (!pool) {
+          return socket.emit(
+            "privateMessageError",
+            {
+              message:
+                "Database hin jiru."
+            }
+          );
+        }
 
         const targetUser =
           await findUser(receiver);
 
         if (!targetUser) {
-
-          socket.emit("privateMessageError", {
-            message: "User hin argamne."
-          });
-
-          return;
+          return socket.emit(
+            "privateMessageError",
+            {
+              message:
+                "User hin argamne."
+            }
+          );
         }
 
-        const result = await pool.query(
-          `INSERT INTO private_messages
-           (sender,receiver,message)
-           VALUES ($1,$2,$3)
-           RETURNING id,sender,receiver,message,created_at`,
-          [
-            sender,
-            receiver,
-            message
-          ]
-        );
+        const result =
+          await pool.query(
+            `INSERT INTO private_messages
+             (sender,receiver,message)
+             VALUES ($1,$2,$3)
+             RETURNING id,sender,receiver,message,created_at`,
+            [
+              sender,
+              receiver,
+              message
+            ]
+          );
 
-        const item = result.rows[0];
+        const item =
+          result.rows[0];
 
-        /* Sender */
+        /* sender */
+
         socket.emit(
           "privateMessage",
           item
         );
 
-        /* Receiver */
+        /* receiver */
+
         for (
-          const s of io.sockets.sockets.values()
+          const s of
+          io.sockets.sockets.values()
         ) {
 
-          if (s.username === receiver) {
+          if (
+            s.username ===
+            receiver
+          ) {
 
             s.emit(
               "privateMessage",
@@ -925,7 +1024,8 @@ io.on("connection", (socket) => {
           }
         }
 
-        /* Notification */
+        /* notification */
+
         await pool.query(
           `INSERT INTO notifications
            (username,type,from_user,message)
@@ -938,19 +1038,15 @@ io.on("connection", (socket) => {
           ]
         );
 
-        for (
-          const s of io.sockets.sockets.values()
-        ) {
-
-          if (s.username === receiver) {
-
-            s.emit("notification", {
-              type: "message",
-              from: sender,
-              message: `${sender} ergaa siif erge.`
-            });
+        notifyUser(
+          receiver,
+          {
+            type: "message",
+            from: sender,
+            message:
+              `${sender} ergaa siif erge.`
           }
-        }
+        );
 
       } catch (err) {
 
@@ -963,88 +1059,118 @@ io.on("connection", (socket) => {
     }
   );
 
-  /* =========================
+  /* ===================================================
      CREATE CLUB
-  ========================= */
+  =================================================== */
 
   socket.on(
     "createClub",
     ({ name, username }, callback) => {
 
+      username =
+        cleanUsername(username);
+
       if (!username) {
         return callback?.({
           success: false,
-          message: "Username barbaachisa."
+          message:
+            "Username barbaachisa."
         });
       }
 
-      socket.username = username;
+      socket.username =
+        username;
 
-      const club = createClub(
-        name,
-        username,
-        socket.id
+      const club =
+        createClub(
+          name,
+          username,
+          socket.id
+        );
+
+      socket.join(
+        club.id
       );
 
-      socket.join(club.id);
-
-      socket.clubId = club.id;
+      socket.clubId =
+        club.id;
 
       callback?.({
         success: true,
-        club: publicClub(club)
+        club:
+          publicClub(club)
       });
 
-      io.to(club.id).emit(
+      io.to(
+        club.id
+      ).emit(
         "clubUpdate",
         publicClub(club)
       );
     }
   );
 
-  /* =========================
+  /* ===================================================
      JOIN CLUB
-  ========================= */
+  =================================================== */
 
   socket.on(
     "joinClub",
     ({ clubId, username }, callback) => {
 
-      const club = clubs.get(clubId);
+      const club =
+        clubs.get(clubId);
 
       if (!club) {
         return callback?.({
           success: false,
-          message: "Club hin argamne."
+          message:
+            "Club hin argamne."
         });
       }
+
+      username =
+        cleanUsername(username);
 
       if (!username) {
         return callback?.({
           success: false,
-          message: "Username barbaachisa."
+          message:
+            "Username barbaachisa."
         });
       }
 
-      socket.username = username;
+      socket.username =
+        username;
 
-      if (club.members.has(username)) {
+      if (
+        club.members.has(username)
+      ) {
 
         const member =
-          club.members.get(username);
+          club.members.get(
+            username
+          );
 
-        member.socketId = socket.id;
+        member.socketId =
+          socket.id;
 
-        socket.join(clubId);
+        socket.join(
+          clubId
+        );
 
-        socket.clubId = clubId;
+        socket.clubId =
+          clubId;
 
         callback?.({
           success: true,
-          club: publicClub(club)
+          club:
+            publicClub(club)
         });
 
-        io.to(club.id).emit(
+        io.to(
+          club.id
+        ).emit(
           "clubUpdate",
           publicClub(club)
         );
@@ -1052,310 +1178,465 @@ io.on("connection", (socket) => {
         return;
       }
 
-      club.members.set(username, {
+      club.members.set(
         username,
-        socketId: socket.id,
-        muted: false,
-        seat: null
-      });
+        {
+          username,
+          socketId: socket.id,
+          muted: false,
+          seat: null
+        }
+      );
 
-      socket.join(clubId);
+      socket.join(
+        clubId
+      );
 
-      socket.clubId = clubId;
+      socket.clubId =
+        clubId;
 
       callback?.({
         success: true,
-        club: publicClub(club)
+        club:
+          publicClub(club)
       });
 
-      io.to(club.id).emit(
+      io.to(
+        club.id
+      ).emit(
         "clubUpdate",
         publicClub(club)
       );
     }
   );
 
-  /* =========================
+  /* ===================================================
      REQUEST SEAT
-  ========================= */
+  =================================================== */
 
-  socket.on("requestSeat", () => {
+  socket.on(
+    "requestSeat",
+    () => {
 
-    const club = clubs.get(socket.clubId);
+      const club =
+        clubs.get(
+          socket.clubId
+        );
 
-    if (!club) return;
-
-    if (!club.members.has(socket.username)) {
-      return;
-    }
-
-    if (!club.requests.includes(socket.username)) {
-      club.requests.push(socket.username);
-    }
-
-    io.to(club.id).emit(
-      "seatRequest",
-      {
-        username: socket.username
-      }
-    );
-
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
-  });
-
-  /* =========================
-     GIVE SEAT
-  ========================= */
-
-  socket.on("giveSeat", ({ username, seat }) => {
-
-    const club = clubs.get(socket.clubId);
-
-    if (!club) return;
-
-    if (socket.username !== club.owner) {
-      return;
-    }
-
-    seat = Number(seat);
-
-    if (
-      Number.isNaN(seat) ||
-      seat < 0 ||
-      seat >= 15
-    ) {
-      return;
-    }
-
-    if (club.seats[seat]) {
-      return;
-    }
-
-    const member =
-      club.members.get(username);
-
-    if (!member) return;
-
-    if (member.seat !== null) return;
-
-    club.seats[seat] = username;
-    member.seat = seat;
-
-    club.requests =
-      club.requests.filter(
-        u => u !== username
-      );
-
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
-
-    io.to(club.id).emit(
-      "seatGranted",
-      {
-        username,
-        seat
-      }
-    );
-  });
-
-  /* =========================
-     LEAVE SEAT
-  ========================= */
-
-  socket.on("leaveSeat", () => {
-
-    const club = clubs.get(socket.clubId);
-
-    if (!club) return;
-
-    const member =
-      club.members.get(socket.username);
-
-    if (!member) return;
-
-    if (member.seat !== null) {
-
-      club.seats[member.seat] = null;
-      member.seat = null;
-    }
-
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
-  });
-
-  /* =========================
-     SELF MUTE
-  ========================= */
-
-  socket.on("muteSelf", ({ muted }) => {
-
-    const club = clubs.get(socket.clubId);
-
-    if (!club) return;
-
-    const member =
-      club.members.get(socket.username);
-
-    if (!member) return;
-
-    member.muted = !!muted;
-
-    io.to(club.id).emit(
-      "memberMute",
-      {
-        username: socket.username,
-        muted: member.muted
-      }
-    );
-
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
-  });
-
-  /* =========================
-     OWNER MUTE
-  ========================= */
-
-  socket.on("ownerMute", ({ username }) => {
-
-    const club = clubs.get(socket.clubId);
-
-    if (!club) return;
-
-    if (socket.username !== club.owner) {
-      return;
-    }
-
-    const member =
-      club.members.get(username);
-
-    if (!member) return;
-
-    member.muted = true;
-
-    io.to(club.id).emit(
-      "memberMute",
-      {
-        username,
-        muted: true,
-        byOwner: true
-      }
-    );
-
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
-  });
-
-  /* =========================
-     REMOVE MEMBER
-  ========================= */
-
-  socket.on("removeMember", ({ username }) => {
-
-    const club = clubs.get(socket.clubId);
-
-    if (!club) return;
-
-    if (socket.username !== club.owner) {
-      return;
-    }
-
-    if (username === club.owner) {
-      return;
-    }
-
-    const member =
-      club.members.get(username);
-
-    if (!member) return;
-
-    if (member.seat !== null) {
-      club.seats[member.seat] = null;
-    }
-
-    club.members.delete(username);
-
-    club.requests =
-      club.requests.filter(
-        u => u !== username
-      );
-
-    for (
-      const s of io.sockets.sockets.values()
-    ) {
+      if (!club) return;
 
       if (
-        s.clubId === club.id &&
-        s.username === username
+        !club.members.has(
+          socket.username
+        )
+      ) {
+        return;
+      }
+
+      if (
+        !club.requests.includes(
+          socket.username
+        )
       ) {
 
-        s.emit("removedFromClub");
-
-        s.leave(club.id);
-
-        s.clubId = null;
+        club.requests.push(
+          socket.username
+        );
       }
+
+      io.to(
+        club.id
+      ).emit(
+        "seatRequest",
+        {
+          username:
+            socket.username
+        }
+      );
+
+      io.to(
+        club.id
+      ).emit(
+        "clubUpdate",
+        publicClub(club)
+      );
     }
+  );
 
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
-  });
+  /* ===================================================
+     GIVE SEAT
+  =================================================== */
 
-  /* =========================
+  socket.on(
+    "giveSeat",
+    ({ username, seat }) => {
+
+      const club =
+        clubs.get(
+          socket.clubId
+        );
+
+      if (!club) return;
+
+      if (
+        socket.username !==
+        club.owner
+      ) {
+        return;
+      }
+
+      seat =
+        Number(seat);
+
+      if (
+        Number.isNaN(seat) ||
+        seat < 0 ||
+        seat >= 15
+      ) {
+        return;
+      }
+
+      if (
+        club.seats[seat]
+      ) {
+        return;
+      }
+
+      const member =
+        club.members.get(
+          username
+        );
+
+      if (!member) return;
+
+      if (
+        member.seat !== null
+      ) {
+        return;
+      }
+
+      club.seats[seat] =
+        username;
+
+      member.seat =
+        seat;
+
+      club.requests =
+        club.requests.filter(
+          u =>
+            u !== username
+        );
+
+      io.to(
+        club.id
+      ).emit(
+        "clubUpdate",
+        publicClub(club)
+      );
+
+      io.to(
+        club.id
+      ).emit(
+        "seatGranted",
+        {
+          username,
+          seat
+        }
+      );
+    }
+  );
+
+  /* ===================================================
+     LEAVE SEAT
+  =================================================== */
+
+  socket.on(
+    "leaveSeat",
+    () => {
+
+      const club =
+        clubs.get(
+          socket.clubId
+        );
+
+      if (!club) return;
+
+      const member =
+        club.members.get(
+          socket.username
+        );
+
+      if (!member) return;
+
+      if (
+        member.seat !== null
+      ) {
+
+        club.seats[
+          member.seat
+        ] = null;
+
+        member.seat =
+          null;
+      }
+
+      io.to(
+        club.id
+      ).emit(
+        "clubUpdate",
+        publicClub(club)
+      );
+    }
+  );
+
+  /* ===================================================
+     MUTE
+  =================================================== */
+
+  socket.on(
+    "muteSelf",
+    ({ muted }) => {
+
+      const club =
+        clubs.get(
+          socket.clubId
+        );
+
+      if (!club) return;
+
+      const member =
+        club.members.get(
+          socket.username
+        );
+
+      if (!member) return;
+
+      member.muted =
+        !!muted;
+
+      io.to(
+        club.id
+      ).emit(
+        "memberMute",
+        {
+          username:
+            socket.username,
+          muted:
+            member.muted
+        }
+      );
+
+      io.to(
+        club.id
+      ).emit(
+        "clubUpdate",
+        publicClub(club)
+      );
+    }
+  );
+
+  /* OWNER MUTE */
+
+  socket.on(
+    "ownerMute",
+    ({ username }) => {
+
+      const club =
+        clubs.get(
+          socket.clubId
+        );
+
+      if (!club) return;
+
+      if (
+        socket.username !==
+        club.owner
+      ) {
+        return;
+      }
+
+      const member =
+        club.members.get(
+          username
+        );
+
+      if (!member) return;
+
+      member.muted =
+        true;
+
+      io.to(
+        club.id
+      ).emit(
+        "memberMute",
+        {
+          username,
+          muted: true,
+          byOwner: true
+        }
+      );
+
+      io.to(
+        club.id
+      ).emit(
+        "clubUpdate",
+        publicClub(club)
+      );
+    }
+  );
+
+  /* REMOVE */
+
+  socket.on(
+    "removeMember",
+    ({ username }) => {
+
+      const club =
+        clubs.get(
+          socket.clubId
+        );
+
+      if (!club) return;
+
+      if (
+        socket.username !==
+        club.owner
+      ) {
+        return;
+      }
+
+      if (
+        username ===
+        club.owner
+      ) {
+        return;
+      }
+
+      const member =
+        club.members.get(
+          username
+        );
+
+      if (!member) return;
+
+      if (
+        member.seat !== null
+      ) {
+
+        club.seats[
+          member.seat
+        ] = null;
+      }
+
+      club.members.delete(
+        username
+      );
+
+      club.requests =
+        club.requests.filter(
+          u =>
+            u !== username
+        );
+
+      for (
+        const s of
+        io.sockets.sockets.values()
+      ) {
+
+        if (
+          s.clubId ===
+            club.id &&
+          s.username ===
+            username
+        ) {
+
+          s.emit(
+            "removedFromClub"
+          );
+
+          s.leave(
+            club.id
+          );
+
+          s.clubId =
+            null;
+        }
+      }
+
+      io.to(
+        club.id
+      ).emit(
+        "clubUpdate",
+        publicClub(club)
+      );
+    }
+  );
+
+  /* ===================================================
      CLUB CHAT
-  ========================= */
+  =================================================== */
 
-  socket.on("chatMessage", ({ message }) => {
+  socket.on(
+    "chatMessage",
+    ({ message }) => {
 
-    const club = clubs.get(socket.clubId);
+      const club =
+        clubs.get(
+          socket.clubId
+        );
 
-    if (!club) return;
+      if (!club) return;
 
-    const text =
-      String(message || "").trim();
+      const text =
+        String(
+          message || ""
+        ).trim();
 
-    if (!text) return;
+      if (!text) return;
 
-    const item = {
-      username: socket.username,
-      message: text,
-      time: Date.now()
-    };
+      const item = {
+        username:
+          socket.username,
 
-    club.messages.push(item);
+        message:
+          text,
 
-    if (club.messages.length > 100) {
-      club.messages.shift();
+        time:
+          Date.now()
+      };
+
+      club.messages.push(
+        item
+      );
+
+      if (
+        club.messages.length >
+        100
+      ) {
+        club.messages.shift();
+      }
+
+      io.to(
+        club.id
+      ).emit(
+        "chatMessage",
+        item
+      );
     }
+  );
 
-    io.to(club.id).emit(
-      "chatMessage",
-      item
-    );
-  });
-
-  /* =========================
+  /* ===================================================
      GIFTS
-  ========================= */
+  =================================================== */
 
   socket.on(
     "sendGift",
     async ({ gift }) => {
 
-      const club = clubs.get(socket.clubId);
+      const club =
+        clubs.get(
+          socket.clubId
+        );
 
       if (!club) return;
 
@@ -1367,14 +1648,22 @@ io.on("connection", (socket) => {
         "👑"
       ];
 
-      if (!allowed.includes(gift)) {
+      if (
+        !allowed.includes(
+          gift
+        )
+      ) {
         return;
       }
 
       const item = {
-        username: socket.username,
+        username:
+          socket.username,
+
         gift,
-        time: Date.now()
+
+        time:
+          Date.now()
       };
 
       if (pool) {
@@ -1395,33 +1684,41 @@ io.on("connection", (socket) => {
         } catch (err) {
 
           console.error(
-            "Gift DB error:",
+            "Gift DB:",
             err.message
           );
         }
       }
 
-      io.to(club.id).emit(
+      io.to(
+        club.id
+      ).emit(
         "giftReceived",
         item
       );
     }
   );
 
-  /* ==================================================
+  /* ===================================================
      WEBRTC
-  ================================================== */
+  =================================================== */
 
   socket.on(
     "webrtc-offer",
     ({ target, offer }) => {
 
-      if (!target || !offer) return;
+      if (
+        !target ||
+        !offer
+      ) return;
 
-      io.to(target).emit(
+      io.to(
+        target
+      ).emit(
         "webrtc-offer",
         {
-          from: socket.id,
+          from:
+            socket.id,
           offer
         }
       );
@@ -1432,12 +1729,18 @@ io.on("connection", (socket) => {
     "webrtc-answer",
     ({ target, answer }) => {
 
-      if (!target || !answer) return;
+      if (
+        !target ||
+        !answer
+      ) return;
 
-      io.to(target).emit(
+      io.to(
+        target
+      ).emit(
         "webrtc-answer",
         {
-          from: socket.id,
+          from:
+            socket.id,
           answer
         }
       );
@@ -1448,27 +1751,36 @@ io.on("connection", (socket) => {
     "webrtc-ice",
     ({ target, candidate }) => {
 
-      if (!target || !candidate) return;
+      if (
+        !target ||
+        !candidate
+      ) return;
 
-      io.to(target).emit(
+      io.to(
+        target
+      ).emit(
         "webrtc-ice",
         {
-          from: socket.id,
+          from:
+            socket.id,
           candidate
         }
       );
     }
   );
 
-  /* =========================
-     GET CLUB MEMBERS
-  ========================= */
+  /* ===================================================
+     CLUB MEMBERS
+  =================================================== */
 
   socket.on(
     "getClubMembers",
     (callback) => {
 
-      const club = clubs.get(socket.clubId);
+      const club =
+        clubs.get(
+          socket.clubId
+        );
 
       if (!club) {
         return callback?.({
@@ -1478,75 +1790,41 @@ io.on("connection", (socket) => {
 
       callback?.({
         success: true,
-        members: [...club.members.values()]
+
+        members:
+          [...club.members.values()]
       });
     }
   );
 
-  /* =========================
+  /* ===================================================
      LEAVE CLUB
-  ========================= */
+  =================================================== */
 
-  socket.on("leaveClub", () => {
+  socket.on(
+    "leaveClub",
+    () => {
 
-    const club =
-      clubs.get(socket.clubId);
+      const club =
+        clubs.get(
+          socket.clubId
+        );
 
-    if (!club) return;
+      if (!club) return;
 
-    const member =
-      club.members.get(socket.username);
+      const member =
+        club.members.get(
+          socket.username
+        );
 
-    if (member && member.seat !== null) {
-      club.seats[member.seat] = null;
-    }
+      if (
+        member &&
+        member.seat !== null
+      ) {
 
-    club.members.delete(
-      socket.username
-    );
-
-    club.requests =
-      club.requests.filter(
-        u => u !== socket.username
-      );
-
-    socket.leave(club.id);
-
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
-
-    socket.clubId = null;
-  });
-
-  /* =========================
-     DISCONNECT
-  ========================= */
-
-  socket.on("disconnect", () => {
-
-    const club =
-      clubs.get(socket.clubId);
-
-    if (!club) {
-      console.log(
-        "🔴 Disconnected:",
-        socket.id
-      );
-      return;
-    }
-
-    const member =
-      club.members.get(socket.username);
-
-    if (
-      member &&
-      member.socketId === socket.id
-    ) {
-
-      if (member.seat !== null) {
-        club.seats[member.seat] = null;
+        club.seats[
+          member.seat
+        ] = null;
       }
 
       club.members.delete(
@@ -1555,78 +1833,159 @@ io.on("connection", (socket) => {
 
       club.requests =
         club.requests.filter(
-          u => u !== socket.username
+          u =>
+            u !==
+            socket.username
         );
 
-      io.to(club.id).emit(
+      socket.leave(
+        club.id
+      );
+
+      io.to(
+        club.id
+      ).emit(
         "clubUpdate",
         publicClub(club)
       );
+
+      socket.clubId =
+        null;
     }
+  );
 
-    console.log(
-      "🔴 Disconnected:",
-      socket.id
-    );
-  });
-});
+  /* ===================================================
+     DISCONNECT
+  =================================================== */
 
-/* ==================================================
-   HEALTH CHECK
-================================================== */
+  socket.on(
+    "disconnect",
+    () => {
 
-app.get("/health", (req, res) => {
+      const club =
+        clubs.get(
+          socket.clubId
+        );
 
-  res.json({
-    success: true,
+      if (!club) {
+        console.log(
+          "🔴 Disconnected:",
+          socket.id
+        );
+        return;
+      }
 
-    app: "Waliin-GM",
+      const member =
+        club.members.get(
+          socket.username
+        );
 
-    server: "online",
+      if (
+        member &&
+        member.socketId ===
+          socket.id
+      ) {
 
-    database: !!pool,
+        if (
+          member.seat !== null
+        ) {
 
-    features: {
-      login: true,
-      register: true,
-      profile: true,
-      userSearch: true,
-      privateChat: true,
-      follow: true,
-      notifications: true,
-      home: true,
-      voiceClub: true,
-      seats: 15,
-      requestSeat: true,
-      ownerControl: true,
-      mute: true,
-      remove: true,
-      clubChat: true,
-      gift: true,
-      webrtc: true,
-      socketIds: true
+          club.seats[
+            member.seat
+          ] = null;
+        }
+
+        club.members.delete(
+          socket.username
+        );
+
+        club.requests =
+          club.requests.filter(
+            u =>
+              u !==
+              socket.username
+          );
+
+        io.to(
+          club.id
+        ).emit(
+          "clubUpdate",
+          publicClub(club)
+        );
+      }
+
+      console.log(
+        "🔴 Disconnected:",
+        socket.id
+      );
     }
-  });
-});
-
-/* ==================================================
-   FRONTEND
-================================================== */
-
-app.get("*", (req, res) => {
-
-  res.sendFile(
-    path.join(
-      __dirname,
-      "public",
-      "index.html"
-    )
   );
 });
 
-/* ==================================================
-   START SERVER
-================================================== */
+/* =====================================================
+   HEALTH
+===================================================== */
+
+app.get(
+  "/health",
+  (req, res) => {
+
+    res.json({
+      success: true,
+
+      app:
+        "Waliin-GM",
+
+      server:
+        "online",
+
+      database:
+        !!pool,
+
+      features: {
+        login: true,
+        register: true,
+        profile: true,
+        search: true,
+        follow: true,
+        notifications: true,
+        privateChat: true,
+        home: true,
+        voiceClub: true,
+        seats: 15,
+        requestSeat: true,
+        ownerControl: true,
+        mute: true,
+        remove: true,
+        clubChat: true,
+        gift: true,
+        webrtc: true
+      }
+    });
+  }
+);
+
+/* =====================================================
+   FRONTEND
+===================================================== */
+
+app.get(
+  "*",
+  (req, res) => {
+
+    res.sendFile(
+      path.join(
+        __dirname,
+        "public",
+        "index.html"
+      )
+    );
+  }
+);
+
+/* =====================================================
+   START
+===================================================== */
 
 async function startServer() {
 
@@ -1642,7 +2001,6 @@ async function startServer() {
         console.log(
           `🚀 Waliin-GM server running on port ${PORT}`
         );
-
       }
     );
 
