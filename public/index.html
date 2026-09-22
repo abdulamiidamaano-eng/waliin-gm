@@ -1,657 +1,873 @@
 <!DOCTYPE html>
 <html lang="om">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#176b45">
+  <title>Waliin-GM</title>
 
-<title>Waliin-GM</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<script src="/socket.io/socket.io.js"></script>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6f5;
+      color: #17231e;
+    }
 
-<style>
-* {
-  box-sizing: border-box;
-}
+    button,
+    input {
+      font: inherit;
+    }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #eef6f1;
-  color: #17221d;
-}
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 15px;
+      cursor: pointer;
+      background: #176b45;
+      color: white;
+      font-weight: bold;
+    }
 
-header {
-  background: #087443;
-  color: white;
-  padding: 18px;
-  text-align: center;
-  font-size: 27px;
-  font-weight: bold;
-}
+    button.secondary {
+      background: #e2ebe6;
+      color: #176b45;
+    }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 15px;
-}
+    button.danger {
+      background: #c62828;
+    }
 
-.card {
-  background: white;
-  padding: 18px;
-  border-radius: 16px;
-  margin-bottom: 15px;
-  box-shadow: 0 3px 12px #0001;
-}
+    button.gold {
+      background: #b8860b;
+    }
 
-button {
-  border: none;
-  padding: 12px 15px;
-  margin: 5px;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #087443;
-  color: white;
-  font-size: 15px;
-}
+    input {
+      width: 100%;
+      padding: 13px;
+      margin: 7px 0;
+      border: 1px solid #ccd8d2;
+      border-radius: 10px;
+      outline: none;
+    }
 
-button.secondary {
-  background: #555;
-}
+    .hidden {
+      display: none !important;
+    }
 
-button.danger {
-  background: #b3261e;
-}
+    .page {
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
 
-button.gold {
-  background: #b8860b;
-}
+    .topbar {
+      background: #176b45;
+      color: white;
+      padding: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-button.blue {
-  background: #1769aa;
-}
+    .topbar h2 {
+      margin: 0;
+      font-size: 20px;
+    }
 
-input,
-select {
-  width: 100%;
-  padding: 13px;
-  margin: 6px 0 10px;
-  border: 1px solid #ccc;
-  border-radius: 9px;
-}
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 15px;
+    }
 
-.hidden {
-  display: none !important;
-}
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 16px;
+      margin: 12px 0;
+      box-shadow: 0 3px 12px rgba(0,0,0,.07);
+    }
 
-.menu {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
+    .auth {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
-.menu button {
-  min-height: 65px;
-}
+    .auth-card {
+      width: 100%;
+      max-width: 430px;
+      background: white;
+      border-radius: 22px;
+      padding: 25px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.12);
+    }
 
-.auth-tabs {
-  display: flex;
-  gap: 5px;
-}
+    .logo {
+      width: 75px;
+      height: 75px;
+      margin: auto;
+      border-radius: 50%;
+      background: #176b45;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: bold;
+    }
 
-.auth-tabs button {
-  flex: 1;
-}
+    .center {
+      text-align: center;
+    }
 
-.auth-tabs .active {
-  background: #055c35;
-}
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin: 15px 0;
+    }
 
-.seats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
+    .tabs button {
+      flex: 1;
+    }
 
-.seat {
-  min-height: 95px;
-  border: 2px solid #ddd;
-  border-radius: 14px;
-  padding: 10px;
-  text-align: center;
-  background: #fafafa;
-}
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
 
-.seat.occupied {
-  border-color: #087443;
-  background: #e5f6ec;
-}
+    .home-btn {
+      min-height: 90px;
+      background: white;
+      color: #176b45;
+      border: 1px solid #dce8e2;
+      font-size: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.05);
+    }
 
-.seat.owner {
-  border-color: #d19b00;
-  background: #fff7d6;
-}
+    .home-btn span {
+      display: block;
+      font-size: 27px;
+      margin-bottom: 7px;
+    }
 
-.listeners {
-  padding: 13px;
-  background: #eee;
-  border-radius: 10px;
-  margin-top: 12px;
-}
+    .room-head {
+      background: #176b45;
+      color: white;
+      border-radius: 18px;
+      padding: 17px;
+      margin-bottom: 12px;
+    }
 
-.chat {
-  height: 220px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-}
+    .room-head h2 {
+      margin: 0 0 5px;
+    }
 
-.msg {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-}
+    .seat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
 
-.status {
-  padding: 12px;
-  border-radius: 10px;
-  background: #e7f6ee;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
+    .seat {
+      min-height: 85px;
+      background: #eef4f1;
+      color: #176b45;
+      border: 2px solid #d5e3dc;
+      border-radius: 15px;
+      padding: 8px;
+      text-align: center;
+    }
 
-.request {
-  background: #f5f5f5;
-  padding: 10px;
-  margin: 6px 0;
-  border-radius: 10px;
-}
+    .seat.occupied {
+      background: #dcefe5;
+      border-color: #176b45;
+    }
 
-.gifts {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 5px;
-}
+    .seat.owner {
+      border-color: #d39b00;
+    }
 
-.gifts button {
-  font-size: 25px;
-  margin: 2px;
-}
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #176b45;
+      color: white;
+      margin: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+    }
 
-#remoteAudios audio {
-  width: 100%;
-  margin: 5px 0;
-}
+    .chat-box {
+      height: 240px;
+      overflow-y: auto;
+      background: #f1f5f3;
+      padding: 10px;
+      border-radius: 12px;
+    }
 
-.feature-box {
-  padding: 15px;
-  border-radius: 12px;
-  background: #f4f8f5;
-  margin-top: 10px;
-}
+    .chat-message {
+      background: white;
+      padding: 8px 10px;
+      border-radius: 10px;
+      margin-bottom: 7px;
+    }
 
-@media(max-width:600px) {
-  .seats {
-    grid-template-columns: repeat(2, 1fr);
-  }
+    .chat-name {
+      color: #176b45;
+      font-weight: bold;
+      font-size: 13px;
+    }
 
-  .menu {
-    grid-template-columns: 1fr;
-  }
+    .chat-input {
+      display: flex;
+      gap: 7px;
+      margin-top: 8px;
+    }
 
-  .gifts {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-</style>
+    .chat-input input {
+      margin: 0;
+    }
+
+    .gift-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+    }
+
+    .gift {
+      font-size: 27px;
+      padding: 10px 5px;
+      background: #fff7df;
+      color: #333;
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px;
+      background: #f5f8f6;
+      border-radius: 10px;
+      margin: 6px 0;
+    }
+
+    .member-row .name {
+      flex: 1;
+    }
+
+    .small {
+      font-size: 12px;
+      opacity: .75;
+    }
+
+    .status {
+      padding: 10px;
+      border-radius: 10px;
+      background: #edf5f1;
+      color: #176b45;
+      margin: 8px 0;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #ddd;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px;
+      z-index: 30;
+    }
+
+    .bottom-nav button {
+      background: transparent;
+      color: #176b45;
+      padding: 7px;
+      font-size: 12px;
+    }
+
+    .bottom-nav span {
+      display: block;
+      font-size: 20px;
+    }
+
+    #remoteAudio {
+      width: 100%;
+    }
+
+    .notification {
+      position: fixed;
+      top: 70px;
+      left: 15px;
+      right: 15px;
+      background: #176b45;
+      color: white;
+      padding: 13px;
+      border-radius: 12px;
+      z-index: 100;
+      display: none;
+    }
+
+    @media (max-width: 430px) {
+      .seat-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .gift-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<header>💚 WALIIN-GM</header>
+<div id="notification" class="notification"></div>
 
-<div class="container">
+<!-- ================= AUTH ================= -->
 
-<!-- =========================
-     AUTH
-========================= -->
+<section id="authPage" class="auth">
 
-<div id="authPage" class="card">
+  <div class="auth-card">
 
-  <h2>🔐 Waliin-GM</h2>
+    <div class="logo">W</div>
 
-  <div class="auth-tabs">
-    <button id="loginTab"
-            class="active"
-            onclick="showLogin()">
-      Seeni
-    </button>
+    <h1 class="center">Waliin-GM</h1>
 
-    <button id="registerTab"
-            onclick="showRegister()">
-      Account Uumi
-    </button>
-  </div>
-
-  <!-- LOGIN -->
-
-  <div id="loginForm">
-
-    <h3>🚪 Sign in</h3>
-
-    <input
-      id="loginEmail"
-      type="email"
-      placeholder="Email"
-    >
-
-    <input
-      id="loginPassword"
-      type="password"
-      placeholder="Password"
-    >
-
-    <button onclick="loginUser()">
-      🔐 Seeni
-    </button>
-
-  </div>
-
-  <!-- REGISTER -->
-
-  <div id="registerForm" class="hidden">
-
-    <h3>📝 Register</h3>
-
-    <input
-      id="registerUsername"
-      placeholder="Username"
-    >
-
-    <input
-      id="registerEmail"
-      type="email"
-      placeholder="Email"
-    >
-
-    <input
-      id="registerPassword"
-      type="password"
-      placeholder="Password — yoo xiqqaate 6"
-    >
-
-    <button onclick="registerUser()">
-      📝 Account Uumi
-    </button>
-
-  </div>
-
-  <div id="authMessage"></div>
-
-</div>
-
-
-<!-- =========================
-     HOME
-========================= -->
-
-<div id="homePage" class="hidden">
-
-  <div class="card">
-
-    <h2>
-      🏠 Home
-    </h2>
-
-    <p>
-      👤 Baga nagaan dhuftan,
-      <b id="userDisplay"></b>
+    <p class="center">
+      Chat • Voice Club • Video • Call
     </p>
 
-    <div class="menu">
+    <div class="tabs">
+      <button onclick="showLogin()">Seeni</button>
+      <button class="secondary" onclick="showRegister()">Account Uumi</button>
+    </div>
 
-      <button onclick="openClubCreator()">
-        ➕ Create Club
-      </button>
+    <div id="loginBox">
 
-      <button onclick="showJoin()">
-        🚪 Join Club
-      </button>
+      <h3>Seensa</h3>
 
-      <button onclick="showInfo('💬 Chat')">
-        💬 Chat
-      </button>
+      <input
+        id="loginEmail"
+        type="email"
+        placeholder="Email"
+      >
 
-      <button onclick="showInfo('🎥 Video Room')">
-        🎥 Video Room
-      </button>
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+      >
 
-      <button onclick="showInfo('📞 Call')">
-        📞 Call
-      </button>
-
-      <button onclick="showInfo('👥 Club')">
-        👥 Club
-      </button>
-
-      <button onclick="showInfo('❤️ Follow')">
-        ❤️ Follow
-      </button>
-
-      <button onclick="showInfo('🔎 Search')">
-        🔎 Search
-      </button>
-
-      <button onclick="showInfo('👤 Profile')">
-        👤 Profile
-      </button>
-
-      <button onclick="showInfo('🔔 Notifications')">
-        🔔 Notifications
-      </button>
-
-      <button onclick="showInfo('⚙️ Settings')">
-        ⚙️ Settings
-      </button>
-
-      <button
-        class="danger"
-        onclick="logoutUser()">
-        🚪 Logout
+      <button style="width:100%" onclick="login()">
+        🔐 Seeni
       </button>
 
     </div>
 
+    <div id="registerBox" class="hidden">
+
+      <h3>Account Uumi</h3>
+
+      <input
+        id="registerUsername"
+        placeholder="Username"
+      >
+
+      <input
+        id="registerEmail"
+        type="email"
+        placeholder="Email"
+      >
+
+      <input
+        id="registerPassword"
+        type="password"
+        placeholder="Password (6+)"
+      >
+
+      <button style="width:100%" onclick="register()">
+        ➕ Account Uumi
+      </button>
+
+    </div>
+
+    <p id="authStatus" class="small center"></p>
+
   </div>
+
+</section>
+
+
+<!-- ================= APP ================= -->
+
+<section id="appPage" class="page hidden">
+
+  <div class="topbar">
+
+    <h2>Waliin-GM</h2>
+
+    <div>
+      <span id="topUsername"></span>
+    </div>
+
+  </div>
+
+
+  <!-- HOME -->
+
+  <main id="homePage" class="container">
+
+    <div class="card">
+
+      <h2>👋 Baga Nagaan Dhuftan</h2>
+
+      <p>
+        Waliin-GM keessatti namoota waliin haasa'i,
+        Voice Club seeni, chat godhi.
+      </p>
+
+    </div>
+
+    <div class="home-grid">
+
+      <button class="home-btn" onclick="showCreateClub()">
+        <span>➕</span>
+        Create Club
+      </button>
+
+      <button class="home-btn" onclick="showJoinClub()">
+        <span>🔗</span>
+        Join Club
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Chat')">
+        <span>💬</span>
+        Chat
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Video Room')">
+        <span>🎥</span>
+        Video Room
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Call')">
+        <span>📞</span>
+        Call
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Club')">
+        <span>👥</span>
+        Club
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Follow')">
+        <span>❤️</span>
+        Follow
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Search')">
+        <span>🔎</span>
+        Search
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Profile')">
+        <span>👤</span>
+        Profile
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Notifications')">
+        <span>🔔</span>
+        Notifications
+      </button>
+
+      <button class="home-btn" onclick="showInfo('Settings')">
+        <span>⚙️</span>
+        Settings
+      </button>
+
+      <button class="home-btn" onclick="logout()">
+        <span>🚪</span>
+        Logout
+      </button>
+
+    </div>
+
+  </main>
 
 
   <!-- CREATE CLUB -->
 
-  <div id="clubCreator" class="card hidden">
+  <main id="createPage" class="container hidden">
 
-    <h2>🎙️ Create Voice Club</h2>
+    <div class="card">
 
-    <input
-      id="clubName"
-      placeholder="Maqaa Club"
-    >
+      <h2>➕ Create Voice Club</h2>
 
-    <label>💺 Baay'ina Seat</label>
+      <input
+        id="clubName"
+        placeholder="Maqaa Club"
+      >
 
-    <select id="seatCount">
+      <button style="width:100%" onclick="createClub()">
+        ➕ Create Club
+      </button>
 
-      <option value="10">
-        10 Seats
-      </option>
+      <button
+        class="secondary"
+        style="width:100%;margin-top:8px"
+        onclick="goHome()"
+      >
+        ← Home
+      </button>
 
-      <option value="15">
-        15 Seats
-      </option>
+    </div>
 
-    </select>
-
-    <button onclick="createClub()">
-      ➕ Create Club
-    </button>
-
-    <button
-      class="secondary"
-      onclick="hideCreator()">
-      Cufi
-    </button>
-
-  </div>
+  </main>
 
 
   <!-- JOIN CLUB -->
 
-  <div id="joinBox" class="card hidden">
+  <main id="joinPage" class="container hidden">
 
-    <h2>🚪 Join Voice Club</h2>
+    <div class="card">
 
-    <input
-      id="joinCode"
-      placeholder="Club ID"
+      <h2>🔗 Join Voice Club</h2>
+
+      <input
+        id="joinClubId"
+        placeholder="Club ID"
+      >
+
+      <button style="width:100%" onclick="joinClub()">
+        🔗 Join Club
+      </button>
+
+      <button
+        class="secondary"
+        style="width:100%;margin-top:8px"
+        onclick="goHome()"
+      >
+        ← Home
+      </button>
+
+    </div>
+
+  </main>
+
+
+  <!-- VOICE CLUB -->
+
+  <main id="voicePage" class="container hidden">
+
+    <div class="room-head">
+
+      <h2 id="roomName">
+        🎙️ Voice Club
+      </h2>
+
+      <div>
+        ID:
+        <b id="roomId"></b>
+      </div>
+
+      <div>
+        👑 Owner:
+        <span id="roomOwner"></span>
+      </div>
+
+      <div>
+        👥 Members:
+        <span id="memberCount">0</span>
+      </div>
+
+      <div>
+        👂 Listeners:
+        <span id="listenerCount">0</span>
+      </div>
+
+    </div>
+
+
+    <div id="roomStatus" class="status">
+      Connecting...
+    </div>
+
+
+    <!-- ROOM CONTROLS -->
+
+    <div class="card">
+
+      <h3>🎙️ Controls</h3>
+
+      <button onclick="requestSeat()">
+        🙋 Request Seat
+      </button>
+
+      <button
+        class="secondary"
+        onclick="leaveSeat()"
+      >
+        🪑 Leave Seat
+      </button>
+
+      <button
+        class="secondary"
+        onclick="toggleMic()"
+      >
+        🎤 <span id="micText">Mic ON</span>
+      </button>
+
+      <button
+        class="secondary"
+        onclick="shareClub()"
+      >
+        🔗 Share
+      </button>
+
+      <button
+        class="danger"
+        onclick="leaveClub()"
+      >
+        🚪 Leave Room
+      </button>
+
+    </div>
+
+
+    <!-- SEATS -->
+
+    <div class="card">
+
+      <h3>🪑 Speaker Seats — 15</h3>
+
+      <div id="seatGrid" class="seat-grid"></div>
+
+    </div>
+
+
+    <!-- GIFTS -->
+
+    <div class="card">
+
+      <h3>🎁 Gifts</h3>
+
+      <div class="gift-grid">
+
+        <button class="gift" onclick="sendGift('❤️')">
+          ❤️
+        </button>
+
+        <button class="gift" onclick="sendGift('🌹')">
+          🌹
+        </button>
+
+        <button class="gift" onclick="sendGift('🎁')">
+          🎁
+        </button>
+
+        <button class="gift" onclick="sendGift('⭐')">
+          ⭐
+        </button>
+
+        <button class="gift" onclick="sendGift('👑')">
+          👑
+        </button>
+
+      </div>
+
+      <p id="giftStatus" class="small"></p>
+
+    </div>
+
+
+    <!-- AUDIO -->
+
+    <div class="card">
+
+      <h3>🔊 Voice</h3>
+
+      <audio id="remoteAudio" autoplay controls></audio>
+
+      <p class="small">
+        Microphone browser irraa hayyama gaafachuu danda'a.
+      </p>
+
+    </div>
+
+
+    <!-- CHAT -->
+
+    <div class="card">
+
+      <h3>💬 Club Chat</h3>
+
+      <div id="chatBox" class="chat-box"></div>
+
+      <div class="chat-input">
+
+        <input
+          id="chatInput"
+          placeholder="Ergaa barreessi..."
+          onkeydown="if(event.key==='Enter') sendChat()"
+        >
+
+        <button onclick="sendChat()">
+          ➤
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- MEMBERS -->
+
+    <div class="card">
+
+      <h3>👥 Members</h3>
+
+      <div id="memberList"></div>
+
+    </div>
+
+
+    <!-- OWNER -->
+
+    <div
+      id="ownerPanel"
+      class="card hidden"
     >
 
-    <button onclick="joinClub()">
-      🚪 Join
-    </button>
+      <h3>👑 Owner / Admin</h3>
 
-    <button
-      class="secondary"
-      onclick="hideJoin()">
-      Cufi
-    </button>
+      <div id="requestsList"></div>
 
-  </div>
+    </div>
+
+  </main>
+
+
+  <!-- INFO -->
+
+  <main id="infoPage" class="container hidden">
+
+    <div class="card center">
+
+      <h2 id="infoTitle"></h2>
+
+      <p id="infoText"></p>
+
+      <button onclick="goHome()">
+        ← Home
+      </button>
+
+    </div>
+
+  </main>
+
+</section>
+
+
+<!-- BOTTOM NAV -->
+
+<div id="bottomNav" class="bottom-nav hidden">
+
+  <button onclick="goHome()">
+    <span>🏠</span>
+    Home
+  </button>
+
+  <button onclick="showCreateClub()">
+    <span>➕</span>
+    Club
+  </button>
+
+  <button onclick="showInfo('Search')">
+    <span>🔎</span>
+    Search
+  </button>
+
+  <button onclick="showInfo('Profile')">
+    <span>👤</span>
+    Profile
+  </button>
 
 </div>
 
 
-<!-- =========================
-     VOICE ROOM
-========================= -->
-
-<div id="clubPage" class="hidden">
-
-  <div class="card">
-
-    <h2>
-      🎙️ <span id="clubTitle"></span>
-    </h2>
-
-    <div class="status">
-
-      🔗 Club ID:
-      <b id="clubIdText"></b>
-
-      <br><br>
-
-      👥 Members:
-      <b id="memberCount">0</b>
-
-    </div>
-
-    <div id="myStatus"></div>
-
-    <button onclick="requestSeat()">
-      🙋 Request Seat
-    </button>
-
-    <button
-      class="secondary"
-      onclick="leaveSeat()">
-      💺 Leave Seat
-    </button>
-
-    <button onclick="toggleMic()">
-      🎤 Mic ON/OFF
-    </button>
-
-    <button
-      class="blue"
-      onclick="shareClub()">
-      🔗 Share
-    </button>
-
-    <button
-      class="danger"
-      onclick="leaveClub()">
-      🚪 Leave Room
-    </button>
-
-  </div>
-
-
-  <!-- SEATS -->
-
-  <div class="card">
-
-    <h3>💺 Voice Seats</h3>
-
-    <div id="seats" class="seats"></div>
-
-    <div class="listeners">
-
-      👂 Listeners:
-      <b id="listenerCount">0</b>
-
-    </div>
-
-  </div>
-
-
-  <!-- GIFTS -->
-
-  <div class="card">
-
-    <h3>🎁 Gifts</h3>
-
-    <p>
-      Gift tokko filadhu:
-    </p>
-
-    <div class="gifts">
-
-      <button onclick="sendGift('❤️')">
-        ❤️
-      </button>
-
-      <button onclick="sendGift('🌹')">
-        🌹
-      </button>
-
-      <button onclick="sendGift('🎁')">
-        🎁
-      </button>
-
-      <button onclick="sendGift('⭐')">
-        ⭐
-      </button>
-
-      <button onclick="sendGift('👑')">
-        👑
-      </button>
-
-    </div>
-
-    <div id="giftStatus"
-         class="feature-box">
-      🎁 Gift as hin ergamne.
-    </div>
-
-  </div>
-
-
-  <!-- AUDIO -->
-
-  <div class="card">
-
-    <h3>🔊 Sagalee</h3>
-
-    <div id="remoteAudios"></div>
-
-  </div>
-
-
-  <!-- CHAT -->
-
-  <div class="card">
-
-    <h3>💬 Club Chat</h3>
-
-    <div id="chat" class="chat"></div>
-
-    <input
-      id="chatInput"
-      placeholder="Ergaa barreessi..."
-    >
-
-    <button onclick="sendChat()">
-      📤 Ergi
-    </button>
-
-  </div>
-
-
-  <!-- OWNER -->
-
-  <div
-    id="adminBox"
-    class="card hidden">
-
-    <h3>👑 Owner Control</h3>
-
-    <div id="requests"></div>
-
-  </div>
-
-</div>
-
-
-<!-- INFO -->
-
-<div
-  id="info"
-  class="card hidden">
-</div>
-
+<script src="/socket.io/socket.io.js"></script>
 
 <script>
 
-const socket = io();
+let socket = null;
 
-let username = "";
-let authToken = "";
+let currentUser = "";
+let token = "";
+
 let currentClub = null;
-
-let muted = true;
 let localStream = null;
+let micMuted = false;
 
-const peers = {};
+const peers = new Map();
 
 
 /* =========================
-   AUTH UI
+   ELEMENT
+========================= */
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+
+/* =========================
+   NOTIFICATION
+========================= */
+
+function notify(message) {
+
+  const box = $("notification");
+
+  box.textContent = message;
+  box.style.display = "block";
+
+  setTimeout(() => {
+    box.style.display = "none";
+  }, 3000);
+}
+
+
+/* =========================
+   AUTH TABS
 ========================= */
 
 function showLogin() {
 
-  document
-    .getElementById("loginForm")
-    .classList.remove("hidden");
-
-  document
-    .getElementById("registerForm")
-    .classList.add("hidden");
-
-  document
-    .getElementById("loginTab")
-    .classList.add("active");
-
-  document
-    .getElementById("registerTab")
-    .classList.remove("active");
+  $("loginBox").classList.remove("hidden");
+  $("registerBox").classList.add("hidden");
 }
-
 
 function showRegister() {
 
-  document
-    .getElementById("loginForm")
-    .classList.add("hidden");
-
-  document
-    .getElementById("registerForm")
-    .classList.remove("hidden");
-
-  document
-    .getElementById("loginTab")
-    .classList.remove("active");
-
-  document
-    .getElementById("registerTab")
-    .classList.add("active");
+  $("loginBox").classList.add("hidden");
+  $("registerBox").classList.remove("hidden");
 }
 
 
@@ -659,89 +875,69 @@ function showRegister() {
    REGISTER
 ========================= */
 
-async function registerUser() {
+async function register() {
 
-  const user =
-    document
-      .getElementById("registerUsername")
-      .value.trim();
+  const username =
+    $("registerUsername").value.trim();
 
   const email =
-    document
-      .getElementById("registerEmail")
-      .value.trim();
+    $("registerEmail").value.trim();
 
   const password =
-    document
-      .getElementById("registerPassword")
-      .value;
+    $("registerPassword").value;
 
-  if (!user || !email || !password) {
-
-    showAuthMessage(
-      "⚠️ Odeeffannoo hunda guuti.",
-      true
-    );
-
+  if (!username || !email || !password) {
+    notify("Odeeffannoo hunda guuti.");
     return;
   }
 
+  $("authStatus").textContent =
+    "Account uumamaa jira...";
+
   try {
 
-    const response =
-      await fetch("/api/register", {
-
+    const response = await fetch(
+      "/api/register",
+      {
         method: "POST",
-
         headers: {
-          "Content-Type":
-            "application/json"
+          "Content-Type": "application/json"
         },
-
         body: JSON.stringify({
-          username: user,
+          username,
           email,
           password
         })
+      }
+    );
 
-      });
+    const data = await response.json();
 
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-
-      showAuthMessage(
-        "❌ " + data.message,
-        true
-      );
-
+    if (!data.success) {
+      $("authStatus").textContent =
+        data.message || "Register failed";
       return;
     }
 
-    authToken = data.token;
-
-    username =
-      data.user.username;
-
     localStorage.setItem(
-      "waliinToken",
-      authToken
+      "waliin_token",
+      data.user.token
     );
 
     localStorage.setItem(
-      "waliinUsername",
-      username
+      "waliin_username",
+      data.user.username
     );
 
-    openHome();
+    currentUser = data.user.username;
+    token = data.user.token;
 
-  } catch (error) {
+    openApp();
 
-    showAuthMessage(
-      "❌ Server waliin wal qunnamtiin hin jiru.",
-      true
-    );
+  } catch (err) {
+
+    $("authStatus").textContent =
+      "Server waliin wal qunnamtiin dadhabe.";
   }
 }
 
@@ -750,218 +946,324 @@ async function registerUser() {
    LOGIN
 ========================= */
 
-async function loginUser() {
+async function login() {
 
   const email =
-    document
-      .getElementById("loginEmail")
-      .value.trim();
+    $("loginEmail").value.trim();
 
   const password =
-    document
-      .getElementById("loginPassword")
-      .value;
+    $("loginPassword").value;
 
   if (!email || !password) {
-
-    showAuthMessage(
-      "⚠️ Email fi password guuti.",
-      true
-    );
-
+    notify("Email fi password guuti.");
     return;
   }
 
+  $("authStatus").textContent =
+    "Seenaa jira...";
+
   try {
 
-    const response =
-      await fetch("/api/login", {
-
+    const response = await fetch(
+      "/api/login",
+      {
         method: "POST",
-
         headers: {
-          "Content-Type":
-            "application/json"
+          "Content-Type": "application/json"
         },
-
         body: JSON.stringify({
           email,
           password
         })
+      }
+    );
 
-      });
+    const data = await response.json();
 
-    const data =
-      await response.json();
+    if (!data.success) {
 
-    if (!response.ok) {
-
-      showAuthMessage(
-        "❌ " + data.message,
-        true
-      );
+      $("authStatus").textContent =
+        data.message || "Login failed";
 
       return;
     }
 
-    authToken =
-      data.token;
-
-    username =
-      data.user.username;
-
     localStorage.setItem(
-      "waliinToken",
-      authToken
+      "waliin_token",
+      data.user.token
     );
 
     localStorage.setItem(
-      "waliinUsername",
-      username
+      "waliin_username",
+      data.user.username
     );
 
-    openHome();
+    currentUser = data.user.username;
+    token = data.user.token;
 
-  } catch (error) {
+    openApp();
 
-    showAuthMessage(
-      "❌ Server waliin wal qunnamtiin hin jiru.",
-      true
-    );
+  } catch (err) {
+
+    $("authStatus").textContent =
+      "Server waliin wal qunnamtiin dadhabe.";
   }
 }
 
 
-function showAuthMessage(
-  message,
-  error = false
-) {
+/* =========================
+   OPEN APP
+========================= */
 
-  const box =
-    document.getElementById(
-      "authMessage"
-    );
+function openApp() {
 
-  box.textContent = message;
+  $("authPage").classList.add("hidden");
+  $("appPage").classList.remove("hidden");
+  $("bottomNav").classList.remove("hidden");
 
-  box.style.color =
-    error ? "#b3261e" : "#087443";
+  $("topUsername").textContent =
+    currentUser;
 
-  box.style.fontWeight =
-    "bold";
+  connectSocket();
+
+  goHome();
 }
 
 
 /* =========================
-   HOME
+   SOCKET
 ========================= */
 
-function openHome() {
+function connectSocket() {
 
-  document
-    .getElementById("authPage")
-    .classList.add("hidden");
+  if (socket) return;
 
-  document
-    .getElementById("clubPage")
-    .classList.add("hidden");
+  socket = io();
 
-  document
-    .getElementById("homePage")
-    .classList.remove("hidden");
+  socket.on("connect", () => {
 
-  document
-    .getElementById("userDisplay")
-    .textContent = username;
-}
+    console.log("Socket connected");
+
+    $("roomStatus").textContent =
+      "🟢 Server waliin walqabame.";
+  });
 
 
-/* =========================
-   AUTO LOGIN
-========================= */
+  socket.on("disconnect", () => {
 
-window.addEventListener(
-  "load",
-  () => {
+    if (!$("voicePage").classList.contains("hidden")) {
 
-    const savedToken =
-      localStorage.getItem(
-        "waliinToken"
-      );
-
-    const savedUsername =
-      localStorage.getItem(
-        "waliinUsername"
-      );
-
-    if (
-      savedToken &&
-      savedUsername
-    ) {
-
-      authToken =
-        savedToken;
-
-      username =
-        savedUsername;
-
-      openHome();
+      $("roomStatus").textContent =
+        "🔴 Server irraa addaan cite.";
     }
-  }
-);
+  });
+
+
+  /* CLUB UPDATE */
+
+  socket.on("clubUpdate", club => {
+
+    currentClub = club;
+
+    renderClub();
+
+  });
+
+
+  /* CHAT */
+
+  socket.on("chatMessage", item => {
+
+    addChatMessage(
+      item.username,
+      item.message
+    );
+  });
+
+
+  /* GIFT */
+
+  socket.on("giftReceived", item => {
+
+    $("giftStatus").textContent =
+      item.username +
+      " → " +
+      item.gift;
+
+    notify(
+      "🎁 " +
+      item.username +
+      " " +
+      item.gift +
+      " erge!"
+    );
+  });
+
+
+  /* REQUEST */
+
+  socket.on("seatRequest", data => {
+
+    notify(
+      "🙋 " +
+      data.username +
+      " seat gaafate."
+    );
+
+    renderClub();
+  });
+
+
+  /* SEAT */
+
+  socket.on("seatGranted", data => {
+
+    if (data.username === currentUser) {
+
+      notify(
+        "🎉 Seat " +
+        (data.seat + 1) +
+        " siif kenname!"
+      );
+
+      startMicrophone();
+    }
+  });
+
+
+  /* MUTE */
+
+  socket.on("memberMute", data => {
+
+    if (data.username === currentUser) {
+
+      micMuted = true;
+
+      if (localStream) {
+
+        localStream
+          .getAudioTracks()
+          .forEach(track => {
+            track.enabled = false;
+          });
+      }
+
+      $("micText").textContent =
+        "Mic OFF";
+
+      notify(
+        data.byOwner
+          ? "🔇 Owner si mute godhe."
+          : "Mic OFF"
+      );
+    }
+
+    renderClub();
+  });
+
+
+  /* REMOVE */
+
+  socket.on("removedFromClub", () => {
+
+    notify("🚫 Club keessaa baafamte.");
+
+    stopMicrophone();
+
+    currentClub = null;
+
+    showPage("homePage");
+  });
+
+
+  /* WEBRTC */
+
+  socket.on("webrtc-offer", async data => {
+
+    await handleOffer(
+      data.from,
+      data.offer
+    );
+  });
+
+
+  socket.on("webrtc-answer", async data => {
+
+    const pc = peers.get(data.from);
+
+    if (!pc) return;
+
+    await pc.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
+  });
+
+
+  socket.on("webrtc-ice", async data => {
+
+    const pc = peers.get(data.from);
+
+    if (!pc || !data.candidate) return;
+
+    try {
+
+      await pc.addIceCandidate(
+        new RTCIceCandidate(data.candidate)
+      );
+
+    } catch (err) {
+      console.log("ICE error", err);
+    }
+  });
+}
 
 
 /* =========================
-   LOGOUT
+   PAGES
 ========================= */
 
-async function logoutUser() {
+function showPage(id) {
 
-  if (currentClub) {
-    leaveClub();
-  }
+  const pages = [
+    "homePage",
+    "createPage",
+    "joinPage",
+    "voicePage",
+    "infoPage"
+  ];
 
-  try {
+  pages.forEach(page => {
+    $(page).classList.add("hidden");
+  });
 
-    await fetch("/api/logout", {
+  $(id).classList.remove("hidden");
+}
 
-      method: "POST",
+function goHome() {
 
-      headers: {
-        "Content-Type":
-          "application/json"
-      },
+  showPage("homePage");
+}
 
-      body: JSON.stringify({
-        token: authToken
-      })
+function showCreateClub() {
 
-    });
+  showPage("createPage");
+}
 
-  } catch (e) {}
+function showJoinClub() {
 
-  localStorage.removeItem(
-    "waliinToken"
-  );
+  showPage("joinPage");
+}
 
-  localStorage.removeItem(
-    "waliinUsername"
-  );
+function showInfo(name) {
 
-  authToken = "";
-  username = "";
+  showPage("infoPage");
 
-  document
-    .getElementById("homePage")
-    .classList.add("hidden");
+  $("infoTitle").textContent =
+    name;
 
-  document
-    .getElementById("clubPage")
-    .classList.add("hidden");
-
-  document
-    .getElementById("authPage")
-    .classList.remove("hidden");
+  $("infoText").textContent =
+    name +
+    " feature itti aanu keessatti guutummaatti ni qindaa'a.";
 }
 
 
@@ -969,42 +1271,14 @@ async function logoutUser() {
    CREATE CLUB
 ========================= */
 
-function openClubCreator() {
-
-  document
-    .getElementById("clubCreator")
-    .classList.remove("hidden");
-}
-
-
-function hideCreator() {
-
-  document
-    .getElementById("clubCreator")
-    .classList.add("hidden");
-}
-
-
 function createClub() {
 
   const name =
-    document
-      .getElementById("clubName")
-      .value.trim();
-
-  const seats =
-    Number(
-      document
-        .getElementById("seatCount")
-        .value
-    );
+    $("clubName").value.trim();
 
   if (!name) {
 
-    alert(
-      "Maqaa Club galchi."
-    );
-
+    notify("Maqaa Club galchi.");
     return;
   }
 
@@ -1012,46 +1286,40 @@ function createClub() {
     "createClub",
     {
       name,
-      seats,
-      username
+      username: currentUser
+    },
+    data => {
+
+      if (!data.success) {
+
+        notify(
+          data.message ||
+          "Club uumuu hin dandeenye."
+        );
+
+        return;
+      }
+
+      currentClub = data.club;
+
+      openVoiceClub();
     }
   );
 }
 
 
 /* =========================
-   JOIN
+   JOIN CLUB
 ========================= */
-
-function showJoin() {
-
-  document
-    .getElementById("joinBox")
-    .classList.remove("hidden");
-}
-
-
-function hideJoin() {
-
-  document
-    .getElementById("joinBox")
-    .classList.add("hidden");
-}
-
 
 function joinClub() {
 
   const clubId =
-    document
-      .getElementById("joinCode")
-      .value.trim();
+    $("joinClubId").value.trim();
 
   if (!clubId) {
 
-    alert(
-      "Club ID galchi."
-    );
-
+    notify("Club ID galchi.");
     return;
   }
 
@@ -1059,429 +1327,340 @@ function joinClub() {
     "joinClub",
     {
       clubId,
-      username
+      username: currentUser
+    },
+    data => {
+
+      if (!data.success) {
+
+        notify(
+          data.message ||
+          "Club seenuu hin dandeenye."
+        );
+
+        return;
+      }
+
+      currentClub = data.club;
+
+      openVoiceClub();
     }
   );
 }
 
 
 /* =========================
-   CLUB CREATED
+   OPEN VOICE CLUB
 ========================= */
 
-socket.on(
-  "clubCreated",
-  data => {
+function openVoiceClub() {
 
-    currentClub = data;
+  showPage("voicePage");
 
-    openClub(data);
-  }
-);
+  $("roomStatus").textContent =
+    "🟢 Voice Club keessa jirta.";
 
+  renderClub();
 
-/* =========================
-   JOINED
-========================= */
-
-socket.on(
-  "joinedClub",
-  data => {
-
-    currentClub = data;
-
-    openClub(data);
-  }
-);
-
-
-function openClub(data) {
-
-  document
-    .getElementById("homePage")
-    .classList.add("hidden");
-
-  document
-    .getElementById("clubPage")
-    .classList.remove("hidden");
-
-  document
-    .getElementById("clubTitle")
-    .textContent = data.name;
-
-  document
-    .getElementById("clubIdText")
-    .textContent = data.id;
-
-  document
-    .getElementById("chat")
-    .innerHTML = "";
-
-  document
-    .getElementById("giftStatus")
-    .textContent =
-      "🎁 Gift as hin ergamne.";
+  startMicrophone();
 }
 
 
 /* =========================
-   CLUB UPDATE
+   RENDER CLUB
 ========================= */
 
-socket.on(
-  "clubUpdate",
-  data => {
+function renderClub() {
 
-    currentClub = data;
+  if (!currentClub) return;
 
-    renderSeats(data);
-    renderRequests(data);
-    updateMyStatus(data);
+  $("roomName").textContent =
+    "🎙️ " +
+    currentClub.name;
 
-    document
-      .getElementById("memberCount")
-      .textContent =
-        data.members.length;
+  $("roomId").textContent =
+    currentClub.id;
 
-    updateWebRTCConnections(data);
-  }
-);
+  $("roomOwner").textContent =
+    currentClub.owner;
 
+  $("memberCount").textContent =
+    currentClub.members.length;
 
-/* =========================
-   MY STATUS
-========================= */
-
-function updateMyStatus(data) {
-
-  const me =
-    data.members.find(
-      member =>
-        member.id === socket.id
-    );
-
-  const box =
-    document.getElementById(
-      "myStatus"
-    );
-
-  if (!me) {
-
-    box.innerHTML = "";
-    return;
-  }
-
-  if (me.owner) {
-
-    box.innerHTML =
-      "👑 Ati Owner dha — Seat 1.";
-
-  } else if (me.seat > 0) {
-
-    box.innerHTML =
-      "🎤 Ati Speaker dha — Seat " +
-      me.seat +
-      (me.muted
-        ? " 🔇"
-        : " 🎙️");
-
-  } else {
-
-    box.innerHTML =
-      "👂 Ati Listener dha.";
-  }
-}
+  $("listenerCount").textContent =
+    currentClub.listenerCount;
 
 
-/* =========================
-   SEATS
-========================= */
+  /* SEATS */
 
-function renderSeats(data) {
+  const grid =
+    $("seatGrid");
 
-  const box =
-    document.getElementById(
-      "seats"
-    );
+  grid.innerHTML = "";
 
-  box.innerHTML = "";
+  for (let i = 0; i < 15; i++) {
 
-  let speakerCount = 0;
-
-  for (
-    let i = 1;
-    i <= data.seats;
-    i++
-  ) {
-
-    const member =
-      data.members.find(
-        m => m.seat === i
-      );
+    const username =
+      currentClub.seats[i];
 
     const div =
-      document.createElement(
-        "div"
-      );
+      document.createElement("div");
 
-    div.className = "seat";
+    div.className =
+      "seat";
 
-    if (member) {
+    if (username) {
+      div.classList.add("occupied");
+    }
 
-      speakerCount++;
+    if (i === 0) {
+      div.classList.add("owner");
+    }
 
-      div.classList.add(
-        "occupied"
-      );
+    if (username) {
 
-      if (member.owner) {
-        div.classList.add(
-          "owner"
-        );
-      }
+      div.innerHTML = `
+        <div class="avatar">
+          ${escapeHtml(
+            username
+              .charAt(0)
+              .toUpperCase()
+          )}
+        </div>
 
-      div.innerHTML =
-        "💺 " + i +
-        "<br>👤 " +
-        escapeHtml(
-          member.username
-        ) +
-        "<br>" +
-        (
-          member.muted
-            ? "🔇"
-            : "🎤"
-        ) +
-        (
-          member.owner
-            ? "<br>👑 Owner"
-            : ""
-        );
+        <div>
+          🪑 ${i + 1}
+        </div>
 
-      /*
-       * OWNER CONTROL
-       */
-
-      const me =
-        data.members.find(
-          m =>
-            m.id === socket.id
-        );
-
-      if (
-        me &&
-        me.owner &&
-        member.id !== socket.id
-      ) {
-
-        const muteButton =
-          document.createElement(
-            "button"
-          );
-
-        muteButton.textContent =
-          "🔇 Mute";
-
-        muteButton.onclick =
-          () => {
-
-            socket.emit(
-              "ownerMute",
-              {
-                clubId: data.id,
-                targetId:
-                  member.id
-              }
-            );
-          };
-
-        const removeButton =
-          document.createElement(
-            "button"
-          );
-
-        removeButton.textContent =
-          "🚫 Remove";
-
-        removeButton.className =
-          "danger";
-
-        removeButton.onclick =
-          () => {
-
-            if (
-              confirm(
-                member.username +
-                " remove gochuu?"
-              )
-            ) {
-
-              socket.emit(
-                "removeMember",
-                {
-                  clubId: data.id,
-                  targetId:
-                    member.id
-                }
-              );
-            }
-          };
-
-        div.appendChild(
-          muteButton
-        );
-
-        div.appendChild(
-          removeButton
-        );
-      }
+        <b>
+          ${escapeHtml(username)}
+        </b>
+      `;
 
     } else {
 
-      div.innerHTML =
-        "💺 " + i +
-        "<br>Empty";
+      div.innerHTML = `
+        <div class="avatar">
+          +
+        </div>
+
+        <div>
+          🪑 ${i + 1}
+        </div>
+
+        <div class="small">
+          Bilisa
+        </div>
+      `;
     }
 
-    box.appendChild(div);
+    grid.appendChild(div);
   }
 
-  const listeners =
-    data.members.length -
-    speakerCount;
 
-  document
-    .getElementById(
-      "listenerCount"
-    )
-    .textContent =
-      Math.max(
-        0,
-        listeners
-      );
+  /* MEMBERS */
+
+  const memberList =
+    $("memberList");
+
+  memberList.innerHTML = "";
+
+  currentClub.members.forEach(member => {
+
+    const row =
+      document.createElement("div");
+
+    row.className =
+      "member-row";
+
+    let controls = "";
+
+    if (
+      currentUser === currentClub.owner &&
+      member.username !== currentClub.owner
+    ) {
+
+      controls = `
+        <button
+          class="gold"
+          onclick="ownerMute('${safeJs(member.username)}')"
+        >
+          🔇
+        </button>
+
+        <button
+          class="danger"
+          onclick="removeMember('${safeJs(member.username)}')"
+        >
+          🚫
+        </button>
+      `;
+    }
+
+    row.innerHTML = `
+
+      <div class="avatar">
+        ${escapeHtml(
+          member.username
+            .charAt(0)
+            .toUpperCase()
+        )}
+      </div>
+
+      <div class="name">
+
+        <b>
+          ${escapeHtml(member.username)}
+        </b>
+
+        <div class="small">
+          ${
+            member.username === currentClub.owner
+              ? "👑 Owner"
+              : member.seat !== null
+                ? "🎤 Speaker"
+                : "👂 Listener"
+          }
+
+          ${
+            member.muted
+              ? " • 🔇 Muted"
+              : ""
+          }
+        </div>
+
+      </div>
+
+      ${controls}
+    `;
+
+    memberList.appendChild(row);
+  });
+
+
+  /* OWNER PANEL */
+
+  if (currentUser === currentClub.owner) {
+
+    $("ownerPanel")
+      .classList.remove("hidden");
+
+    const list =
+      $("requestsList");
+
+    list.innerHTML =
+      "<h4>🙋 Seat Requests</h4>";
+
+    if (
+      !currentClub.requests ||
+      currentClub.requests.length === 0
+    ) {
+
+      list.innerHTML +=
+        "<p class='small'>Request hin jiru.</p>";
+
+    } else {
+
+      currentClub.requests.forEach(username => {
+
+        const div =
+          document.createElement("div");
+
+        div.className =
+          "member-row";
+
+        div.innerHTML = `
+
+          <div class="name">
+            <b>
+              ${escapeHtml(username)}
+            </b>
+          </div>
+
+          <button
+            onclick="grantNextSeat('${safeJs(username)}')"
+          >
+            🪑 Kenni
+          </button>
+        `;
+
+        list.appendChild(div);
+      });
+    }
+
+  } else {
+
+    $("ownerPanel")
+      .classList.add("hidden");
+  }
 }
 
 
 /* =========================
-   REQUEST
+   REQUEST SEAT
 ========================= */
 
 function requestSeat() {
 
   if (!currentClub) return;
 
-  socket.emit(
-    "requestSeat",
-    {
-      clubId:
-        currentClub.id
-    }
-  );
+  socket.emit("requestSeat");
 
-  alert(
-    "🙋 Request Owner bira gaheera."
+  notify(
+    "🙋 Seat request ergite."
   );
 }
 
 
 /* =========================
-   ADMIN REQUESTS
+   GIVE SEAT
 ========================= */
 
-function renderRequests(data) {
+function grantNextSeat(username) {
 
-  const me =
-    data.members.find(
-      m =>
-        m.id === socket.id
-    );
+  if (!currentClub) return;
 
-  const admin =
-    document.getElementById(
-      "adminBox"
-    );
+  let seat = -1;
 
-  if (
-    !me ||
-    !me.owner
-  ) {
+  for (let i = 0; i < 15; i++) {
 
-    admin.classList.add(
-      "hidden"
-    );
-
-    return;
-  }
-
-  admin.classList.remove(
-    "hidden"
-  );
-
-  const box =
-    document.getElementById(
-      "requests"
-    );
-
-  box.innerHTML = "";
-
-  if (
-    !data.requests ||
-    data.requests.length === 0
-  ) {
-
-    box.innerHTML =
-      "<p>🙅 Request hin jiru.</p>";
-
-    return;
-  }
-
-  data.requests.forEach(
-    request => {
-
-      const row =
-        document.createElement(
-          "div"
-        );
-
-      row.className =
-        "request";
-
-      row.innerHTML =
-        "🙋 " +
-        escapeHtml(
-          request.username
-        );
-
-      const button =
-        document.createElement(
-          "button"
-        );
-
-      button.textContent =
-        "💺 Seat Kenni";
-
-      button.onclick =
-        () => {
-
-          socket.emit(
-            "giveSeat",
-            {
-              clubId:
-                data.id,
-              targetId:
-                request.id
-            }
-          );
-        };
-
-      row.appendChild(
-        button
-      );
-
-      box.appendChild(
-        row
-      );
+    if (!currentClub.seats[i]) {
+      seat = i;
+      break;
     }
+  }
+
+  if (seat === -1) {
+
+    notify(
+      "❌ Seat 15 hundi guutame."
+    );
+
+    return;
+  }
+
+  socket.emit(
+    "giveSeat",
+    {
+      username,
+      seat
+    }
+  );
+}
+
+
+/* =========================
+   LEAVE SEAT
+========================= */
+
+function leaveSeat() {
+
+  socket.emit("leaveSeat");
+
+  stopMicrophone();
+
+  notify(
+    "🪑 Seat irraa baate."
   );
 }
 
@@ -1490,98 +1669,41 @@ function renderRequests(data) {
    MIC
 ========================= */
 
-async function toggleMic() {
-
-  if (!currentClub) return;
-
-  const me =
-    currentClub.members.find(
-      m =>
-        m.id === socket.id
-    );
-
-  if (
-    !me ||
-    me.seat === 0
-  ) {
-
-    alert(
-      "🎤 Dura Seat argachuu qabda."
-    );
-
-    return;
-  }
-
-  if (!localStream) {
-
-    await startMicrophone();
-
-    return;
-  }
-
-  muted = !muted;
-
-  localStream
-    .getAudioTracks()
-    .forEach(
-      track => {
-        track.enabled =
-          !muted;
-      }
-    );
-
-  socket.emit(
-    "mute",
-    {
-      clubId:
-        currentClub.id,
-      muted
-    }
-  );
-}
-
-
 async function startMicrophone() {
 
   try {
 
-    localStream =
-      await navigator
-        .mediaDevices
-        .getUserMedia({
-          audio: true,
-          video: false
-        });
+    if (!navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia) {
 
-    muted = false;
-
-    localStream
-      .getAudioTracks()
-      .forEach(
-        track => {
-          track.enabled = true;
-        }
+      notify(
+        "Browser kun microphone hin deeggaru."
       );
 
-    socket.emit(
-      "mute",
-      {
-        clubId:
-          currentClub.id,
-        muted: false
-      }
-    );
+      return;
+    }
 
-    await updateWebRTCConnections(
-      currentClub
-    );
+    if (localStream) return;
 
-  } catch (error) {
+    localStream =
+      await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      });
 
-    console.error(error);
+    micMuted = false;
 
-    alert(
-      "🎤 Microphone permission Allow godhi."
+    $("micText").textContent =
+      "Mic ON";
+
+    createPeerConnections();
+
+  } catch (err) {
+
+    console.error(err);
+
+    notify(
+      "🎤 Microphone permission kenni."
     );
   }
 }
@@ -1589,59 +1711,272 @@ async function startMicrophone() {
 
 function stopMicrophone() {
 
-  if (!localStream) return;
+  if (localStream) {
 
-  localStream
-    .getTracks()
-    .forEach(
-      track =>
-        track.stop()
-    );
+    localStream
+      .getTracks()
+      .forEach(track => track.stop());
 
-  localStream = null;
-  muted = true;
+    localStream = null;
+  }
+
+  peers.forEach(pc => pc.close());
+
+  peers.clear();
+
+  $("micText").textContent =
+    "Mic ON";
 }
 
 
-/* =========================
-   GIFTS
-========================= */
+async function toggleMic() {
 
-function sendGift(gift) {
+  if (!localStream) {
 
-  if (!currentClub) return;
+    await startMicrophone();
+    return;
+  }
+
+  micMuted = !micMuted;
+
+  localStream
+    .getAudioTracks()
+    .forEach(track => {
+
+      track.enabled =
+        !micMuted;
+    });
+
+  $("micText").textContent =
+    micMuted
+      ? "Mic OFF"
+      : "Mic ON";
 
   socket.emit(
-    "sendGift",
+    "muteSelf",
     {
-      clubId:
-        currentClub.id,
-      gift
+      muted: micMuted
     }
   );
 }
 
 
-socket.on(
-  "giftReceived",
-  data => {
+/* =========================
+   WEBRTC
+========================= */
 
-    const box =
-      document.getElementById(
-        "giftStatus"
-      );
+function rtcConfig() {
 
-    box.innerHTML =
-      "🎁 <b>" +
-      escapeHtml(
-        data.username
-      ) +
-      "</b> " +
-      "gift " +
-      data.gift +
-      " ergeesse!";
+  return {
+    iceServers: [
+      {
+        urls: "stun:stun.l.google.com:19302"
+      },
+      {
+        urls: "stun:stun1.l.google.com:19302"
+      }
+    ]
+  };
+}
+
+
+function createPeerConnections() {
+
+  if (!currentClub) return;
+
+  currentClub.members.forEach(async member => {
+
+    if (
+      member.username === currentUser
+    ) return;
+
+    const socketId =
+      findSocketId(member.username);
+
+    if (!socketId) return;
+
+    if (peers.has(socketId)) return;
+
+    await createPeer(socketId, true);
+  });
+}
+
+
+/*
+  Socket.IO does not expose another
+  user's socket ID through our current
+  club member object. Signaling below
+  is prepared for the next backend step.
+*/
+
+function findSocketId(username) {
+
+  return null;
+}
+
+
+async function createPeer(target, initiator) {
+
+  if (peers.has(target)) {
+
+    return peers.get(target);
   }
-);
+
+  const pc =
+    new RTCPeerConnection(
+      rtcConfig()
+    );
+
+  peers.set(target, pc);
+
+
+  if (localStream) {
+
+    localStream
+      .getTracks()
+      .forEach(track => {
+
+        pc.addTrack(
+          track,
+          localStream
+        );
+      });
+  }
+
+
+  pc.onicecandidate = event => {
+
+    if (event.candidate) {
+
+      socket.emit(
+        "webrtc-ice",
+        {
+          target,
+          candidate:
+            event.candidate
+        }
+      );
+    }
+  };
+
+
+  pc.ontrack = event => {
+
+    if (event.streams[0]) {
+
+      $("remoteAudio").srcObject =
+        event.streams[0];
+    }
+  };
+
+
+  if (initiator) {
+
+    const offer =
+      await pc.createOffer();
+
+    await pc.setLocalDescription(
+      offer
+    );
+
+    socket.emit(
+      "webrtc-offer",
+      {
+        target,
+        offer
+      }
+    );
+  }
+
+  return pc;
+}
+
+
+async function handleOffer(
+  from,
+  offer
+) {
+
+  const pc =
+    await createPeer(
+      from,
+      false
+    );
+
+  await pc.setRemoteDescription(
+    new RTCSessionDescription(
+      offer
+    )
+  );
+
+  const answer =
+    await pc.createAnswer();
+
+  await pc.setLocalDescription(
+    answer
+  );
+
+  socket.emit(
+    "webrtc-answer",
+    {
+      target: from,
+      answer
+    }
+  );
+}
+
+
+/* =========================
+   OWNER CONTROLS
+========================= */
+
+function ownerMute(username) {
+
+  if (!currentClub) return;
+
+  if (
+    currentUser !==
+    currentClub.owner
+  ) return;
+
+  socket.emit(
+    "ownerMute",
+    {
+      username
+    }
+  );
+
+  notify(
+    "🔇 " +
+    username +
+    " mute godhame."
+  );
+}
+
+
+function removeMember(username) {
+
+  if (!currentClub) return;
+
+  if (
+    currentUser !==
+    currentClub.owner
+  ) return;
+
+  if (
+    !confirm(
+      username +
+      " Club keessaa baasuu?"
+    )
+  ) return;
+
+  socket.emit(
+    "removeMember",
+    {
+      username
+    }
+  );
+}
 
 
 /* =========================
@@ -1650,12 +1985,8 @@ socket.on(
 
 function sendChat() {
 
-  if (!currentClub) return;
-
   const input =
-    document.getElementById(
-      "chatInput"
-    );
+    $("chatInput");
 
   const message =
     input.value.trim();
@@ -1665,8 +1996,6 @@ function sendChat() {
   socket.emit(
     "chatMessage",
     {
-      clubId:
-        currentClub.id,
       message
     }
   );
@@ -1675,38 +2004,59 @@ function sendChat() {
 }
 
 
-socket.on(
-  "chatMessage",
-  data => {
+function addChatMessage(
+  username,
+  message
+) {
 
-    const chat =
-      document.getElementById(
-        "chat"
-      );
+  const box =
+    $("chatBox");
 
-    const div =
-      document.createElement(
-        "div"
-      );
+  const div =
+    document.createElement("div");
 
-    div.className = "msg";
+  div.className =
+    "chat-message";
 
-    div.innerHTML =
-      "<b>" +
-      escapeHtml(
-        data.username
-      ) +
-      ":</b> " +
-      escapeHtml(
-        data.message
-      );
+  div.innerHTML = `
+    <div class="chat-name">
+      ${escapeHtml(username)}
+    </div>
 
-    chat.appendChild(div);
+    <div>
+      ${escapeHtml(message)}
+    </div>
+  `;
 
-    chat.scrollTop =
-      chat.scrollHeight;
+  box.appendChild(div);
+
+  box.scrollTop =
+    box.scrollHeight;
+}
+
+
+/* =========================
+   GIFTS
+========================= */
+
+function sendGift(gift) {
+
+  if (!currentClub) {
+
+    notify(
+      "Jalqaba Club seeni."
+    );
+
+    return;
   }
-);
+
+  socket.emit(
+    "sendGift",
+    {
+      gift
+    }
+  );
+}
 
 
 /* =========================
@@ -1717,424 +2067,47 @@ async function shareClub() {
 
   if (!currentClub) return;
 
+  const url =
+    window.location.origin +
+    window.location.pathname +
+    "?club=" +
+    encodeURIComponent(
+      currentClub.id
+    );
+
   const text =
-    "🎙️ Waliin-GM Voice Club\n" +
-    "Club ID: " +
+    "Waliin-GM Voice Club: " +
+    currentClub.name +
+    "\nClub ID: " +
     currentClub.id;
 
-  if (
-    navigator.share
-  ) {
+  try {
 
-    try {
+    if (navigator.share) {
 
       await navigator.share({
         title:
-          "Waliin-GM Club",
-        text
+          currentClub.name,
+        text,
+        url
       });
 
-    } catch (e) {}
+    } else {
 
-  } else {
-
-    await navigator.clipboard
-      .writeText(
-        currentClub.id
+      await navigator.clipboard.writeText(
+        url
       );
 
-    alert(
-      "🔗 Club ID copy ta'eera."
-    );
+      notify(
+        "🔗 Link copy godhame."
+      );
+    }
+
+  } catch (err) {
+
+    console.log(err);
   }
 }
-
-
-/* =========================
-   WEBRTC
-========================= */
-
-async function updateWebRTCConnections(
-  data
-) {
-
-  if (!localStream) return;
-
-  const speakers =
-    data.members.filter(
-      m =>
-        m.seat > 0 &&
-        !m.muted &&
-        m.id !== socket.id
-    );
-
-  for (
-    const member of speakers
-  ) {
-
-    if (
-      !peers[member.id]
-    ) {
-
-      await createPeer(
-        member.id
-      );
-    }
-  }
-}
-
-
-async function createPeer(
-  targetId
-) {
-
-  if (peers[targetId])
-    return;
-
-  const pc =
-    new RTCPeerConnection({
-      iceServers: [
-        {
-          urls:
-            "stun:stun.l.google.com:19302"
-        }
-      ]
-    });
-
-  peers[targetId] = pc;
-
-  localStream
-    .getTracks()
-    .forEach(
-      track =>
-        pc.addTrack(
-          track,
-          localStream
-        )
-    );
-
-  pc.onicecandidate =
-    event => {
-
-      if (
-        event.candidate
-      ) {
-
-        socket.emit(
-          "webrtc-ice",
-          {
-            target:
-              targetId,
-            candidate:
-              event.candidate
-          }
-        );
-      }
-    };
-
-  pc.ontrack =
-    event => {
-
-      let audio =
-        document.getElementById(
-          "audio-" +
-          targetId
-        );
-
-      if (!audio) {
-
-        audio =
-          document.createElement(
-            "audio"
-          );
-
-        audio.id =
-          "audio-" +
-          targetId;
-
-        audio.autoplay =
-          true;
-
-        document
-          .getElementById(
-            "remoteAudios"
-          )
-          .appendChild(
-            audio
-          );
-      }
-
-      audio.srcObject =
-        event.streams[0];
-    };
-
-  const offer =
-    await pc.createOffer();
-
-  await pc.setLocalDescription(
-    offer
-  );
-
-  socket.emit(
-    "webrtc-offer",
-    {
-      target:
-        targetId,
-      offer
-    }
-  );
-}
-
-
-socket.on(
-  "seatGranted",
-  async () => {
-
-    alert(
-      "🎉 Seat siif kennameera!"
-    );
-
-    await startMicrophone();
-  }
-);
-
-
-socket.on(
-  "forcedMute",
-  () => {
-
-    if (localStream) {
-
-      localStream
-        .getAudioTracks()
-        .forEach(
-          track =>
-            track.enabled =
-              false
-        );
-    }
-
-    muted = true;
-
-    alert(
-      "🔇 Owner si mute godhe."
-    );
-  }
-);
-
-
-socket.on(
-  "removedFromClub",
-  () => {
-
-    stopMicrophone();
-
-    currentClub = null;
-
-    document
-      .getElementById(
-        "clubPage"
-      )
-      .classList.add(
-        "hidden"
-      );
-
-    document
-      .getElementById(
-        "homePage"
-      )
-      .classList.remove(
-        "hidden"
-      );
-
-    alert(
-      "🚫 Room keessaa si baafame."
-    );
-  }
-);
-
-
-socket.on(
-  "newOwner",
-  () => {
-
-    alert(
-      "👑 Amma ati Owner taate."
-    );
-  }
-);
-
-
-/* =========================
-   WEBRTC SIGNALS
-========================= */
-
-socket.on(
-  "webrtc-offer",
-  async ({
-    sender,
-    offer
-  }) => {
-
-    if (!localStream)
-      return;
-
-    let pc =
-      peers[sender];
-
-    if (!pc) {
-
-      pc =
-        new RTCPeerConnection({
-          iceServers: [
-            {
-              urls:
-                "stun:stun.l.google.com:19302"
-            }
-          ]
-        });
-
-      peers[sender] =
-        pc;
-
-      localStream
-        .getTracks()
-        .forEach(
-          track =>
-            pc.addTrack(
-              track,
-              localStream
-            )
-        );
-
-      pc.onicecandidate =
-        event => {
-
-          if (
-            event.candidate
-          ) {
-
-            socket.emit(
-              "webrtc-ice",
-              {
-                target:
-                  sender,
-                candidate:
-                  event.candidate
-              }
-            );
-          }
-        };
-
-      pc.ontrack =
-        event => {
-
-          let audio =
-            document.getElementById(
-              "audio-" +
-              sender
-            );
-
-          if (!audio) {
-
-            audio =
-              document.createElement(
-                "audio"
-              );
-
-            audio.id =
-              "audio-" +
-              sender;
-
-            audio.autoplay =
-              true;
-
-            document
-              .getElementById(
-                "remoteAudios"
-              )
-              .appendChild(
-                audio
-              );
-          }
-
-          audio.srcObject =
-            event.streams[0];
-        };
-    }
-
-    await pc.setRemoteDescription(
-      new RTCSessionDescription(
-        offer
-      )
-    );
-
-    const answer =
-      await pc.createAnswer();
-
-    await pc.setLocalDescription(
-      answer
-    );
-
-    socket.emit(
-      "webrtc-answer",
-      {
-        target:
-          sender,
-        answer
-      }
-    );
-  }
-);
-
-
-socket.on(
-  "webrtc-answer",
-  async ({
-    sender,
-    answer
-  }) => {
-
-    const pc =
-      peers[sender];
-
-    if (!pc) return;
-
-    await pc.setRemoteDescription(
-      new RTCSessionDescription(
-        answer
-      )
-    );
-  }
-);
-
-
-socket.on(
-  "webrtc-ice",
-  async ({
-    sender,
-    candidate
-  }) => {
-
-    const pc =
-      peers[sender];
-
-    if (!pc) return;
-
-    try {
-
-      await pc.addIceCandidate(
-        new RTCIceCandidate(
-          candidate
-        )
-      );
-
-    } catch (error) {
-
-      console.log(error);
-    }
-  }
-);
 
 
 /* =========================
@@ -2143,105 +2116,118 @@ socket.on(
 
 function leaveClub() {
 
-  if (!currentClub)
-    return;
+  if (!currentClub) return;
 
-  socket.emit(
-    "leaveClub",
-    {
-      clubId:
-        currentClub.id
-    }
-  );
+  socket.emit("leaveClub");
 
   stopMicrophone();
 
-  Object.keys(peers)
-    .forEach(
-      id => {
-
-        peers[id].close();
-
-        delete peers[id];
-
-      }
-    );
-
-  document
-    .getElementById(
-      "remoteAudios"
-    )
-    .innerHTML = "";
-
   currentClub = null;
 
-  document
-    .getElementById(
-      "clubPage"
-    )
-    .classList.add(
-      "hidden"
-    );
+  $("chatBox").innerHTML = "";
 
-  document
-    .getElementById(
-      "homePage"
-    )
-    .classList.remove(
-      "hidden"
-    );
-}
+  goHome();
 
-
-/* =========================
-   INFO
-========================= */
-
-function showInfo(message) {
-
-  const info =
-    document.getElementById(
-      "info"
-    );
-
-  info.textContent =
-    message +
-    " — feature kana itti aanu keessatti ni qindaa'a.";
-
-  info.classList.remove(
-    "hidden"
+  notify(
+    "🚪 Club keessaa baate."
   );
 }
 
 
 /* =========================
-   ESCAPE HTML
+   LOGOUT
 ========================= */
 
-function escapeHtml(text) {
+async function logout() {
 
-  return String(text)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
+  try {
+
+    await fetch(
+      "/api/logout",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body: JSON.stringify({
+          token
+        })
+      }
     );
+
+  } catch (err) {}
+
+  stopMicrophone();
+
+  localStorage.removeItem(
+    "waliin_token"
+  );
+
+  localStorage.removeItem(
+    "waliin_username"
+  );
+
+  location.reload();
 }
+
+
+/* =========================
+   SECURITY HELPERS
+========================= */
+
+function escapeHtml(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+
+function safeJs(value) {
+
+  return String(value)
+    .replaceAll("\\", "\\\\")
+    .replaceAll("'", "\\'");
+}
+
+
+/* =========================
+   START
+========================= */
+
+(function start() {
+
+  token =
+    localStorage.getItem(
+      "waliin_token"
+    ) || "";
+
+  currentUser =
+    localStorage.getItem(
+      "waliin_username"
+    ) || "";
+
+  if (token && currentUser) {
+
+    openApp();
+
+  } else {
+
+    $("authPage")
+      .classList.remove("hidden");
+
+    $("appPage")
+      .classList.add("hidden");
+
+    $("bottomNav")
+      .classList.add("hidden");
+  }
+
+})();
 
 </script>
 
