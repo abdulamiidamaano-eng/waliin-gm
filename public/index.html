@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="om">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waliin-GM</title>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f1f5f3;
+  color: #17221d;
+}
+
+header {
+  background: #087443;
+  color: white;
+  padding: 18px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 15px;
+}
+
+.card {
+  background: white;
+  padding: 18px;
+  border-radius: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 3px 12px #0001;
+}
+
+button {
+  border: none;
+  padding: 12px 15px;
+  margin: 5px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #087443;
+  color: white;
+  font-size: 15px;
+}
+
+button.secondary {
+  background: #555;
+}
+
+button.danger {
+  background: #b3261e;
+}
+
+input, select {
+  width: 100%;
+  padding: 13px;
+  margin: 6px 0 10px;
+  border: 1px solid #ccc;
+  border-radius: 9px;
+}
+
+.hidden {
+  display: none;
+}
+
+.menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.menu button {
+  min-height: 65px;
+  font-size: 16px;
+}
+
+.seats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.seat {
+  min-height: 90px;
+  border: 2px solid #ddd;
+  border-radius: 14px;
+  padding: 10px;
+  text-align: center;
+  background: #fafafa;
+}
+
+.seat.occupied {
+  border-color: #087443;
+  background: #e7f6ee;
+}
+
+.listeners {
+  padding: 12px;
+  background: #eee;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+
+.chat {
+  height: 220px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.msg {
+  padding: 7px;
+  border-bottom: 1px solid #eee;
+}
+
+@media(max-width:600px) {
+  .seats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>💚 WALIIN-GM</header>
+
+<div class="container">
+
+  <div id="loginPage" class="card">
+    <h2>🔐 Login / Register</h2>
+
+    <input id="username" placeholder="Maqaa kee galchi">
+
+    <button onclick="login()">Seeni</button>
+  </div>
+
+  <div id="homePage" class="hidden">
+
+    <div class="card">
+      <h2>👤 <span id="userDisplay"></span></h2>
+
+      <div class="menu">
+
+        <button onclick="showInfo('💬 Chat')">
+          💬 Chat
+        </button>
+
+        <button onclick="showInfo('🎥 Video Room')">
+          🎥 Video Room
+        </button>
+
+        <button onclick="showInfo('📞 Call')">
+          📞 Call
+        </button>
+
+        <button onclick="openClubCreator()">
+          👥 Club
+        </button>
+
+        <button onclick="showInfo('❤️ Follow')">
+          ❤️ Follow
+        </button>
+
+        <button onclick="showInfo('🔎 Search')">
+          🔎 Search
+        </button>
+
+        <button onclick="showInfo('🎤 Mic On / Off')">
+          🎤 Mic
+        </button>
+
+        <button onclick="showInfo('📹 Camera On / Off')">
+          📹 Camera
+        </button>
+
+        <button onclick="showInfo('🚪 Join / Leave Room')">
+          🚪 Join / Leave
+        </button>
+
+        <button onclick="logout()">
+          🚪 Logout
+        </button>
+
+      </div>
+    </div>
+
+    <div id="clubCreator" class="card hidden">
+      <h2>➕ Create Club</h2>
+
+      <input id="clubName" placeholder="Maqaa Club">
+
+      <label>💺 Teessoo</label>
+
+      <select id="seatCount">
+        <option value="10">10 Seats</option>
+        <option value="15">15 Seats</option>
+      </select>
+
+      <button onclick="createClub()">
+        ➕ Create Club
+      </button>
+
+      <button class="secondary" onclick="hideCreator()">
+        Close
+      </button>
+    </div>
+
+    <div id="joinBox" class="card">
+      <h2>🚪 Join Club</h2>
+
+      <input id="joinCode" placeholder="Club ID">
+
+      <button onclick="joinClub()">
+        🚪 Join
+      </button>
+    </div>
+
+  </div>
+
+  <div id="clubPage" class="hidden">
+
+    <div class="card">
+
+      <h2>👥 <span id="clubTitle"></span></h2>
+
+      <p>
+        💺 Seats:
+        <b id="seatNumber"></b>
+      </p>
+
+      <button onclick="requestSeat()">
+        🙋 Request Seat
+      </button>
+
+      <button onclick="leaveSeat()" class="secondary">
+        💺 Leave Seat
+      </button>
+
+      <button onclick="toggleMic()">
+        🎤 Mic On / Off
+      </button>
+
+      <button onclick="leaveClub()" class="danger">
+        🚪 Leave Club
+      </button>
+
+    </div>
+
+    <div class="card">
+      <h3>💺 Voice Seats</h3>
+
+      <div id="seats" class="seats"></div>
+
+      <div class="listeners">
+        👂 Listeners:
+        <b id="listenerCount">0</b>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💬 Club Chat</h3>
+
+      <div id="chat" class="chat"></div>
+
+      <input id="chatInput" placeholder="Ergaa barreessi...">
+
+      <button onclick="sendChat()">
+        📤 Send
+      </button>
+    </div>
+
+    <div id="adminBox" class="card hidden">
+      <h3>👑 Seat Requests</h3>
+      <div id="requests"></div>
+    </div>
+
+  </div>
+
+  <div id="info" class="card hidden"></div>
+
+</div>
+
+<script>
+
+const socket = io();
+
+let username = "";
+let currentClub = null;
+let muted = false;
+
+function login() {
+
+  username = document.getElementById("username").value.trim();
+
+  if (!username) {
+    alert("Maqaa kee galchi.");
+    return;
+  }
+
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("homePage").classList.remove("hidden");
+
+  document.getElementById("userDisplay").textContent = username;
+}
+
+function logout() {
+
+  username = "";
+
+  document.getElementById("homePage").classList.add("hidden");
+  document.getElementById("clubPage").classList.add("hidden");
+  document.getElementById("loginPage").classList.remove("hidden");
+}
+
+function openClubCreator() {
+  document.getElementById("clubCreator").classList.remove("hidden");
+}
+
+function hideCreator() {
+  document.getElementById("clubCreator").classList.add("hidden");
+}
+
+function createClub() {
+
+  const name =
+    document.getElementById("clubName").value.trim();
+
+  const seats =
+    Number(document.getElementById("seatCount").value);
+
+  socket.emit("createClub", {
+    name,
+    seats,
+    username
+  });
+}
+
+function joinClub() {
+
+  const clubId =
+    document.getElementById("joinCode").value.trim();
+
+  if (!clubId) {
+    alert("Club ID galchi.");
+    return;
+  }
+
+  socket.emit("joinClub", {
+    clubId,
+    username
+  });
+}
+
+socket.on("clubCreated", data => {
+
+  currentClub = data;
+
+  alert(
+    "Club uumameera!\n\nClub ID: " +
+    data.id +
+    "\n\nID kana namoota biraaf qoodi."
+  );
+
+  openClub(data);
+});
+
+socket.on("joinedClub", data => {
+
+  currentClub = data;
+
+  openClub(data);
+});
+
+function openClub(data) {
+
+  document.getElementById("homePage")
+    .classList.add("hidden");
+
+  document.getElementById("clubPage")
+    .classList.remove("hidden");
+
+  document.getElementById("clubTitle")
+    .textContent = data.name;
+
+  document.getElementById("seatNumber")
+    .textContent = data.seats;
+}
+
+socket.on("clubUpdate", data => {
+
+  currentClub = data;
+
+  renderSeats(data);
+
+  renderRequests(data);
+});
+
+function renderSeats(data) {
+
+  const box =
+    document.getElementById("seats");
+
+  box.innerHTML = "";
+
+  let speakerCount = 0;
+
+  for (let i = 1; i <= data.seats; i++) {
+
+    const member =
+      data.members.find(m => m.seat === i);
+
+    const div =
+      document.createElement("div");
+
+    div.className =
+      "seat " + (member ? "occupied" : "");
+
+    if (member) {
+
+      speakerCount++;
+
+      div.innerHTML =
+        "💺 " + i +
+        "<br>👤 " +
+        escapeHtml(member.username) +
+        "<br>🎤";
+
+    } else {
+
+      div.innerHTML =
+        "💺 " + i +
+        "<br>Empty";
+
+    }
+
+    box.appendChild(div);
+  }
+
+  const listeners =
+    data.members.length - speakerCount;
+
+  document.getElementById("listenerCount")
+    .textContent = Math.max(0, listeners);
+}
+
+function renderRequests(data) {
+
+  const me =
+    data.members.find(m => m.id === socket.id);
+
+  if (!me || me.seat !== 1) {
+    document.getElementById("adminBox")
+      .classList.add("hidden");
+
+    return;
+  }
+
+  document.getElementById("adminBox")
+    .classList.remove("hidden");
+
+  const box =
+    document.getElementById("requests");
+
+  box.innerHTML = "";
+
+  data.requests.forEach(id => {
+
+    const user =
+      data.members.find(m => m.id === id);
+
+    if (!user) return;
+
+    const button =
+      document.createElement("button");
+
+    button.textContent =
+      "💺 Kennisi → " + user.username;
+
+    button.onclick = () => {
+
+      socket.emit("giveSeat", {
+        clubId: data.id,
+        targetId: id
+      });
+
+    };
+
+    box.appendChild(button);
+  });
+}
+
+function requestSeat() {
+
+  if (!currentClub) return;
+
+  socket.emit("requestSeat", {
+    clubId: currentClub.id
+  });
+
+  alert("🙋 Seat request ergameera.");
+}
+
+function leaveSeat() {
+
+  if (!currentClub) return;
+
+  socket.emit("leaveSeat", {
+    clubId: currentClub.id
+  });
+}
+
+function toggleMic() {
+
+  muted = !muted;
+
+  if (!currentClub) return;
+
+  socket.emit("mute", {
+    clubId: currentClub.id,
+    muted
+  });
+
+  alert(
+    muted
+      ? "🔇 Mic OFF"
+      : "🎤 Mic ON"
+  );
+}
+
+function leaveClub() {
+
+  if (!currentClub) return;
+
+  socket.emit("leaveClub", {
+    clubId: currentClub.id
+  });
+
+  currentClub = null;
+
+  document.getElementById("clubPage")
+    .classList.add("hidden");
+
+  document.getElementById("homePage")
+    .classList.remove("hidden");
+}
+
+function sendChat() {
+
+  const input =
+    document.getElementById("chatInput");
+
+  const message =
+    input.value.trim();
+
+  if (!message || !currentClub) return;
+
+  socket.emit("chatMessage", {
+    clubId: currentClub.id,
+    username,
+    message
+  });
+
+  input.value = "";
+}
+
+socket.on("chatMessage", data => {
+
+  const chat =
+    document.getElementById("chat");
+
+  const div =
+    document.createElement("div");
+
+  div.className = "msg";
+
+  div.innerHTML =
+    "<b>" +
+    escapeHtml(data.username) +
+    ":</b> " +
+    escapeHtml(data.message);
+
+  chat.appendChild(div);
+
+  chat.scrollTop = chat.scrollHeight;
+});
+
+socket.on("errorMessage", message => {
+  alert("⚠️ " + message);
+});
+
+function showInfo(message) {
+
+  const info =
+    document.getElementById("info");
+
+  info.textContent = message +
+    " — feature kana itti aansee ni qindaa'a.";
+
+  info.classList.remove("hidden");
+}
+
+function escapeHtml(text) {
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+</script>
+
+</body>
+  </html>
