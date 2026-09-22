@@ -1,7 +1,7 @@
 {
   "name": "waliin-gm",
-  "version": "3.0.0",
-  "description": "Waliin-GM Sign In, Home, Voice Room, Chat, Gift and Club App",
+  "version": "4.0.0",
+  "description": "Waliin-GM Communication, Voice Club, Chat and Social App",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
