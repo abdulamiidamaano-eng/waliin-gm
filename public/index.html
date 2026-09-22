@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Waliin-GM</title>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -15,7 +16,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f1f5f3;
+  background: #eef6f1;
   color: #17221d;
 }
 
@@ -24,7 +25,7 @@ header {
   color: white;
   padding: 18px;
   text-align: center;
-  font-size: 26px;
+  font-size: 27px;
   font-weight: bold;
 }
 
@@ -61,7 +62,8 @@ button.danger {
   background: #b3261e;
 }
 
-input, select {
+input,
+select {
   width: 100%;
   padding: 13px;
   margin: 6px 0 10px;
@@ -70,7 +72,7 @@ input, select {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .menu {
@@ -81,7 +83,6 @@ input, select {
 
 .menu button {
   min-height: 65px;
-  font-size: 16px;
 }
 
 .seats {
@@ -91,7 +92,7 @@ input, select {
 }
 
 .seat {
-  min-height: 90px;
+  min-height: 95px;
   border: 2px solid #ddd;
   border-radius: 14px;
   padding: 10px;
@@ -101,11 +102,16 @@ input, select {
 
 .seat.occupied {
   border-color: #087443;
-  background: #e7f6ee;
+  background: #e5f6ec;
+}
+
+.seat.owner {
+  border-color: #d19b00;
+  background: #fff7d6;
 }
 
 .listeners {
-  padding: 12px;
+  padding: 13px;
   background: #eee;
   border-radius: 10px;
   margin-top: 12px;
@@ -120,13 +126,37 @@ input, select {
 }
 
 .msg {
-  padding: 7px;
+  padding: 8px;
   border-bottom: 1px solid #eee;
+}
+
+.status {
+  padding: 12px;
+  border-radius: 10px;
+  background: #e7f6ee;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.request {
+  background: #f5f5f5;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 10px;
+}
+
+#remoteAudios audio {
+  width: 100%;
+  margin: 5px 0;
 }
 
 @media(max-width:600px) {
   .seats {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .menu {
+    grid-template-columns: 1fr;
   }
 }
 </style>
@@ -138,159 +168,210 @@ input, select {
 
 <div class="container">
 
-  <div id="loginPage" class="card">
-    <h2>🔐 Login / Register</h2>
+<!-- LOGIN -->
+<div id="loginPage" class="card">
 
-    <input id="username" placeholder="Maqaa kee galchi">
+  <h2>🔐 Seensa</h2>
 
-    <button onclick="login()">Seeni</button>
-  </div>
+  <input
+    id="username"
+    placeholder="Maqaa kee galchi"
+  >
 
-  <div id="homePage" class="hidden">
-
-    <div class="card">
-      <h2>👤 <span id="userDisplay"></span></h2>
-
-      <div class="menu">
-
-        <button onclick="showInfo('💬 Chat')">
-          💬 Chat
-        </button>
-
-        <button onclick="showInfo('🎥 Video Room')">
-          🎥 Video Room
-        </button>
-
-        <button onclick="showInfo('📞 Call')">
-          📞 Call
-        </button>
-
-        <button onclick="openClubCreator()">
-          👥 Club
-        </button>
-
-        <button onclick="showInfo('❤️ Follow')">
-          ❤️ Follow
-        </button>
-
-        <button onclick="showInfo('🔎 Search')">
-          🔎 Search
-        </button>
-
-        <button onclick="showInfo('🎤 Mic On / Off')">
-          🎤 Mic
-        </button>
-
-        <button onclick="showInfo('📹 Camera On / Off')">
-          📹 Camera
-        </button>
-
-        <button onclick="showInfo('🚪 Join / Leave Room')">
-          🚪 Join / Leave
-        </button>
-
-        <button onclick="logout()">
-          🚪 Logout
-        </button>
-
-      </div>
-    </div>
-
-    <div id="clubCreator" class="card hidden">
-      <h2>➕ Create Club</h2>
-
-      <input id="clubName" placeholder="Maqaa Club">
-
-      <label>💺 Teessoo</label>
-
-      <select id="seatCount">
-        <option value="10">10 Seats</option>
-        <option value="15">15 Seats</option>
-      </select>
-
-      <button onclick="createClub()">
-        ➕ Create Club
-      </button>
-
-      <button class="secondary" onclick="hideCreator()">
-        Close
-      </button>
-    </div>
-
-    <div id="joinBox" class="card">
-      <h2>🚪 Join Club</h2>
-
-      <input id="joinCode" placeholder="Club ID">
-
-      <button onclick="joinClub()">
-        🚪 Join
-      </button>
-    </div>
-
-  </div>
-
-  <div id="clubPage" class="hidden">
-
-    <div class="card">
-
-      <h2>👥 <span id="clubTitle"></span></h2>
-
-      <p>
-        💺 Seats:
-        <b id="seatNumber"></b>
-      </p>
-
-      <button onclick="requestSeat()">
-        🙋 Request Seat
-      </button>
-
-      <button onclick="leaveSeat()" class="secondary">
-        💺 Leave Seat
-      </button>
-
-      <button onclick="toggleMic()">
-        🎤 Mic On / Off
-      </button>
-
-      <button onclick="leaveClub()" class="danger">
-        🚪 Leave Club
-      </button>
-
-    </div>
-
-    <div class="card">
-      <h3>💺 Voice Seats</h3>
-
-      <div id="seats" class="seats"></div>
-
-      <div class="listeners">
-        👂 Listeners:
-        <b id="listenerCount">0</b>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>💬 Club Chat</h3>
-
-      <div id="chat" class="chat"></div>
-
-      <input id="chatInput" placeholder="Ergaa barreessi...">
-
-      <button onclick="sendChat()">
-        📤 Send
-      </button>
-    </div>
-
-    <div id="adminBox" class="card hidden">
-      <h3>👑 Seat Requests</h3>
-      <div id="requests"></div>
-    </div>
-
-  </div>
-
-  <div id="info" class="card hidden"></div>
+  <button onclick="login()">
+    🚪 Seeni
+  </button>
 
 </div>
+
+<!-- HOME -->
+<div id="homePage" class="hidden">
+
+  <div class="card">
+
+    <h2>
+      👤 <span id="userDisplay"></span>
+    </h2>
+
+    <div class="menu">
+
+      <button onclick="openClubCreator()">
+        👥 Create Club
+      </button>
+
+      <button onclick="showJoin()">
+        🚪 Join Club
+      </button>
+
+      <button onclick="showInfo('💬 Chat')">
+        💬 Chat
+      </button>
+
+      <button onclick="showInfo('🎥 Video Room')">
+        🎥 Video Room
+      </button>
+
+      <button onclick="showInfo('📞 Call')">
+        📞 Call
+      </button>
+
+      <button onclick="showInfo('❤️ Follow')">
+        ❤️ Follow
+      </button>
+
+      <button onclick="showInfo('🔎 Search')">
+        🔎 Search
+      </button>
+
+      <button onclick="logout()">
+        🚪 Logout
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- CREATE -->
+  <div id="clubCreator" class="card hidden">
+
+    <h2>➕ Create Voice Club</h2>
+
+    <input
+      id="clubName"
+      placeholder="Maqaa Club"
+    >
+
+    <label>💺 Teessoo</label>
+
+    <select id="seatCount">
+      <option value="10">10 Seats</option>
+      <option value="15">15 Seats</option>
+    </select>
+
+    <button onclick="createClub()">
+      ➕ Create Club
+    </button>
+
+    <button
+      class="secondary"
+      onclick="hideCreator()"
+    >
+      Cufi
+    </button>
+
+  </div>
+
+  <!-- JOIN -->
+  <div id="joinBox" class="card hidden">
+
+    <h2>🚪 Join Club</h2>
+
+    <input
+      id="joinCode"
+      placeholder="Club ID"
+    >
+
+    <button onclick="joinClub()">
+      🚪 Join
+    </button>
+
+  </div>
+
+</div>
+
+<!-- CLUB -->
+<div id="clubPage" class="hidden">
+
+  <div class="card">
+
+    <h2>
+      👥 <span id="clubTitle"></span>
+    </h2>
+
+    <div class="status">
+      🔗 Club ID:
+      <span id="clubIdText"></span>
+    </div>
+
+    <div id="myStatus"></div>
+
+    <button onclick="requestSeat()">
+      🙋 Request Seat
+    </button>
+
+    <button
+      class="secondary"
+      onclick="leaveSeat()"
+    >
+      💺 Leave Seat
+    </button>
+
+    <button onclick="toggleMic()">
+      🎤 Mic
+    </button>
+
+    <button
+      class="danger"
+      onclick="leaveClub()"
+    >
+      🚪 Leave Club
+    </button>
+
+  </div>
+
+  <!-- SEATS -->
+  <div class="card">
+
+    <h3>💺 Voice Seats</h3>
+
+    <div id="seats" class="seats"></div>
+
+    <div class="listeners">
+      👂 Listeners:
+      <b id="listenerCount">0</b>
+    </div>
+
+  </div>
+
+  <!-- AUDIO -->
+  <div class="card">
+
+    <h3>🔊 Sagalee</h3>
+
+    <div id="remoteAudios"></div>
+
+  </div>
+
+  <!-- CHAT -->
+  <div class="card">
+
+    <h3>💬 Club Chat</h3>
+
+    <div id="chat" class="chat"></div>
+
+    <input
+      id="chatInput"
+      placeholder="Ergaa barreessi..."
+    >
+
+    <button onclick="sendChat()">
+      📤 Ergi
+    </button>
+
+  </div>
+
+  <!-- ADMIN -->
+  <div id="adminBox" class="card hidden">
+
+    <h3>👑 Seat Requests</h3>
+
+    <div id="requests"></div>
+
+  </div>
+
+</div>
+
+<div id="info" class="card hidden"></div>
 
 <script>
 
@@ -298,47 +379,75 @@ const socket = io();
 
 let username = "";
 let currentClub = null;
-let muted = false;
+let muted = true;
+let localStream = null;
+
+const peers = {};
 
 function login() {
 
-  username = document.getElementById("username").value.trim();
+  username =
+    document.getElementById("username")
+      .value.trim();
 
   if (!username) {
     alert("Maqaa kee galchi.");
     return;
   }
 
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("homePage").classList.remove("hidden");
+  document.getElementById("loginPage")
+    .classList.add("hidden");
 
-  document.getElementById("userDisplay").textContent = username;
+  document.getElementById("homePage")
+    .classList.remove("hidden");
+
+  document.getElementById("userDisplay")
+    .textContent = username;
 }
 
 function logout() {
 
+  if (currentClub) {
+    leaveClub();
+  }
+
   username = "";
 
-  document.getElementById("homePage").classList.add("hidden");
-  document.getElementById("clubPage").classList.add("hidden");
-  document.getElementById("loginPage").classList.remove("hidden");
+  document.getElementById("homePage")
+    .classList.add("hidden");
+
+  document.getElementById("clubPage")
+    .classList.add("hidden");
+
+  document.getElementById("loginPage")
+    .classList.remove("hidden");
 }
 
 function openClubCreator() {
-  document.getElementById("clubCreator").classList.remove("hidden");
+  document.getElementById("clubCreator")
+    .classList.remove("hidden");
 }
 
 function hideCreator() {
-  document.getElementById("clubCreator").classList.add("hidden");
+  document.getElementById("clubCreator")
+    .classList.add("hidden");
+}
+
+function showJoin() {
+  document.getElementById("joinBox")
+    .classList.remove("hidden");
 }
 
 function createClub() {
 
   const name =
-    document.getElementById("clubName").value.trim();
+    document.getElementById("clubName")
+      .value.trim();
 
   const seats =
-    Number(document.getElementById("seatCount").value);
+    Number(
+      document.getElementById("seatCount").value
+    );
 
   socket.emit("createClub", {
     name,
@@ -350,7 +459,8 @@ function createClub() {
 function joinClub() {
 
   const clubId =
-    document.getElementById("joinCode").value.trim();
+    document.getElementById("joinCode")
+      .value.trim();
 
   if (!clubId) {
     alert("Club ID galchi.");
@@ -368,8 +478,8 @@ socket.on("clubCreated", data => {
   currentClub = data;
 
   alert(
-    "Club uumameera!\n\nClub ID: " +
-    data.id +
+    "🎉 Club uumameera!\n\n" +
+    "Club ID: " + data.id +
     "\n\nID kana namoota biraaf qoodi."
   );
 
@@ -394,8 +504,8 @@ function openClub(data) {
   document.getElementById("clubTitle")
     .textContent = data.name;
 
-  document.getElementById("seatNumber")
-    .textContent = data.seats;
+  document.getElementById("clubIdText")
+    .textContent = data.id;
 }
 
 socket.on("clubUpdate", data => {
@@ -403,9 +513,44 @@ socket.on("clubUpdate", data => {
   currentClub = data;
 
   renderSeats(data);
-
   renderRequests(data);
+  updateMyStatus(data);
+
+  updateWebRTCConnections(data);
 });
+
+function updateMyStatus(data) {
+
+  const me =
+    data.members.find(
+      member => member.id === socket.id
+    );
+
+  const box =
+    document.getElementById("myStatus");
+
+  if (!me) {
+    box.innerHTML = "";
+    return;
+  }
+
+  if (me.owner) {
+
+    box.innerHTML =
+      "👑 Ati Owner dha. Seat 1 siif kenname.";
+
+  } else if (me.seat > 0) {
+
+    box.innerHTML =
+      "🎤 Ati Speaker dha — Seat " +
+      me.seat;
+
+  } else {
+
+    box.innerHTML =
+      "👂 Ati Listener dha.";
+  }
+}
 
 function renderSeats(data) {
 
@@ -419,30 +564,42 @@ function renderSeats(data) {
   for (let i = 1; i <= data.seats; i++) {
 
     const member =
-      data.members.find(m => m.seat === i);
+      data.members.find(
+        m => m.seat === i
+      );
 
     const div =
       document.createElement("div");
 
-    div.className =
-      "seat " + (member ? "occupied" : "");
+    div.className = "seat";
 
     if (member) {
 
       speakerCount++;
 
+      div.classList.add("occupied");
+
+      if (member.owner) {
+        div.classList.add("owner");
+      }
+
+      const mic =
+        member.muted
+          ? "🔇"
+          : "🎤";
+
       div.innerHTML =
         "💺 " + i +
         "<br>👤 " +
         escapeHtml(member.username) +
-        "<br>🎤";
+        "<br>" + mic +
+        (member.owner ? "<br>👑 Owner" : "");
 
     } else {
 
       div.innerHTML =
         "💺 " + i +
         "<br>Empty";
-
     }
 
     box.appendChild(div);
@@ -452,41 +609,64 @@ function renderSeats(data) {
     data.members.length - speakerCount;
 
   document.getElementById("listenerCount")
-    .textContent = Math.max(0, listeners);
+    .textContent =
+    Math.max(0, listeners);
 }
 
 function renderRequests(data) {
 
   const me =
-    data.members.find(m => m.id === socket.id);
+    data.members.find(
+      m => m.id === socket.id
+    );
 
-  if (!me || me.seat !== 1) {
-    document.getElementById("adminBox")
-      .classList.add("hidden");
+  const admin =
+    document.getElementById("adminBox");
 
+  if (!me || !me.owner) {
+
+    admin.classList.add("hidden");
     return;
   }
 
-  document.getElementById("adminBox")
-    .classList.remove("hidden");
+  admin.classList.remove("hidden");
 
   const box =
     document.getElementById("requests");
 
   box.innerHTML = "";
 
+  if (!data.requests.length) {
+
+    box.innerHTML =
+      "<p>Request hin jiru.</p>";
+
+    return;
+  }
+
   data.requests.forEach(id => {
 
     const user =
-      data.members.find(m => m.id === id);
+      data.members.find(
+        m => m.id === id
+      );
 
     if (!user) return;
+
+    const row =
+      document.createElement("div");
+
+    row.className = "request";
+
+    row.innerHTML =
+      "👤 " +
+      escapeHtml(user.username);
 
     const button =
       document.createElement("button");
 
     button.textContent =
-      "💺 Kennisi → " + user.username;
+      "💺 Seat Kenni";
 
     button.onclick = () => {
 
@@ -497,7 +677,8 @@ function renderRequests(data) {
 
     };
 
-    box.appendChild(button);
+    row.appendChild(button);
+    box.appendChild(row);
   });
 }
 
@@ -509,7 +690,9 @@ function requestSeat() {
     clubId: currentClub.id
   });
 
-  alert("🙋 Seat request ergameera.");
+  alert(
+    "🙋 Request kee Owner bira gaheera."
+  );
 }
 
 function leaveSeat() {
@@ -519,42 +702,355 @@ function leaveSeat() {
   socket.emit("leaveSeat", {
     clubId: currentClub.id
   });
+
+  stopMicrophone();
 }
 
-function toggleMic() {
+async function toggleMic() {
+
+  if (!currentClub) return;
+
+  const me =
+    currentClub.members.find(
+      m => m.id === socket.id
+    );
+
+  if (!me || me.seat === 0) {
+
+    alert(
+      "🎤 Mic fayyadamuuf dura Seat argachuu qabda."
+    );
+
+    return;
+  }
+
+  if (!localStream) {
+
+    await startMicrophone();
+    return;
+  }
 
   muted = !muted;
 
-  if (!currentClub) return;
+  localStream
+    .getAudioTracks()
+    .forEach(track => {
+      track.enabled = !muted;
+    });
 
   socket.emit("mute", {
     clubId: currentClub.id,
     muted
   });
-
-  alert(
-    muted
-      ? "🔇 Mic OFF"
-      : "🎤 Mic ON"
-  );
 }
 
-function leaveClub() {
+async function startMicrophone() {
 
-  if (!currentClub) return;
+  try {
 
-  socket.emit("leaveClub", {
-    clubId: currentClub.id
+    localStream =
+      await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      });
+
+    muted = false;
+
+    localStream
+      .getAudioTracks()
+      .forEach(track => {
+        track.enabled = true;
+      });
+
+    socket.emit("mute", {
+      clubId: currentClub.id,
+      muted: false
+    });
+
+    await updateWebRTCConnections(currentClub);
+
+    alert("🎤 Mic ON");
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Microphone hayyama argachuu dide. " +
+      "Browser keessatti Microphone permission Allow godhi."
+    );
+  }
+}
+
+function stopMicrophone() {
+
+  if (!localStream) return;
+
+  localStream
+    .getTracks()
+    .forEach(track => track.stop());
+
+  localStream = null;
+  muted = true;
+
+  if (currentClub) {
+
+    socket.emit("mute", {
+      clubId: currentClub.id,
+      muted: true
+    });
+  }
+}
+
+async function updateWebRTCConnections(data) {
+
+  if (!localStream) return;
+
+  const speakers =
+    data.members.filter(
+      m =>
+        m.seat > 0 &&
+        !m.muted &&
+        m.id !== socket.id
+    );
+
+  for (const member of speakers) {
+
+    if (!peers[member.id]) {
+
+      await createPeer(member.id);
+    }
+  }
+
+  Object.keys(peers).forEach(id => {
+
+    if (
+      !speakers.some(
+        member => member.id === id
+      )
+    ) {
+
+      peers[id].close();
+      delete peers[id];
+
+      const audio =
+        document.getElementById(
+          "audio-" + id
+        );
+
+      if (audio) audio.remove();
+    }
   });
-
-  currentClub = null;
-
-  document.getElementById("clubPage")
-    .classList.add("hidden");
-
-  document.getElementById("homePage")
-    .classList.remove("hidden");
 }
+
+async function createPeer(targetId) {
+
+  if (peers[targetId]) return;
+
+  const pc =
+    new RTCPeerConnection({
+      iceServers: [
+        {
+          urls:
+            "stun:stun.l.google.com:19302"
+        }
+      ]
+    });
+
+  peers[targetId] = pc;
+
+  localStream
+    .getTracks()
+    .forEach(track => {
+      pc.addTrack(track, localStream);
+    });
+
+  pc.onicecandidate = event => {
+
+    if (event.candidate) {
+
+      socket.emit("webrtc-ice", {
+        target: targetId,
+        candidate: event.candidate
+      });
+    }
+  };
+
+  pc.ontrack = event => {
+
+    let audio =
+      document.getElementById(
+        "audio-" + targetId
+      );
+
+    if (!audio) {
+
+      audio =
+        document.createElement("audio");
+
+      audio.id =
+        "audio-" + targetId;
+
+      audio.autoplay = true;
+      audio.controls = false;
+
+      document
+        .getElementById("remoteAudios")
+        .appendChild(audio);
+    }
+
+    audio.srcObject = event.streams[0];
+  };
+
+  const offer =
+    await pc.createOffer();
+
+  await pc.setLocalDescription(offer);
+
+  socket.emit("webrtc-offer", {
+    target: targetId,
+    offer
+  });
+}
+
+socket.on(
+  "seatGranted",
+  async () => {
+
+    alert(
+      "🎉 Seat siif kennameera!"
+    );
+
+    await startMicrophone();
+  }
+);
+
+socket.on(
+  "newOwner",
+  () => {
+
+    alert(
+      "👑 Amma ati Club Owner taate."
+    );
+  }
+);
+
+socket.on(
+  "webrtc-offer",
+  async ({ sender, offer }) => {
+
+    if (!localStream) return;
+
+    let pc = peers[sender];
+
+    if (!pc) {
+
+      pc =
+        new RTCPeerConnection({
+          iceServers: [
+            {
+              urls:
+                "stun:stun.l.google.com:19302"
+            }
+          ]
+        });
+
+      peers[sender] = pc;
+
+      localStream
+        .getTracks()
+        .forEach(track => {
+          pc.addTrack(
+            track,
+            localStream
+          );
+        });
+
+      pc.onicecandidate = event => {
+
+        if (event.candidate) {
+
+          socket.emit("webrtc-ice", {
+            target: sender,
+            candidate: event.candidate
+          });
+        }
+      };
+
+      pc.ontrack = event => {
+
+        let audio =
+          document.getElementById(
+            "audio-" + sender
+          );
+
+        if (!audio) {
+
+          audio =
+            document.createElement("audio");
+
+          audio.id =
+            "audio-" + sender;
+
+          audio.autoplay = true;
+
+          document
+            .getElementById("remoteAudios")
+            .appendChild(audio);
+        }
+
+        audio.srcObject =
+          event.streams[0];
+      };
+    }
+
+    await pc.setRemoteDescription(
+      new RTCSessionDescription(offer)
+    );
+
+    const answer =
+      await pc.createAnswer();
+
+    await pc.setLocalDescription(answer);
+
+    socket.emit("webrtc-answer", {
+      target: sender,
+      answer
+    });
+  }
+);
+
+socket.on(
+  "webrtc-answer",
+  async ({ sender, answer }) => {
+
+    const pc = peers[sender];
+
+    if (!pc) return;
+
+    await pc.setRemoteDescription(
+      new RTCSessionDescription(answer)
+    );
+  }
+);
+
+socket.on(
+  "webrtc-ice",
+  async ({ sender, candidate }) => {
+
+    const pc = peers[sender];
+
+    if (!pc) return;
+
+    try {
+      await pc.addIceCandidate(
+        new RTCIceCandidate(candidate)
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
 
 function sendChat() {
 
@@ -568,44 +1064,78 @@ function sendChat() {
 
   socket.emit("chatMessage", {
     clubId: currentClub.id,
-    username,
     message
   });
 
   input.value = "";
 }
 
-socket.on("chatMessage", data => {
+socket.on(
+  "chatMessage",
+  data => {
 
-  const chat =
-    document.getElementById("chat");
+    const chat =
+      document.getElementById("chat");
 
-  const div =
-    document.createElement("div");
+    const div =
+      document.createElement("div");
 
-  div.className = "msg";
+    div.className = "msg";
 
-  div.innerHTML =
-    "<b>" +
-    escapeHtml(data.username) +
-    ":</b> " +
-    escapeHtml(data.message);
+    div.innerHTML =
+      "<b>" +
+      escapeHtml(data.username) +
+      ":</b> " +
+      escapeHtml(data.message);
 
-  chat.appendChild(div);
+    chat.appendChild(div);
 
-  chat.scrollTop = chat.scrollHeight;
-});
+    chat.scrollTop =
+      chat.scrollHeight;
+  }
+);
 
-socket.on("errorMessage", message => {
-  alert("⚠️ " + message);
-});
+function leaveClub() {
+
+  if (!currentClub) return;
+
+  socket.emit("leaveClub", {
+    clubId: currentClub.id
+  });
+
+  stopMicrophone();
+
+  Object.keys(peers).forEach(id => {
+    peers[id].close();
+    delete peers[id];
+  });
+
+  document.getElementById("remoteAudios")
+    .innerHTML = "";
+
+  currentClub = null;
+
+  document.getElementById("clubPage")
+    .classList.add("hidden");
+
+  document.getElementById("homePage")
+    .classList.remove("hidden");
+}
+
+socket.on(
+  "errorMessage",
+  message => {
+    alert("⚠️ " + message);
+  }
+);
 
 function showInfo(message) {
 
   const info =
     document.getElementById("info");
 
-  info.textContent = message +
+  info.textContent =
+    message +
     " — feature kana itti aansee ni qindaa'a.";
 
   info.classList.remove("hidden");
