@@ -1,13 +1,14 @@
 {
   "name": "waliin-gm",
-  "version": "2.0.0",
-  "description": "Waliin-GM Voice Club, Chat and Room App",
+  "version": "3.0.0",
+  "description": "Waliin-GM Sign In, Home, Voice Room, Chat, Gift and Club App",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.21.2",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "pg": "^8.16.3"
   }
 }
