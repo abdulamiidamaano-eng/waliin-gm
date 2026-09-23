@@ -477,11 +477,21 @@ app.post("/api/register", async (req, res) => {
 /* =========================
    LOGIN
 ========================= */
-
 app.post("/api/login", async (req, res) => {
   try {
-    const login = String(req.body.login || "").trim();
+    // Frontend irraa "value" dhufa
+    const login = String(
+      req.body.value || req.body.login || ""
+    ).trim();
+
     const password = String(req.body.password || "");
+
+    if (!login || !password) {
+      return res.status(400).json({
+        ok: false,
+        error: "Username/email fi password guuti."
+      });
+    }
 
     const result = await pool.query(
       `SELECT *
@@ -545,6 +555,7 @@ app.post("/api/login", async (req, res) => {
         avatar: user.avatar || ""
       }
     });
+
   } catch (err) {
     console.error("LOGIN ERROR:", err);
 
