@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="om">
-<head>
+<head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#166943">
+<link rel="icon" href="/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -13,7 +16,7 @@
   box-sizing:border-box;
   margin:0;
   padding:0;
-}
+} 
 
 body{
   font-family:Arial,sans-serif;
@@ -4191,6 +4194,14 @@ function scrollChat(){
 
 restoreLogin();
 
+ <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => console.log("Service Worker registered"))
+      .catch(err => console.error("SW error:", err));
+  });
+}
 </script>
 
 </body>
