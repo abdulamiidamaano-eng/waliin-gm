@@ -1,31 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#166943">
-<link rel="icon" href="/icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="/icon-192.png">
+<head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <meta name="theme-color" content="#166943">
-
-  <meta
-    name="description"
-    content="Waliin-GM Communication, Chat, Voice, Video and Social App"
-  >
+  <meta name="description" content="Waliin-GM Communication, Chat, Voice, Video and Social App">
 
   <title>Waliin-GM</title>
 
-  <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.json">
-
-  <!-- App Icon -->
-  <link rel="icon" href="/icon-192.png" type="image/png">
-  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="icon" href="/icon-192.png">
 
   <style>
     * {
@@ -34,200 +19,990 @@
       padding: 0;
     }
 
-    html,
     body {
-      width: 100%;
-      min-height: 100%;
       font-family: Arial, sans-serif;
-      background: #ffffff;
-    }
-
-    body {
+      background: #f4f7f5;
+      color: #222;
       min-height: 100vh;
     }
 
-    #app {
-      width: 100%;
-      min-height: 100vh;
+    button,
+    input {
+      font: inherit;
     }
 
-    .loading {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .logo {
-      width: 90px;
-      height: 90px;
-      border-radius: 22px;
-      object-fit: cover;
-      margin-bottom: 20px;
-    }
-
-    .loading h1 {
-      color: #166943;
-      font-size: 28px;
-      margin-bottom: 8px;
-    }
-
-    .loading p {
-      color: #666;
-      font-size: 15px;
-    }
-
-    .install-btn {
-      display: none;
-      margin-top: 20px;
-      padding: 12px 22px;
-      border: none;
-      border-radius: 10px;
-      background: #166943;
-      color: white;
-      font-size: 16px;
+    button {
       cursor: pointer;
     }
 
-    .install-btn:hover {
-      background: #115735;
+    .hidden {
+      display: none !important;
+    }
+
+    .topbar {
+      background: #166943;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      font-size: 23px;
+      font-weight: bold;
+    }
+
+    .menu-btn {
+      background: white;
+      color: #166943;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+
+    .container {
+      width: min(100%, 900px);
+      margin: auto;
+      padding: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 18px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    }
+
+    h2 {
+      margin-bottom: 15px;
+      color: #166943;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 9px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #166943;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: 0;
+      border-radius: 9px;
+      background: #166943;
+      color: white;
+      margin-top: 5px;
+    }
+
+    .btn.secondary {
+      background: #e8efeb;
+      color: #166943;
+    }
+
+    .nav {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+      margin-bottom: 15px;
+    }
+
+    .nav button {
+      border: 0;
+      background: white;
+      padding: 11px 5px;
+      border-radius: 9px;
+      color: #166943;
+      font-size: 13px;
+    }
+
+    .nav button.active {
+      background: #166943;
+      color: white;
+    }
+
+    .user {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .user:last-child {
+      border-bottom: 0;
+    }
+
+    .status {
+      font-size: 12px;
+      color: #16824f;
+    }
+
+    .message {
+      background: #e8f3ed;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .message.me {
+      background: #166943;
+      color: white;
+      margin-left: 20%;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 8px;
+      position: sticky;
+      bottom: 0;
+      background: white;
+      padding-top: 10px;
+    }
+
+    .chat-input input {
+      margin: 0;
+    }
+
+    .small-btn {
+      border: 0;
+      background: #166943;
+      color: white;
+      padding: 10px 13px;
+      border-radius: 8px;
+    }
+
+    .room {
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .danger {
+      background: #b3261e;
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      padding: 25px;
+    }
+
+    @media(max-width:600px) {
+      .nav {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .container {
+        padding: 10px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <div id="app">
+<header class="topbar">
+  <div class="brand">Waliin-GM</div>
+  <button class="menu-btn" onclick="logout()">Logout</button>
+</header>
 
-    <div class="loading">
+<div class="container">
 
-      <img
-        src="/icon-192.png"
-        alt="Waliin-GM"
-        class="logo"
-        onerror="this.style.display='none'"
-      >
+  <!-- LOGIN -->
+  <section id="loginPage" class="card">
+    <h2>Waliin-GM</h2>
+    <p style="margin-bottom:15px;">
+      Communication, Chat, Voice, Video and Social App
+    </p>
 
-      <h1>Waliin-GM</h1>
+    <input id="loginUsername" placeholder="Username">
+    <input id="loginPassword" type="password" placeholder="Password">
 
-      <p>Communication, Chat, Voice, Video and Social App</p>
+    <button class="btn" onclick="login()">Login</button>
 
-      <button id="installBtn" class="install-btn">
-        Install Waliin-GM
-      </button>
+    <button class="btn secondary" onclick="showRegister()">
+      Create Account
+    </button>
+
+    <p id="loginMsg" style="margin-top:12px;"></p>
+  </section>
+
+  <!-- REGISTER -->
+  <section id="registerPage" class="card hidden">
+    <h2>Create Account</h2>
+
+    <input id="regUsername" placeholder="Username">
+    <input id="regPassword" type="password" placeholder="Password">
+
+    <button class="btn" onclick="register()">Register</button>
+
+    <button class="btn secondary" onclick="showLogin()">
+      Back to Login
+    </button>
+
+    <p id="regMsg" style="margin-top:12px;"></p>
+  </section>
+
+  <!-- APP -->
+  <section id="appPage" class="hidden">
+
+    <div class="nav">
+      <button onclick="openTab('home',this)" class="active">🏠 Home</button>
+      <button onclick="openTab('search',this)">🔎 Search</button>
+      <button onclick="openTab('chat',this)">💬 Chat</button>
+      <button onclick="openTab('clubs',this)">👥 Clubs</button>
+      <button onclick="openTab('settings',this)">⚙️ Settings</button>
+    </div>
+
+    <!-- HOME -->
+    <div id="home" class="tab">
+
+      <div class="card">
+        <h2>Welcome</h2>
+        <p id="welcomeText">Welcome to Waliin-GM.</p>
+      </div>
+
+      <div class="card">
+        <h2>Online Users</h2>
+        <div id="onlineUsers">
+          <div class="empty">Loading...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Notifications</h2>
+        <div id="notifications">
+          <div class="empty">No notifications.</div>
+        </div>
+      </div>
 
     </div>
 
-  </div>
+    <!-- SEARCH -->
+    <div id="search" class="tab hidden">
 
-  <script>
-    /*
-     * ==============================
-     * SERVICE WORKER
-     * ==============================
-     */
+      <div class="card">
+        <h2>Search Users</h2>
 
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () {
+        <input
+          id="searchInput"
+          placeholder="Search username..."
+          oninput="searchUsers()"
+        >
 
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then(function (registration) {
-            console.log(
-              "Waliin-GM Service Worker registered:",
-              registration.scope
-            );
-          })
-          .catch(function (error) {
-            console.error(
-              "Service Worker registration failed:",
-              error
-            );
-          });
+        <div id="searchResults">
+          <div class="empty">Type a username.</div>
+        </div>
+      </div>
 
-      });
+    </div>
+
+    <!-- CHAT -->
+    <div id="chat" class="tab hidden">
+
+      <div class="card">
+        <h2>Private Chat</h2>
+
+        <input id="chatUsername" placeholder="Username to chat with">
+
+        <button class="btn" onclick="loadMessages()">
+          Open Chat
+        </button>
+
+        <div id="messages" style="margin-top:15px;"></div>
+
+        <div class="chat-input">
+          <input id="messageInput" placeholder="Write message...">
+          <button class="small-btn" onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CLUBS -->
+    <div id="clubs" class="tab hidden">
+
+      <div class="card">
+        <h2>Clubs / Rooms</h2>
+
+        <input id="clubName" placeholder="Club name">
+
+        <button class="btn" onclick="createClub()">
+          ➕ Create Club
+        </button>
+
+        <div id="clubList" style="margin-top:15px;"></div>
+      </div>
+
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="settings" class="tab hidden">
+
+      <div class="card">
+        <h2>Settings</h2>
+
+        <input id="profileName" placeholder="Display name">
+
+        <button class="btn" onclick="updateProfile()">
+          Save Profile
+        </button>
+
+        <button
+          class="btn danger"
+          style="margin-top:15px"
+          onclick="logout()"
+        >
+          Logout
+        </button>
+
+        <p id="settingsMsg" style="margin-top:12px;"></p>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+  let currentUser = null;
+  let socket = null;
+  let currentChatUser = null;
+
+  const $ = id => document.getElementById(id);
+
+  function showLogin() {
+    $("loginPage").classList.remove("hidden");
+    $("registerPage").classList.add("hidden");
+    $("appPage").classList.add("hidden");
+  }
+
+  function showRegister() {
+    $("loginPage").classList.add("hidden");
+    $("registerPage").classList.remove("hidden");
+  }
+
+  function showApp() {
+    $("loginPage").classList.add("hidden");
+    $("registerPage").classList.add("hidden");
+    $("appPage").classList.remove("hidden");
+
+    $("welcomeText").textContent =
+      "Welcome, " + currentUser.username + "!";
+
+    connectSocket();
+    loadOnlineUsers();
+    loadNotifications();
+  }
+
+  async function register() {
+
+    const username = $("regUsername").value.trim();
+    const password = $("regPassword").value;
+
+    if (!username || !password) {
+      $("regMsg").textContent = "Username fi password guuti.";
+      return;
     }
 
+    try {
 
-    /*
-     * ==============================
-     * PWA INSTALL
-     * ==============================
-     */
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username,
+          password
+        })
+      });
 
-    let deferredPrompt;
+      const data = await res.json();
 
-    const installBtn = document.getElementById("installBtn");
+      if (!res.ok) {
+        $("regMsg").textContent =
+          data.error || data.message || "Registration failed.";
+        return;
+      }
 
-    window.addEventListener("beforeinstallprompt", function (event) {
+      $("regMsg").textContent =
+        "Account created. Amma login godhi.";
 
-      event.preventDefault();
+      $("loginUsername").value = username;
+      showLogin();
 
-      deferredPrompt = event;
+    } catch (err) {
+      $("regMsg").textContent =
+        "Server connection error.";
+    }
+  }
 
-      if (installBtn) {
-        installBtn.style.display = "block";
+  async function login() {
+
+    const username = $("loginUsername").value.trim();
+    const password = $("loginPassword").value;
+
+    if (!username || !password) {
+      $("loginMsg").textContent =
+        "Username fi password guuti.";
+      return;
+    }
+
+    try {
+
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username,
+          password
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        $("loginMsg").textContent =
+          data.error || data.message || "Login failed.";
+        return;
+      }
+
+      currentUser =
+        data.user ||
+        data;
+
+      localStorage.setItem(
+        "waliin_gm_user",
+        JSON.stringify(currentUser)
+      );
+
+      showApp();
+
+    } catch (err) {
+
+      $("loginMsg").textContent =
+        "Server connection error.";
+
+    }
+  }
+
+  async function logout() {
+
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          username: currentUser?.username
+        })
+      });
+    } catch(e) {}
+
+    localStorage.removeItem("waliin_gm_user");
+
+    if (socket) {
+      socket.disconnect();
+      socket = null;
+    }
+
+    currentUser = null;
+    showLogin();
+  }
+
+  function connectSocket() {
+
+    if (socket) return;
+
+    socket = io({
+      transports: ["websocket", "polling"]
+    });
+
+    socket.on("connect", () => {
+
+      socket.emit("identify", {
+        username: currentUser.username
+      });
+
+    });
+
+    socket.on("privateMessage", message => {
+
+      if (
+        currentChatUser &&
+        (
+          message.from === currentChatUser ||
+          message.to === currentChatUser
+        )
+      ) {
+        loadMessages();
       }
 
     });
 
+  }
 
-    if (installBtn) {
+  async function loadOnlineUsers() {
 
-      installBtn.addEventListener("click", async function () {
+    try {
 
-        if (!deferredPrompt) {
-          alert(
-            "Install option is not available yet. Open the browser menu and choose Add to Home screen."
-          );
-          return;
-        }
+      const res =
+        await fetch("/api/users/online");
 
-        deferredPrompt.prompt();
+      const data =
+        await res.json();
 
-        const choiceResult = await deferredPrompt.userChoice;
+      const users =
+        Array.isArray(data)
+          ? data
+          : data.users || [];
 
-        console.log(
-          "Install result:",
-          choiceResult.outcome
+      if (!users.length) {
+        $("onlineUsers").innerHTML =
+          '<div class="empty">No users online.</div>';
+        return;
+      }
+
+      $("onlineUsers").innerHTML =
+        users.map(user => {
+
+          const username =
+            typeof user === "string"
+              ? user
+              : user.username;
+
+          return `
+            <div class="user">
+              <div>
+                <strong>${escapeHtml(username)}</strong>
+                <div class="status">● Online</div>
+              </div>
+
+              <button
+                class="small-btn"
+                onclick="startChat('${escapeJs(username)}')">
+                Chat
+              </button>
+            </div>
+          `;
+
+        }).join("");
+
+    } catch(e) {
+
+      $("onlineUsers").innerHTML =
+        '<div class="empty">Unable to load users.</div>';
+
+    }
+  }
+
+  async function searchUsers() {
+
+    const q =
+      $("searchInput").value.trim();
+
+    if (!q) {
+      $("searchResults").innerHTML =
+        '<div class="empty">Type a username.</div>';
+      return;
+    }
+
+    try {
+
+      const res =
+        await fetch(
+          "/api/users/search?q=" +
+          encodeURIComponent(q)
         );
 
-        deferredPrompt = null;
+      const data =
+        await res.json();
 
-        installBtn.style.display = "none";
+      const users =
+        Array.isArray(data)
+          ? data
+          : data.users || [];
 
-      });
+      if (!users.length) {
+        $("searchResults").innerHTML =
+          '<div class="empty">User not found.</div>';
+        return;
+      }
+
+      $("searchResults").innerHTML =
+        users.map(user => {
+
+          const username =
+            user.username || user;
+
+          return `
+            <div class="user">
+              <strong>${escapeHtml(username)}</strong>
+
+              <div>
+                <button
+                  class="small-btn"
+                  onclick="startChat('${escapeJs(username)}')">
+                  Chat
+                </button>
+
+                <button
+                  class="small-btn"
+                  onclick="followUser('${escapeJs(username)}')">
+                  Follow
+                </button>
+              </div>
+            </div>
+          `;
+
+        }).join("");
+
+    } catch(e) {
+
+      $("searchResults").innerHTML =
+        '<div class="empty">Search failed.</div>';
+
+    }
+  }
+
+  function startChat(username) {
+
+    $("chatUsername").value = username;
+
+    currentChatUser = username;
+
+    openTabById("chat");
+
+    loadMessages();
+  }
+
+  async function loadMessages() {
+
+    const username =
+      $("chatUsername").value.trim();
+
+    if (!username || !currentUser) return;
+
+    currentChatUser = username;
+
+    try {
+
+      const res =
+        await fetch(
+          "/api/messages?user1=" +
+          encodeURIComponent(currentUser.username) +
+          "&user2=" +
+          encodeURIComponent(username)
+        );
+
+      const data =
+        await res.json();
+
+      const messages =
+        Array.isArray(data)
+          ? data
+          : data.messages || [];
+
+      if (!messages.length) {
+
+        $("messages").innerHTML =
+          '<div class="empty">No messages yet.</div>';
+
+        return;
+      }
+
+      $("messages").innerHTML =
+        messages.map(m => {
+
+          const mine =
+            m.sender === currentUser.username ||
+            m.from === currentUser.username;
+
+          const text =
+            m.message ||
+            m.content ||
+            "";
+
+          return `
+            <div class="message ${mine ? "me" : ""}">
+              ${escapeHtml(text)}
+            </div>
+          `;
+
+        }).join("");
+
+      $("messages").scrollTop =
+        $("messages").scrollHeight;
+
+    } catch(e) {
+
+      $("messages").innerHTML =
+        '<div class="empty">Messages could not be loaded.</div>';
+
+    }
+  }
+
+  function sendMessage() {
+
+    const text =
+      $("messageInput").value.trim();
+
+    const to =
+      $("chatUsername").value.trim();
+
+    if (!text || !to || !socket) return;
+
+    socket.emit("privateMessage", {
+      from: currentUser.username,
+      to,
+      message: text
+    });
+
+    $("messageInput").value = "";
+
+    setTimeout(loadMessages, 300);
+  }
+
+  async function followUser(username) {
+
+    try {
+
+      const res =
+        await fetch("/api/follow", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            follower: currentUser.username,
+            following: username
+          })
+        });
+
+      const data =
+        await res.json();
+
+      alert(
+        data.message ||
+        data.error ||
+        "Follow request completed."
+      );
+
+    } catch(e) {
+
+      alert("Follow failed.");
+
+    }
+  }
+
+  async function loadNotifications() {
+
+    try {
+
+      const res =
+        await fetch(
+          "/api/notifications/" +
+          encodeURIComponent(currentUser.username)
+        );
+
+      const data =
+        await res.json();
+
+      const list =
+        Array.isArray(data)
+          ? data
+          : data.notifications || [];
+
+      if (!list.length) {
+
+        $("notifications").innerHTML =
+          '<div class="empty">No notifications.</div>';
+
+        return;
+      }
+
+      $("notifications").innerHTML =
+        list.map(n => `
+          <div class="message">
+            ${escapeHtml(
+              n.message ||
+              n.text ||
+              "New notification"
+            )}
+          </div>
+        `).join("");
+
+    } catch(e) {}
+  }
+
+  async function updateProfile() {
+
+    const name =
+      $("profileName").value.trim();
+
+    try {
+
+      const res =
+        await fetch("/api/profile/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            username: currentUser.username,
+            display_name: name
+          })
+        });
+
+      const data =
+        await res.json();
+
+      $("settingsMsg").textContent =
+        data.message ||
+        data.error ||
+        "Profile updated.";
+
+    } catch(e) {
+
+      $("settingsMsg").textContent =
+        "Profile update failed.";
+
+    }
+  }
+
+  function createClub() {
+
+    const name =
+      $("clubName").value.trim();
+
+    if (!name || !socket) return;
+
+    socket.emit("createClub", {
+      name,
+      owner: currentUser.username
+    });
+
+    $("clubName").value = "";
+
+    alert("Club creation request sent.");
+
+  }
+
+  function openTab(name, button) {
+
+    document.querySelectorAll(".tab")
+      .forEach(tab =>
+        tab.classList.add("hidden")
+      );
+
+    $(name).classList.remove("hidden");
+
+    document.querySelectorAll(".nav button")
+      .forEach(btn =>
+        btn.classList.remove("active")
+      );
+
+    if (button) {
+      button.classList.add("active");
+    }
+
+    if (name === "home") {
+      loadOnlineUsers();
+      loadNotifications();
+    }
+  }
+
+  function openTabById(name) {
+
+    document.querySelectorAll(".tab")
+      .forEach(tab =>
+        tab.classList.add("hidden")
+      );
+
+    $(name).classList.remove("hidden");
+
+    document.querySelectorAll(".nav button")
+      .forEach(btn =>
+        btn.classList.remove("active")
+      );
+  }
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function escapeJs(value) {
+
+    return String(value)
+      .replaceAll("\\", "\\\\")
+      .replaceAll("'", "\\'");
+  }
+
+  // Restore login after page refresh
+  try {
+
+    const saved =
+      localStorage.getItem("waliin_gm_user");
+
+    if (saved) {
+
+      currentUser =
+        JSON.parse(saved);
+
+      showApp();
 
     }
 
+  } catch(e) {
 
-    /*
-     * ==============================
-     * APP INSTALLED
-     * ==============================
-     */
+    localStorage.removeItem("waliin_gm_user");
 
-    window.addEventListener("appinstalled", function () {
+  }
 
-      console.log("Waliin-GM installed successfully.");
+  // PWA
+  if ("serviceWorker" in navigator) {
 
-      if (installBtn) {
-        installBtn.style.display = "none";
-      }
+    window.addEventListener("load", () => {
+
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then(() =>
+          console.log("Service Worker registered")
+        )
+        .catch(err =>
+          console.error("SW error:", err)
+        );
 
     });
-  </script> 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js")
-      .then(() => console.log("Service Worker registered"))
-      .catch(err => console.error("SW error:", err));
-  });
-}
-  </script>
+
+  }
+</script>
 
 </body>
-  </html>
+        </html>
