@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#166943">
+
+  <meta
+    name="description"
+    content="Waliin-GM Communication, Chat, Voice, Video and Social App"
+  >
+
+  <title>Waliin-GM</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- App Icon -->
+  <link rel="icon" href="/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    #app {
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    .loading {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .logo {
+      width: 90px;
+      height: 90px;
+      border-radius: 22px;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+
+    .loading h1 {
+      color: #166943;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .loading p {
+      color: #666;
+      font-size: 15px;
+    }
+
+    .install-btn {
+      display: none;
+      margin-top: 20px;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 10px;
+      background: #166943;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .install-btn:hover {
+      background: #115735;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="app">
+
+    <div class="loading">
+
+      <img
+        src="/icon-192.png"
+        alt="Waliin-GM"
+        class="logo"
+        onerror="this.style.display='none'"
+      >
+
+      <h1>Waliin-GM</h1>
+
+      <p>Communication, Chat, Voice, Video and Social App</p>
+
+      <button id="installBtn" class="install-btn">
+        Install Waliin-GM
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+    /*
+     * ==============================
+     * SERVICE WORKER
+     * ==============================
+     */
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then(function (registration) {
+            console.log(
+              "Waliin-GM Service Worker registered:",
+              registration.scope
+            );
+          })
+          .catch(function (error) {
+            console.error(
+              "Service Worker registration failed:",
+              error
+            );
+          });
+
+      });
+    }
+
+
+    /*
+     * ==============================
+     * PWA INSTALL
+     * ==============================
+     */
+
+    let deferredPrompt;
+
+    const installBtn = document.getElementById("installBtn");
+
+    window.addEventListener("beforeinstallprompt", function (event) {
+
+      event.preventDefault();
+
+      deferredPrompt = event;
+
+      if (installBtn) {
+        installBtn.style.display = "block";
+      }
+
+    });
+
+
+    if (installBtn) {
+
+      installBtn.addEventListener("click", async function () {
+
+        if (!deferredPrompt) {
+          alert(
+            "Install option is not available yet. Open the browser menu and choose Add to Home screen."
+          );
+          return;
+        }
+
+        deferredPrompt.prompt();
+
+        const choiceResult = await deferredPrompt.userChoice;
+
+        console.log(
+          "Install result:",
+          choiceResult.outcome
+        );
+
+        deferredPrompt = null;
+
+        installBtn.style.display = "none";
+
+      });
+
+    }
+
+
+    /*
+     * ==============================
+     * APP INSTALLED
+     * ==============================
+     */
+
+    window.addEventListener("appinstalled", function () {
+
+      console.log("Waliin-GM installed successfully.");
+
+      if (installBtn) {
+        installBtn.style.display = "none";
+      }
+
+    });
+  </script>
+
+</body>
+</html>
