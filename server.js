@@ -198,9 +198,8 @@ async function notifyUser(username, type, message, data = {}) {
 /* =========================
    DATABASE
 ========================= */
-async function initDatabase() {
 
-  // USERS
+async function initDatabase() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -217,25 +216,6 @@ async function initDatabase() {
     );
   `);
 
-  // If an old database has users.id as INTEGER,
-  // convert it to TEXT without deleting existing users.
-  try {
-    await pool.query(`
-      ALTER TABLE users
-      ALTER COLUMN id TYPE TEXT
-      USING id::TEXT;
-    `);
-    console.log("🟢 users.id converted to TEXT.");
-  } catch (err) {
-    if (
-      !String(err.message).toLowerCase().includes("already") &&
-      !String(err.message).toLowerCase().includes("does not exist")
-    ) {
-      console.log("ℹ️ users.id migration:", err.message);
-    }
-  }
-
-  // PRIVATE MESSAGES
   await pool.query(`
     CREATE TABLE IF NOT EXISTS private_messages (
       id TEXT PRIMARY KEY,
@@ -248,7 +228,6 @@ async function initDatabase() {
     );
   `);
 
-  // FOLLOWS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS follows (
       id TEXT PRIMARY KEY,
@@ -259,7 +238,6 @@ async function initDatabase() {
     );
   `);
 
-  // BLOCKS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS blocks (
       id TEXT PRIMARY KEY,
@@ -270,7 +248,6 @@ async function initDatabase() {
     );
   `);
 
-  // NOTIFICATIONS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS notifications (
       id TEXT PRIMARY KEY,
@@ -283,7 +260,6 @@ async function initDatabase() {
     );
   `);
 
-  // GIFTS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS gifts (
       id TEXT PRIMARY KEY,
@@ -294,7 +270,6 @@ async function initDatabase() {
     );
   `);
 
-  // CALL HISTORY
   await pool.query(`
     CREATE TABLE IF NOT EXISTS call_history (
       id TEXT PRIMARY KEY,
@@ -307,7 +282,6 @@ async function initDatabase() {
     );
   `);
 
-  // CLUB MESSAGES
   await pool.query(`
     CREATE TABLE IF NOT EXISTS club_messages (
       id TEXT PRIMARY KEY,
@@ -318,7 +292,6 @@ async function initDatabase() {
     );
   `);
 
-  // ACTIVITY HISTORY
   await pool.query(`
     CREATE TABLE IF NOT EXISTS activity_history (
       id TEXT PRIMARY KEY,
@@ -329,7 +302,8 @@ async function initDatabase() {
     );
   `);
 
-  // POSTS
+  /* POSTS */
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS posts (
       id TEXT PRIMARY KEY,
@@ -340,7 +314,6 @@ async function initDatabase() {
     );
   `);
 
-  // POST LIKES
   await pool.query(`
     CREATE TABLE IF NOT EXISTS post_likes (
       id TEXT PRIMARY KEY,
@@ -351,7 +324,6 @@ async function initDatabase() {
     );
   `);
 
-  // POST COMMENTS
   await pool.query(`
     CREATE TABLE IF NOT EXISTS post_comments (
       id TEXT PRIMARY KEY,
@@ -362,7 +334,6 @@ async function initDatabase() {
     );
   `);
 
-  // PASSWORD RESET
   await pool.query(`
     ALTER TABLE users
     ADD COLUMN IF NOT EXISTS password_reset_token TEXT;
@@ -376,10 +347,35 @@ async function initDatabase() {
   console.log("🟢 Database ready.");
 }
 
+/* =========================
+   HEALTH
+========================= */
+
+app.get("/health", async (req, res) => {
+  try {
+    await pool.query("SELECT 1");
+
+    res.json({
+      ok: true,
+      app: "Waliin-GM",
+      database: true,
+      online: onlineUsers.size,
+      time: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).json({
+      ok: false,
+      database: false
+    });
+  }
+});
 
 /* =========================
    REGISTER
 ========================= */
+
 app.post("/api/register", async (req, res) => {
   try {
     const username = cleanUsername(req.body.username);
@@ -426,18 +422,17 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
+    const id = makeId();
     const salt = crypto.randomBytes(16).toString("hex");
     const passwordHash = hashPassword(password, salt);
     const token = makeToken();
 
-    // Database'n id INTEGER waan ta'eef,
-    // PostgreSQL'n ofumaan id haa uumu.
-    const result = await pool.query(
+    await pool.query(
       `INSERT INTO users
-       (username,email,password_hash,salt,token,bio,avatar)
-       VALUES ($1,$2,$3,$4,$5,'','')
-       RETURNING id,username,email,bio,avatar`,
+       (id,username,email,password_hash,salt,token,bio,avatar)
+       VALUES ($1,$2,$3,$4,$5,$6,'','')`,
       [
+        id,
         username,
         email,
         passwordHash,
@@ -445,8 +440,6 @@ app.post("/api/register", async (req, res) => {
         token
       ]
     );
-
-    const user = result.rows[0];
 
     await pool.query(
       `INSERT INTO activity_history
@@ -464,14 +457,13 @@ app.post("/api/register", async (req, res) => {
       ok: true,
       token,
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        bio: user.bio || "",
-        avatar: user.avatar || ""
+        id,
+        username,
+        email,
+        bio: "",
+        avatar: ""
       }
     });
-
   } catch (err) {
     console.error("REGISTER ERROR:", err);
 
@@ -481,24 +473,15 @@ app.post("/api/register", async (req, res) => {
     });
   }
 });
+
 /* =========================
    LOGIN
 ========================= */
+
 app.post("/api/login", async (req, res) => {
   try {
-    // Frontend irraa "value" dhufa
-    const login = String(
-      req.body.value || req.body.login || ""
-    ).trim();
-
+    const login = String(req.body.login || "").trim();
     const password = String(req.body.password || "");
-
-    if (!login || !password) {
-      return res.status(400).json({
-        ok: false,
-        error: "Username/email fi password guuti."
-      });
-    }
 
     const result = await pool.query(
       `SELECT *
@@ -562,7 +545,6 @@ app.post("/api/login", async (req, res) => {
         avatar: user.avatar || ""
       }
     });
-
   } catch (err) {
     console.error("LOGIN ERROR:", err);
 
