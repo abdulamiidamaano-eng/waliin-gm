@@ -375,7 +375,6 @@ app.get("/health", async (req, res) => {
 /* =========================
    REGISTER
 ========================= */
-
 app.post("/api/register", async (req, res) => {
   try {
     const username = cleanUsername(req.body.username);
@@ -422,17 +421,18 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const id = makeId();
     const salt = crypto.randomBytes(16).toString("hex");
     const passwordHash = hashPassword(password, salt);
     const token = makeToken();
 
-    await pool.query(
+    // Database'n id INTEGER waan ta'eef,
+    // PostgreSQL'n ofumaan id haa uumu.
+    const result = await pool.query(
       `INSERT INTO users
-       (id,username,email,password_hash,salt,token,bio,avatar)
-       VALUES ($1,$2,$3,$4,$5,$6,'','')`,
+       (username,email,password_hash,salt,token,bio,avatar)
+       VALUES ($1,$2,$3,$4,$5,'','')
+       RETURNING id,username,email,bio,avatar`,
       [
-        id,
         username,
         email,
         passwordHash,
@@ -440,6 +440,8 @@ app.post("/api/register", async (req, res) => {
         token
       ]
     );
+
+    const user = result.rows[0];
 
     await pool.query(
       `INSERT INTO activity_history
@@ -457,13 +459,14 @@ app.post("/api/register", async (req, res) => {
       ok: true,
       token,
       user: {
-        id,
-        username,
-        email,
-        bio: "",
-        avatar: ""
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        bio: user.bio || "",
+        avatar: user.avatar || ""
       }
     });
+
   } catch (err) {
     console.error("REGISTER ERROR:", err);
 
@@ -473,7 +476,6 @@ app.post("/api/register", async (req, res) => {
     });
   }
 });
-
 /* =========================
    LOGIN
 ========================= */
