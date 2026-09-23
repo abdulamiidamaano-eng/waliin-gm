@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="om">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Waliin-GM</title>
-
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#166943">
 <link rel="icon" href="/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><head> 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Waliin-GM</title>
 
 <script src="/socket.io/socket.io.js"></script>
 
@@ -16,205 +18,194 @@
   box-sizing:border-box;
   margin:0;
   padding:0;
-}
+} 
 
 body{
   font-family:Arial,sans-serif;
-  background:#f4f7f5;
-  color:#222;
+  background:#f3f6f5;
+  color:#17221f;
 }
 
 button,input,textarea{
-  font-family:inherit;
+  font:inherit;
 }
 
 button{
   cursor:pointer;
+  border:0;
 }
 
-.auth-page{
+.hidden{
+  display:none!important;
+}
+
+.page{
+  min-height:100vh;
+}
+
+.auth{
   min-height:100vh;
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
   padding:20px;
-  background:linear-gradient(135deg,#166943,#0b4d31);
+  background:linear-gradient(135deg,#063d2b,#0c8b5b);
 }
 
 .auth-card{
   width:100%;
-  max-width:420px;
+  max-width:430px;
   background:white;
-  border-radius:22px;
+  border-radius:24px;
   padding:25px;
-  box-shadow:0 10px 35px #0004;
+  box-shadow:0 20px 60px #0004;
 }
 
 .logo{
   width:75px;
   height:75px;
   border-radius:50%;
-  background:#166943;
-  color:white;
+  margin:auto;
   display:flex;
   align-items:center;
   justify-content:center;
-  margin:0 auto 12px;
-  font-size:30px;
+  background:#0b7a50;
+  color:white;
+  font-size:32px;
   font-weight:bold;
 }
 
-.auth-title{
+.auth-card h1{
   text-align:center;
-  color:#166943;
-  font-size:28px;
-  font-weight:bold;
+  margin:15px 0 5px;
 }
 
-.auth-subtitle{
+.subtitle{
   text-align:center;
-  color:#777;
-  margin:6px 0 20px;
+  color:#718078;
+  margin-bottom:20px;
 }
 
 .tabs{
   display:flex;
-  gap:5px;
+  gap:8px;
   margin-bottom:15px;
 }
 
-.tab{
+.tabs button{
   flex:1;
-  border:0;
-  padding:11px;
-  border-radius:10px;
-  background:#eee;
+  padding:12px;
+  border-radius:12px;
+  background:#e9efec;
 }
 
-.tab.active{
-  background:#166943;
+.tabs button.active{
+  background:#0b7a50;
   color:white;
-}
-
-.form-group{
-  margin-bottom:12px;
-}
-
-.form-group label{
-  display:block;
-  margin-bottom:5px;
-  font-weight:bold;
 }
 
 input,textarea{
   width:100%;
-  padding:12px;
-  border:1px solid #ddd;
-  border-radius:11px;
+  padding:13px;
+  border:1px solid #d5ddd9;
+  border-radius:12px;
   outline:none;
+  margin-bottom:10px;
+}
+
+textarea{
+  min-height:100px;
+  resize:vertical;
 }
 
 input:focus,textarea:focus{
-  border-color:#166943;
+  border-color:#0b7a50;
 }
 
 .primary{
-  background:#166943;
-  color:white;
-  border:0;
-  border-radius:11px;
-  padding:12px 16px;
-}
-
-.secondary{
-  background:#e8f2ed;
-  color:#166943;
-  border:0;
-  border-radius:11px;
-  padding:12px 16px;
-}
-
-.danger{
-  background:#c62828;
-  color:white;
-  border:0;
-  border-radius:11px;
-  padding:12px 16px;
-}
-
-.full{
   width:100%;
-}
-
-.link-btn{
-  background:none;
-  border:0;
-  color:#166943;
-  margin-top:12px;
-}
-
-.app{
-  display:none;
-  min-height:100vh;
-}
-
-.topbar{
-  position:sticky;
-  top:0;
-  z-index:20;
-  background:#166943;
+  padding:14px;
+  border-radius:12px;
+  background:#0b7a50;
   color:white;
-  padding:14px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-
-.topbar-title{
-  font-size:21px;
   font-weight:bold;
 }
 
-.topbar-actions{
+.secondary{
+  padding:11px 14px;
+  border-radius:10px;
+  background:#e8efeb;
+}
+
+.danger{
+  padding:11px 14px;
+  border-radius:10px;
+  background:#c62828;
+  color:white;
+}
+
+.app{
+  min-height:100vh;
+  padding-bottom:70px;
+}
+
+.topbar{
+  height:65px;
+  background:#0b7a50;
+  color:white;
   display:flex;
-  gap:7px;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 15px;
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+
+.topbar h2{
+  font-size:21px;
+}
+
+.top-actions{
+  display:flex;
+  gap:8px;
 }
 
 .icon-btn{
-  width:40px;
-  height:40px;
-  border:0;
+  width:42px;
+  height:42px;
   border-radius:50%;
   background:#ffffff22;
   color:white;
-  font-size:18px;
+  font-size:19px;
 }
 
 .content{
   max-width:900px;
   margin:auto;
-  padding:15px 15px 90px;
-}
-
-.page{
-  display:none;
-}
-
-.page.active{
-  display:block;
+  padding:15px;
 }
 
 .card{
   background:white;
-  border-radius:16px;
-  padding:15px;
-  margin-bottom:15px;
-  box-shadow:0 2px 8px #0000000d;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 3px 15px #0000000d;
 }
 
 .welcome{
-  background:linear-gradient(135deg,#166943,#25865c);
+  background:linear-gradient(135deg,#0b7a50,#0d9d68);
   color:white;
+}
+
+.search-box{
+  display:flex;
+  gap:8px;
+}
+
+.search-box input{
+  margin:0;
 }
 
 .section-title{
@@ -223,34 +214,26 @@ input:focus,textarea:focus{
   margin-bottom:12px;
 }
 
-.search-row{
-  display:flex;
-  gap:8px;
-}
-
-.search-row input{
-  flex:1;
-}
-
 .user-item{
   display:flex;
   align-items:center;
-  gap:10px;
-  padding:11px 0;
-  border-bottom:1px solid #eee;
+  gap:12px;
+  padding:12px 4px;
+  border-bottom:1px solid #edf1ef;
 }
 
 .avatar{
-  width:45px;
-  height:45px;
-  min-width:45px;
+  width:48px;
+  height:48px;
   border-radius:50%;
-  background:#dcebe4;
+  background:#0b7a50;
+  color:white;
   display:flex;
   align-items:center;
   justify-content:center;
+  font-weight:bold;
   overflow:hidden;
-  font-size:22px;
+  flex:none;
 }
 
 .avatar img{
@@ -263,45 +246,42 @@ input:focus,textarea:focus{
   flex:1;
 }
 
+.user-info strong{
+  display:block;
+}
+
+.user-info small{
+  color:#78857f;
+}
+
 .online-dot{
-  display:inline-block;
-  width:9px;
-  height:9px;
-  background:#19a463;
+  width:10px;
+  height:10px;
+  background:#23c76a;
   border-radius:50%;
-  margin-right:4px;
 }
 
 .bottom-nav{
   position:fixed;
-  bottom:0;
   left:0;
   right:0;
+  bottom:0;
   height:65px;
   background:white;
   border-top:1px solid #ddd;
   display:flex;
-  justify-content:space-around;
   z-index:30;
 }
 
-.nav-btn{
+.bottom-nav button{
   flex:1;
-  border:0;
   background:white;
-  color:#777;
-  font-size:12px;
+  color:#68756f;
 }
 
-.nav-btn.active{
-  color:#166943;
+.bottom-nav button.active{
+  color:#0b7a50;
   font-weight:bold;
-}
-
-.nav-icon{
-  display:block;
-  font-size:21px;
-  margin-bottom:2px;
 }
 
 .badge{
@@ -310,324 +290,187 @@ input:focus,textarea:focus{
   border-radius:20px;
   padding:2px 7px;
   font-size:10px;
+  margin-left:3px;
 }
 
 .chat-header{
   display:flex;
   align-items:center;
   gap:10px;
+  background:white;
+  padding:12px;
+  border-radius:15px;
   margin-bottom:10px;
 }
 
 .chat-actions{
   margin-left:auto;
   display:flex;
-  gap:5px;
+  gap:6px;
 }
 
 .chat-box{
-  height:400px;
+  height:52vh;
   overflow-y:auto;
-  background:#eef5f1;
-  border-radius:14px;
+  background:#edf4f0;
   padding:12px;
-  margin-bottom:10px;
+  border-radius:16px;
 }
 
 .message{
   max-width:78%;
-  padding:9px 12px;
-  margin-bottom:8px;
-  border-radius:14px;
-  word-break:break-word;
+  padding:10px 13px;
+  border-radius:16px;
+  margin:6px 0;
+  word-wrap:break-word;
 }
 
-.message.mine{
+.message.me{
   margin-left:auto;
-  background:#166943;
+  background:#0b7a50;
   color:white;
+  border-bottom-right-radius:4px;
 }
 
-.message.theirs{
+.message.other{
   background:white;
+  border-bottom-left-radius:4px;
 }
 
-.message-time{
-  font-size:10px;
+.message small{
+  display:block;
   opacity:.7;
-  margin-top:3px;
+  font-size:10px;
+  margin-top:4px;
 }
 
-.chat-input-row{
+.chat-input{
   display:flex;
-  gap:7px;
-}
-
-.chat-input-row input{
-  flex:1;
-}
-
-.club-create{
-  display:grid;
   gap:8px;
+  margin-top:10px;
+}
+
+.chat-input input{
+  margin:0;
 }
 
 .club-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  background:linear-gradient(135deg,#063d2b,#0b7a50);
+  color:white;
+  padding:18px;
+  border-radius:18px;
   margin-bottom:12px;
+}
+
+.club-create{
+  display:flex;
+  gap:8px;
+}
+
+.club-create input{
+  margin:0;
+}
+
+.club-create button{
+  white-space:nowrap;
+  padding:12px;
+  background:#0b7a50;
+  color:white;
+  border-radius:12px;
 }
 
 .seats{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:8px;
+  gap:9px;
+  margin:15px 0;
 }
 
 .seat{
-  min-height:75px;
-  border:2px solid #ddd;
-  border-radius:13px;
+  min-height:82px;
+  background:#edf2ef;
+  border-radius:14px;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  background:#fafafa;
+  gap:5px;
+  text-align:center;
+  padding:5px;
 }
 
-.seat.occupied{
-  border-color:#166943;
-  background:#e8f2ed;
-}
-
-.seat.mine{
-  border-color:#f0a000;
+.seat.active{
+  background:#d5f0e3;
+  border:2px solid #0b7a50;
 }
 
 .seat-number{
-  font-weight:bold;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:#0b7a50;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
-.seat-user{
-  font-size:11px;
-  margin-top:4px;
-  text-align:center;
-  overflow:hidden;
+.seat small{
   max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-.club-controls{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  margin-top:12px;
-}
-
-.gifts{
-  display:flex;
-  gap:7px;
-  flex-wrap:wrap;
-  margin-top:10px;
-}
-
-.gift-btn{
-  border:0;
-  background:#f1f1f1;
-  border-radius:10px;
-  padding:10px;
-  font-size:20px;
-}
-
-.club-chat-box{
-  height:230px;
+.club-chat{
+  height:250px;
   overflow-y:auto;
-  background:#f5f5f5;
-  border-radius:12px;
+  background:#f3f6f4;
   padding:10px;
-  margin-bottom:8px;
+  border-radius:14px;
+  margin-bottom:10px;
 }
 
-.profile{
-  text-align:center;
+.club-message{
+  padding:8px;
+  border-bottom:1px solid #ddd;
 }
 
-.profile .avatar{
-  margin:auto;
-  width:90px;
-  height:90px;
-  font-size:40px;
+.club-message strong{
+  color:#0b7a50;
 }
 
-.profile-actions{
+.controls{
   display:flex;
-  gap:7px;
-  margin-top:10px;
-}
-
-.profile-actions button{
-  flex:1;
-}
-
-.post-create-user{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:12px;
-}
-
-.post-textarea{
-  min-height:100px;
-  resize:vertical;
-}
-
-.post-image-input{
-  margin-top:8px;
-}
-
-.post-create-actions{
-  display:flex;
+  flex-wrap:wrap;
   gap:8px;
-  margin-top:10px;
+  margin:10px 0;
 }
 
-.post-create-actions button{
-  flex:1;
-}
-
-.post-card{
-  border:1px solid #e2e2e2;
-  border-radius:16px;
-  padding:13px;
-  margin-bottom:12px;
-}
-
-.post-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.post-user-info{
-  flex:1;
-}
-
-.post-username{
-  font-weight:bold;
-}
-
-.post-time{
-  color:#888;
-  font-size:12px;
-}
-
-.post-menu{
-  border:0;
-  background:none;
-  font-size:18px;
-}
-
-.post-content{
-  margin-top:12px;
-  white-space:pre-wrap;
-  word-break:break-word;
-  line-height:1.5;
-}
-
-.post-image{
-  width:100%;
-  max-height:500px;
-  object-fit:cover;
-  border-radius:12px;
-  margin-top:12px;
-}
-
-.post-actions{
-  display:flex;
-  gap:6px;
-  margin-top:12px;
-  border-top:1px solid #eee;
-  padding-top:10px;
-}
-
-.post-action-btn{
-  flex:1;
-  border:0;
-  background:#f4f4f4;
+.controls button{
+  padding:10px 13px;
   border-radius:10px;
-  padding:9px 5px;
-}
-
-.post-comments{
-  margin-top:10px;
-  display:none;
-}
-
-.post-comments.show{
-  display:block;
-}
-
-.comment-item{
-  display:flex;
-  gap:8px;
-  margin-bottom:8px;
-}
-
-.comment-body{
-  background:#f3f3f3;
-  border-radius:10px;
-  padding:7px 10px;
-  flex:1;
-}
-
-.comment-user{
-  font-weight:bold;
-  font-size:13px;
-}
-
-.comment-text{
-  font-size:14px;
-}
-
-.comment-input-row{
-  display:flex;
-  gap:6px;
-  margin-top:8px;
-}
-
-.comment-input-row input{
-  flex:1;
+  background:#e8efeb;
 }
 
 .modal{
   position:fixed;
   inset:0;
   background:#0008;
-  display:none;
+  display:flex;
   align-items:center;
   justify-content:center;
-  z-index:100;
   padding:15px;
-}
-
-.modal.show{
-  display:flex;
+  z-index:100;
 }
 
 .modal-card{
   width:100%;
   max-width:430px;
-  background:white;
-  border-radius:18px;
-  padding:20px;
   max-height:90vh;
   overflow:auto;
-}
-
-.modal-title{
-  font-size:20px;
-  font-weight:bold;
-  margin-bottom:15px;
+  background:white;
+  border-radius:20px;
+  padding:20px;
 }
 
 .modal-actions{
@@ -638,66 +481,67 @@ input:focus,textarea:focus{
 
 .modal-actions button{
   flex:1;
+  padding:12px;
+  border-radius:10px;
 }
 
 .video-area{
-  background:#111;
-  border-radius:15px;
-  min-height:300px;
-  position:relative;
-  overflow:hidden;
-}
-
-.remote-video{
   width:100%;
-  height:100%;
-  min-height:300px;
-  object-fit:cover;
+  background:#000;
+  border-radius:15px;
+  overflow:hidden;
+  position:relative;
 }
 
-.local-video{
-  position:absolute;
+#remoteVideo{
+  width:100%;
+  min-height:300px;
+  background:#111;
+}
+
+#localVideo{
   width:120px;
   height:160px;
+  object-fit:cover;
+  position:absolute;
   right:10px;
   bottom:10px;
-  object-fit:cover;
-  border-radius:12px;
-  border:2px solid white;
+  border-radius:10px;
+  background:#222;
 }
 
 .call-avatar{
   width:100px;
   height:100px;
+  margin:15px auto;
   border-radius:50%;
-  background:#166943;
+  background:#0b7a50;
   color:white;
   display:flex;
   align-items:center;
   justify-content:center;
-  margin:20px auto;
-  font-size:45px;
+  font-size:35px;
 }
 
-.settings-row{
+.setting{
   display:flex;
-  justify-content:space-between;
   align-items:center;
-  padding:14px 0;
+  justify-content:space-between;
+  padding:15px 0;
   border-bottom:1px solid #eee;
 }
 
 .toast{
   position:fixed;
-  bottom:80px;
   left:50%;
+  bottom:85px;
   transform:translateX(-50%);
   background:#222;
   color:white;
-  padding:11px 18px;
+  padding:12px 18px;
   border-radius:12px;
-  display:none;
   z-index:200;
+  display:none;
   max-width:90%;
   text-align:center;
 }
@@ -706,137 +550,153 @@ input:focus,textarea:focus{
   display:block;
 }
 
-.empty{
-  text-align:center;
-  padding:25px 10px;
-  color:#888;
-}
-
-.small{
+.status{
   font-size:12px;
-  color:#777;
+  margin-left:8px;
 }
 
-@media(max-width:600px){
-  .seats{
-    grid-template-columns:repeat(3,1fr);
-  }
+.connected{
+  color:#b8ffd9;
+}
 
-  .message{
-    max-width:88%;
-  }
+.disconnected{
+  color:#ffd0d0;
 }
 
 body.dark{
-  background:#121212;
-  color:#eee;
+  background:#101513;
+  color:#edf5f1;
 }
 
 body.dark .card,
-body.dark .auth-card,
-body.dark .modal-card{
-  background:#202020;
-  color:#eee;
+body.dark .modal-card,
+body.dark .chat-header,
+body.dark .bottom-nav,
+body.dark .bottom-nav button,
+body.dark input,
+body.dark textarea{
+  background:#19211e;
+  color:#edf5f1;
 }
 
 body.dark input,
 body.dark textarea{
-  background:#292929;
-  color:white;
-  border-color:#444;
-}
-
-body.dark .bottom-nav,
-body.dark .nav-btn{
-  background:#1d1d1d;
-  color:#aaa;
+  border-color:#35443e;
 }
 
 body.dark .chat-box,
-body.dark .club-chat-box{
-  background:#292929;
+body.dark .club-chat{
+  background:#121917;
 }
 
-body.dark .message.theirs{
-  background:#333;
+body.dark .user-item{
+  border-color:#2c3833;
 }
 
-body.dark .post-card{
-  border-color:#444;
+body.dark .seat{
+  background:#26332e;
 }
 
-body.dark .post-action-btn{
-  background:#333;
-  color:white;
+body.dark .setting{
+  border-color:#2c3833;
+}
+
+@media(max-width:500px){
+  .seats{
+    grid-template-columns:repeat(5,1fr);
+    gap:5px;
+  }
+
+  .seat{
+    min-height:70px;
+    font-size:11px;
+  }
+
+  .seat-number{
+    width:25px;
+    height:25px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN / REGISTER -->
-<div id="authPage" class="auth-page">
+<!-- AUTH -->
+
+<div id="authPage" class="page auth">
 
   <div class="auth-card">
 
-    <div class="logo">WG</div>
+    <div class="logo">W</div>
 
-    <div class="auth-title">Waliin-GM</div>
-    <div class="auth-subtitle">
-      Chat • Call • Video • Club • Social
+    <h1>Waliin-GM</h1>
+
+    <div class="subtitle">
+      Chat • Voice • Video • Club
     </div>
 
     <div class="tabs">
-      <button id="loginTab" class="tab active">
-        🔐 Login
+      <button id="loginTab" class="active">
+        Login
       </button>
 
-      <button id="registerTab" class="tab">
-        📝 Register
+      <button id="registerTab">
+        Register
       </button>
     </div>
 
-    <div id="loginForm">
+    <div id="loginBox">
 
-      <div class="form-group">
-        <label>Username ykn Email</label>
-        <input id="loginValue" placeholder="Username ykn email">
-      </div>
+      <input
+        id="loginValue"
+        placeholder="Username ykn Email"
+        autocomplete="username"
+      >
 
-      <div class="form-group">
-        <label>Password</label>
-        <input id="loginPassword" type="password" placeholder="Password">
-      </div>
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+      >
 
-      <button id="loginBtn" class="primary full">
-        🔐 Login
-      </button>
-
-      <button id="forgotBtn" class="link-btn full">
-        🔑 Password dagadhe
+      <button
+        id="loginBtn"
+        class="primary"
+      >
+        Seeni
       </button>
 
     </div>
 
-    <div id="registerForm" style="display:none">
+    <div id="registerBox" class="hidden">
 
-      <div class="form-group">
-        <label>Username</label>
-        <input id="regUsername" placeholder="Username">
-      </div>
+      <input
+        id="regUsername"
+        placeholder="Username"
+        autocomplete="username"
+      >
 
-      <div class="form-group">
-        <label>Email</label>
-        <input id="regEmail" type="email" placeholder="Email">
-      </div>
+      <input
+        id="regEmail"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+      >
 
-      <div class="form-group">
-        <label>Password</label>
-        <input id="regPassword" type="password" placeholder="Password">
-      </div>
+      <input
+        id="regPassword"
+        type="password"
+        placeholder="Password"
+        autocomplete="new-password"
+      >
 
-      <button id="registerBtn" class="primary full">
-        📝 Register
+      <button
+        id="registerBtn"
+        class="primary"
+      >
+        Account Uumi
       </button>
 
     </div>
@@ -846,137 +706,63 @@ body.dark .post-action-btn{
 </div>
 
 
-<!-- MAIN APP -->
-<div id="appPage" class="app">
+<!-- APP -->
 
-  <div class="topbar">
+<div id="appPage" class="app hidden">
 
-    <div class="topbar-title">
-      🟢 Waliin-GM
-    </div>
+  <header class="topbar">
 
-    <div class="topbar-actions">
+    <h2>Waliin-GM</h2>
 
-      <button id="notificationBtn" class="icon-btn">
+    <div class="top-actions">
+
+      <button
+        class="icon-btn"
+        id="notificationBtn"
+      >
         🔔
+        <span
+          id="notifBadge"
+          class="badge hidden"
+        >0</span>
       </button>
 
-      <button id="settingsBtn" class="icon-btn">
+      <button
+        class="icon-btn"
+        id="settingsBtn"
+      >
         ⚙️
       </button>
 
     </div>
 
-  </div>
+  </header>
 
 
   <main class="content">
 
-
     <!-- HOME -->
-    <section id="homePage" class="page active">
+
+    <section id="homePage">
 
       <div class="card welcome">
 
         <h2>
-          👋 Baga nagaan dhuftan!
+          Baga nagaan dhuftan,
+          <span id="welcomeName"></span> 👋
         </h2>
 
         <p style="margin-top:8px">
-          Waliin-GM keessatti hiriyyoota kee waliin
-          mari'adhu, baradhu fi wal qunnami.
+          Namoota barbaadi, haasa'i,
+          club seeni, voice fi video call godhi.
         </p>
 
       </div>
 
 
-      <!-- POST CREATE -->
-
       <div class="card">
 
-        <div class="section-title">
-          📝 Post Haaraa
-        </div>
-
-        <div class="post-create-user">
-
-          <div id="postMyAvatar" class="avatar">
-            👤
-          </div>
-
-          <div>
-            <strong id="postMyName">
-              User
-            </strong>
-
-            <div class="small">
-              Maal yaadaa jirta?
-            </div>
-          </div>
-
-        </div>
-
-        <textarea
-          id="postText"
-          class="post-textarea"
-          maxlength="5000"
-          placeholder="Maal haaraa jiru? Barreessi..."
-        ></textarea>
-
-        <input
-          id="postImage"
-          class="post-image-input"
-          type="url"
-          placeholder="🖼️ Image URL (filannoo)"
-        >
-
-        <div class="post-create-actions">
-
-          <button
-            id="createPostBtn"
-            class="primary"
-          >
-            📝 Post
-          </button>
-
-          <button
-            id="refreshPostsBtn"
-            class="secondary"
-          >
-            🔄
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <!-- POST FEED -->
-
-      <div class="card">
-
-        <div class="section-title">
-          📰 Posts
-        </div>
-
-        <div id="postFeed">
-          <div class="empty">
-            Posts fe'aa jira...
-          </div>
-        </div>
-
-      </div>
-
-
-      <!-- SEARCH -->
-
-      <div class="card">
-
-        <div class="section-title">
-          🔎 User Search
-        </div>
-
-        <div class="search-row">
+        <div class="search-box">
 
           <input
             id="searchInput"
@@ -985,9 +771,9 @@ body.dark .post-action-btn{
 
           <button
             id="searchBtn"
-            class="primary"
+            class="secondary"
           >
-            🔎
+            🔍
           </button>
 
         </div>
@@ -997,8 +783,6 @@ body.dark .post-action-btn{
       </div>
 
 
-      <!-- ONLINE USERS -->
-
       <div class="card">
 
         <div class="section-title">
@@ -1006,9 +790,7 @@ body.dark .post-action-btn{
         </div>
 
         <div id="onlineUsers">
-          <div class="empty">
-            Fe'aa jira...
-          </div>
+          Namni online hin jiru.
         </div>
 
       </div>
@@ -1018,71 +800,73 @@ body.dark .post-action-btn{
 
     <!-- CHAT -->
 
-    <section id="chatPage" class="page">
+    <section id="chatPage" class="hidden">
 
-      <div class="card">
+      <div class="chat-header">
 
-        <div class="chat-header">
-
-          <div id="chatAvatar" class="avatar">
-            👤
-          </div>
-
-          <div>
-
-            <strong id="chatWith">
-              Chat
-            </strong>
-
-            <div id="chatStatus" class="small">
-              Offline
-            </div>
-
-          </div>
-
-          <div class="chat-actions">
-
-            <button
-              id="voiceCallBtn"
-              class="secondary"
-            >
-              📞
-            </button>
-
-            <button
-              id="videoCallBtn"
-              class="secondary"
-            >
-              📹
-            </button>
-
-          </div>
-
+        <div
+          class="avatar"
+          id="chatAvatar"
+        >
+          U
         </div>
 
-        <div id="chatBox" class="chat-box">
+        <div>
 
-          <div class="empty">
-            User tokko filadhu.
-          </div>
+          <strong id="chatWith">
+            User
+          </strong>
 
-        </div>
-
-        <div class="chat-input-row">
-
-          <input
-            id="messageInput"
-            placeholder="Message barreessi..."
+          <div
+            id="chatStatus"
+            style="font-size:12px;color:#718078"
           >
+            Offline
+          </div>
+
+        </div>
+
+        <div class="chat-actions">
 
           <button
-            id="sendMessageBtn"
-            class="primary"
+            id="voiceCallBtn"
+            class="secondary"
           >
-            ➤
+            📞
+          </button>
+
+          <button
+            id="videoCallBtn"
+            class="secondary"
+          >
+            📹
           </button>
 
         </div>
+
+      </div>
+
+
+      <div
+        id="chatBox"
+        class="chat-box"
+      ></div>
+
+
+      <div class="chat-input">
+
+        <input
+          id="messageInput"
+          placeholder="Ergaa barreessi..."
+        >
+
+        <button
+          id="sendMessageBtn"
+          class="primary"
+          style="width:auto"
+        >
+          ➤
+        </button>
 
       </div>
 
@@ -1091,52 +875,49 @@ body.dark .post-action-btn{
 
     <!-- CLUB -->
 
-    <section id="clubPage" class="page">
+    <section id="clubPage" class="hidden">
 
-      <div id="clubEmpty">
+      <div
+        id="clubEmpty"
+        class="card"
+      >
 
-        <div class="card">
+        <div class="section-title">
+          🎙️ Voice Club
+        </div>
 
-          <div class="section-title">
-            🎙️ Voice Club Uumi
-          </div>
+        <div class="club-create">
 
-          <div class="club-create">
+          <input
+            id="clubName"
+            placeholder="Maqaa Club"
+          >
 
-            <input
-              id="clubName"
-              placeholder="Maqaa Club"
-            >
-
-            <button
-              id="createClubBtn"
-              class="primary"
-            >
-              🎙️ Create Club
-            </button>
-
-          </div>
+          <button id="createClubBtn">
+            Uumi
+          </button>
 
         </div>
 
+        <div
+          style="
+          text-align:center;
+          margin:15px 0;
+          color:#718078;
+          "
+        >
+          ykn
+        </div>
 
-        <div class="card">
-
-          <div class="section-title">
-            🔗 Join Club
-          </div>
+        <div class="club-create">
 
           <input
             id="clubIdInput"
             placeholder="Club ID"
           >
 
-          <button
-            id="joinClubBtn"
-            class="secondary full"
-            style="margin-top:8px"
-          >
-            ➕ Join Club
+          <button id="joinClubBtn">
+            Seeni
           </button>
 
         </div>
@@ -1144,108 +925,93 @@ body.dark .post-action-btn{
       </div>
 
 
-      <div id="clubArea" style="display:none">
+      <div
+        id="clubArea"
+        class="hidden"
+      >
+
+        <div class="club-header">
+
+          <h2 id="clubTitle">
+            Voice Club
+          </h2>
+
+          <p>
+            ID:
+            <strong id="clubIdText"></strong>
+          </p>
+
+        </div>
+
 
         <div class="card">
 
-          <div class="club-header">
-
-            <div>
-
-              <strong id="clubTitle">
-                Club
-              </strong>
-
-              <div id="clubIdText" class="small"></div>
-
-            </div>
-
-            <button
-              id="leaveClubBtn"
-              class="danger"
-            >
-              🚪
-            </button>
-
-          </div>
-
-
           <div class="section-title">
-            🪑 Seats 15
+            🪑 Seats — 15
           </div>
 
-          <div id="seats" class="seats"></div>
+          <div
+            id="seats"
+            class="seats"
+          ></div>
 
 
-          <div id="ownerControls"
-               class="club-controls"
-               style="display:none">
+          <div
+            id="ownerControls"
+            class="controls hidden"
+          >
 
-            <button
-              id="ownerMuteBtn"
-              class="secondary"
-            >
+            <button id="ownerMuteBtn">
               🔇 Mute
             </button>
 
-            <button
-              id="removeMemberBtn"
-              class="danger"
-            >
+            <button id="removeMemberBtn">
               ❌ Remove
             </button>
 
           </div>
 
 
-          <div id="memberControls"
-               class="club-controls">
+          <div
+            id="memberControls"
+            class="controls"
+          >
 
-            <button
-              id="requestSeatBtn"
-              class="primary"
-            >
-              🙋 Raise Hand
+            <button id="requestSeatBtn">
+              🙋 Seat Gaafadhu
             </button>
 
-            <button
-              id="selfMuteBtn"
-              class="secondary"
-            >
-              🎙️ Mic
+            <button id="selfMuteBtn">
+              🎙️ Mute
             </button>
 
-            <button
-              id="leaveSeatBtn"
-              class="secondary"
-            >
-              🚪 Leave Seat
+            <button id="leaveSeatBtn">
+              🚪 Seat Irraa Ba'i
             </button>
 
           </div>
 
 
-          <div class="section-title"
-               style="margin-top:15px">
-            🎁 Gifts
-          </div>
+          <div class="controls">
 
-          <div class="gifts">
-
-            <button class="gift-btn" data-gift="❤️">
+            <button data-gift="❤️">
               ❤️
             </button>
 
-            <button class="gift-btn" data-gift="🌹">
+            <button data-gift="🌹">
               🌹
             </button>
 
-            <button class="gift-btn" data-gift="⭐">
+            <button data-gift="🎁">
+              🎁
+            </button>
+
+            <button data-gift="⭐">
               ⭐
             </button>
 
-            <button class="gift-btn" data-gift="🎁">
-              🎁
+            <button data-gift="👑">
+              👑
             </button>
 
           </div>
@@ -1261,10 +1027,10 @@ body.dark .post-action-btn{
 
           <div
             id="clubChatBox"
-            class="club-chat-box"
+            class="club-chat"
           ></div>
 
-          <div class="chat-input-row">
+          <div class="chat-input">
 
             <input
               id="clubMessage"
@@ -1274,6 +1040,7 @@ body.dark .post-action-btn{
             <button
               id="sendClubMessageBtn"
               class="primary"
+              style="width:auto"
             >
               ➤
             </button>
@@ -1282,6 +1049,15 @@ body.dark .post-action-btn{
 
         </div>
 
+
+        <button
+          id="leaveClubBtn"
+          class="danger"
+          style="width:100%"
+        >
+          🚪 Club Irraa Ba'i
+        </button>
+
       </div>
 
     </section>
@@ -1289,76 +1065,84 @@ body.dark .post-action-btn{
 
     <!-- PROFILE -->
 
-    <section id="profilePage" class="page">
+    <section id="profilePage" class="hidden">
 
-      <div class="card profile">
+      <div class="card" style="text-align:center">
 
-        <div id="profileAvatar"
-             class="avatar">
-          👤
+        <div
+          id="profileAvatar"
+          class="avatar"
+          style="
+          width:90px;
+          height:90px;
+          margin:auto;
+          font-size:30px;
+          "
+        >
+          U
         </div>
 
-        <h2 id="profileUsername"
-            style="margin-top:10px">
+        <h2
+          id="profileUsername"
+          style="margin-top:12px"
+        >
           User
         </h2>
 
-        <div id="profileEmail"
-             class="small">
-        </div>
-
-        <textarea
-          id="profileBio"
-          style="margin-top:15px"
-          placeholder="Bio..."
-        ></textarea>
-
-        <input
-          id="profileAvatarUrl"
-          style="margin-top:8px"
-          placeholder="Profile image URL"
-        >
-
-        <button
-          id="saveProfileBtn"
-          class="primary full"
-          style="margin-top:8px"
-        >
-          💾 Save Profile
-        </button>
-
-        <div class="profile-actions">
-
-          <button
-            id="followBtn"
-            class="secondary"
-          >
-            ➕ Follow
-          </button>
-
-          <button
-            id="blockBtn"
-            class="danger"
-          >
-            🚫 Block
-          </button>
-
-        </div>
+        <p id="profileEmail"></p>
 
       </div>
 
 
       <div class="card">
 
-        <div class="section-title">
-          🕘 History
-        </div>
+        <label>
+          Bio
+        </label>
 
-        <div id="historyList">
-          <div class="empty">
-            History fe'aa jira...
-          </div>
-        </div>
+        <textarea
+          id="bioInput"
+          placeholder="Waa'ee kee barreessi..."
+        ></textarea>
+
+        <label>
+          Avatar URL ykn data
+        </label>
+
+        <input
+          id="avatarInput"
+          placeholder="https://..."
+        >
+
+        <button
+          id="saveProfileBtn"
+          class="primary"
+        >
+          💾 Save Profile
+        </button>
+
+      </div>
+
+
+      <div class="card">
+
+        <button
+          id="followProfileBtn"
+          class="secondary"
+          style="width:100%"
+        >
+          ➕ Follow
+        </button>
+
+        <br><br>
+
+        <button
+          id="blockProfileBtn"
+          class="danger"
+          style="width:100%"
+        >
+          🚫 Block
+        </button>
 
       </div>
 
@@ -1372,34 +1156,25 @@ body.dark .post-action-btn{
   <nav class="bottom-nav">
 
     <button
-      class="nav-btn active"
-      data-page="home"
+      id="navHome"
+      class="active"
     >
-      <span class="nav-icon">🏠</span>
+      🏠<br>
       Home
     </button>
 
-    <button
-      class="nav-btn"
-      data-page="chat"
-    >
-      <span class="nav-icon">💬</span>
+    <button id="navChat">
+      💬<br>
       Chat
     </button>
 
-    <button
-      class="nav-btn"
-      data-page="club"
-    >
-      <span class="nav-icon">🎙️</span>
+    <button id="navClub">
+      🎙️<br>
       Club
     </button>
 
-    <button
-      class="nav-btn"
-      data-page="profile"
-    >
-      <span class="nav-icon">👤</span>
+    <button id="navProfile">
+      👤<br>
       Profile
     </button>
 
@@ -1408,50 +1183,126 @@ body.dark .post-action-btn{
 </div>
 
 
-<!-- SETTINGS MODAL -->
+<!-- NOTIFICATIONS -->
 
-<div id="settingsModal" class="modal">
+<div
+  id="notificationModal"
+  class="modal hidden"
+>
 
   <div class="modal-card">
 
-    <div class="modal-title">
-      ⚙️ Settings
-    </div>
+    <h2>
+      🔔 Notifications
+    </h2>
 
-    <div class="settings-row">
-
-      <span>🌙 Dark Mode</span>
-
-      <button
-        id="darkModeBtn"
-        class="secondary"
-      >
-        ON/OFF
-      </button>
-
-    </div>
-
-    <div class="settings-row">
-
-      <span>🔔 Notifications</span>
-
-      <button
-        id="notificationToggleBtn"
-        class="secondary"
-      >
-        ON/OFF
-      </button>
-
-    </div>
+    <div
+      id="notifications"
+      style="margin-top:15px"
+    ></div>
 
     <div class="modal-actions">
 
       <button
-        id="closeSettingsBtn"
+        id="closeNotificationBtn"
         class="secondary"
       >
-        Close
+        Cufi
       </button>
+
+      <button
+        id="readNotificationsBtn"
+        class="primary"
+      >
+        Hundaa Akka Dubbifame
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- USER MODAL -->
+
+<div
+  id="userModal"
+  class="modal hidden"
+>
+
+  <div class="modal-card">
+
+    <div id="userProfileContent"></div>
+
+    <div class="modal-actions">
+
+      <button
+        id="closeUserModalBtn"
+        class="secondary"
+      >
+        Cufi
+      </button>
+
+      <button
+        id="openUserChatBtn"
+        class="primary"
+      >
+        💬 Chat
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- SETTINGS -->
+
+<div
+  id="settingsModal"
+  class="modal hidden"
+>
+
+  <div class="modal-card">
+
+    <h2>
+      ⚙️ Settings
+    </h2>
+
+    <div class="setting">
+
+      <span>
+        🌙 Dark Mode
+      </span>
+
+      <input
+        type="checkbox"
+        id="darkModeToggle"
+        style="width:auto"
+      >
+
+    </div>
+
+    <div class="setting">
+
+      <span>
+        🔔 Notifications
+      </span>
+
+      <input
+        type="checkbox"
+        id="notificationToggle"
+        checked
+        style="width:auto"
+      >
+
+    </div>
+
+    <div
+      class="modal-actions"
+    >
 
       <button
         id="logoutBtn"
@@ -1460,36 +1311,14 @@ body.dark .post-action-btn{
         🚪 Logout
       </button>
 
+      <button
+        id="closeSettingsBtn"
+        class="secondary"
+      >
+        Cufi
+      </button>
+
     </div>
-
-  </div>
-
-</div>
-
-
-<!-- NOTIFICATION MODAL -->
-
-<div id="notificationModal" class="modal">
-
-  <div class="modal-card">
-
-    <div class="modal-title">
-      🔔 Notifications
-    </div>
-
-    <div id="notificationList">
-      <div class="empty">
-        Notifications hin jiru.
-      </div>
-    </div>
-
-    <button
-      id="closeNotificationBtn"
-      class="secondary full"
-      style="margin-top:12px"
-    >
-      Close
-    </button>
 
   </div>
 
@@ -1498,27 +1327,27 @@ body.dark .post-action-btn{
 
 <!-- INCOMING CALL -->
 
-<div id="incomingCallModal" class="modal">
+<div
+  id="incomingCallModal"
+  class="modal hidden"
+>
 
-  <div class="modal-card"
-       style="text-align:center">
+  <div class="modal-card" style="text-align:center">
 
-    <div class="modal-title">
+    <h2>
       📞 Incoming Call
+    </h2>
+
+    <div
+      id="callerName"
+      class="call-avatar"
+    >
+      U
     </div>
 
-    <div class="call-avatar">
-      👤
-    </div>
-
-    <h3 id="incomingCallName">
-      User
+    <h3 id="callerType">
+      Voice Call
     </h3>
-
-    <p id="incomingCallType"
-       class="small">
-      Call
-    </p>
 
     <div class="modal-actions">
 
@@ -1526,14 +1355,14 @@ body.dark .post-action-btn{
         id="rejectCallBtn"
         class="danger"
       >
-        ❌ Reject
+        ❌ Diddaa
       </button>
 
       <button
         id="acceptCallBtn"
         class="primary"
       >
-        ✅ Accept
+        ✅ Fudhadhu
       </button>
 
     </div>
@@ -1543,35 +1372,33 @@ body.dark .post-action-btn{
 </div>
 
 
-<!-- CALL MODAL -->
+<!-- CALL -->
 
-<div id="callModal" class="modal">
+<div
+  id="callModal"
+  class="modal hidden"
+>
 
   <div class="modal-card">
 
-    <div class="modal-title"
-         id="callTitle">
-      📞 Call
-    </div>
+    <h2 id="callTitle">
+      Call
+    </h2>
+
 
     <div
-      id="callStatus"
-      class="empty">
-      Connecting...
-    </div>
-
-    <div class="video-area">
+      id="videoArea"
+      class="video-area hidden"
+    >
 
       <video
         id="remoteVideo"
-        class="remote-video"
         autoplay
         playsinline
       ></video>
 
       <video
         id="localVideo"
-        class="local-video"
         autoplay
         muted
         playsinline
@@ -1579,20 +1406,33 @@ body.dark .post-action-btn{
 
     </div>
 
-    <div class="modal-actions">
 
-      <button
-        id="muteCallBtn"
-        class="secondary"
+    <div
+      id="voiceCallInfo"
+      style="text-align:center"
+    >
+
+      <div
+        id="callAvatar"
+        class="call-avatar"
       >
-        🎙️ Mute
-      </button>
+        U
+      </div>
+
+      <h3 id="voiceCaller">
+        Calling...
+      </h3>
+
+    </div>
+
+
+    <div class="modal-actions">
 
       <button
         id="endCallBtn"
         class="danger"
       >
-        ☎️ End
+        📵 Call Cufi
       </button>
 
     </div>
@@ -1602,12 +1442,18 @@ body.dark .post-action-btn{
 </div>
 
 
-<div id="toast"
-     class="toast">
-</div>
+<div
+  id="toast"
+  class="toast"
+></div>
 
 
 <script>
+"use strict";
+
+/* =========================
+   GLOBAL STATE
+========================= */
 
 const $ = id => document.getElementById(id);
 
@@ -1618,10 +1464,10 @@ let currentChatUser = null;
 let currentProfileUser = null;
 
 let currentClub = null;
+let selectedSeat = null;
 
 let incomingCallData = null;
 let currentCallTarget = null;
-let currentCallTargetSocketId = null;
 let currentCallType = null;
 
 let localStream = null;
@@ -1630,43 +1476,135 @@ let peerConnection = null;
 let notificationEnabled =
   localStorage.getItem("waliin_notifications") !== "false";
 
-
 const rtcConfig = {
-
-  iceServers:[
+  iceServers: [
     {
-      urls:"stun:stun.l.google.com:19302"
+      urls: "stun:stun.l.google.com:19302"
     },
     {
-      urls:"stun:stun1.l.google.com:19302"
+      urls: "stun:stun1.l.google.com:19302"
     }
   ]
-
 };
 
+
+/* =========================
+   SOCKET
+========================= */
+
+const socket = io({
+  autoConnect: true,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  transports: ["websocket", "polling"]
+});
+
+
+socket.on("connect", () => {
+
+  console.log("🟢 Connected:", socket.id);
+
+  showToast("🟢 Server waliin walqabate.");
+
+  if (currentUser) {
+    socket.emit("identify", {
+      username: currentUser.username
+    });
+  }
+
+  updateConnectionStatus(true);
+});
+
+
+socket.on("disconnect", (reason) => {
+
+  console.log(
+    "❌ Disconnected:",
+    socket.id,
+    reason
+  );
+
+  updateConnectionStatus(false);
+
+  showToast(
+    "🔴 Connection cite. Irra deebiin walqabsiisaa..."
+  );
+});
+
+
+socket.on("connect_error", error => {
+
+  console.error(
+    "❌ Socket connection error:",
+    error.message
+  );
+
+  updateConnectionStatus(false);
+});
+
+
+socket.io.on("reconnect_attempt", attempt => {
+
+  console.log(
+    "🔄 Reconnect attempt:",
+    attempt
+  );
+});
+
+
+function updateConnectionStatus(connected){
+
+  const el = $("chatStatus");
+
+  if (!el) return;
+
+  if (connected) {
+    el.classList.add("connected");
+    el.classList.remove("disconnected");
+  } else {
+    el.classList.add("disconnected");
+    el.classList.remove("connected");
+  }
+}
+
+
+/* =========================
+   TOAST
+========================= */
+
+let toastTimer;
 
 function showToast(message){
 
   const toast = $("toast");
 
+  if (!toast) return;
+
   toast.textContent = message;
   toast.classList.add("show");
 
-  setTimeout(()=>{
-    toast.classList.remove("show");
-  },3000);
+  clearTimeout(toastTimer);
 
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
 }
 
 
-async function api(url, options={}){
+/* =========================
+   API
+========================= */
+
+async function api(url, options = {}){
 
   const headers = {
     "Content-Type":"application/json",
     ...(options.headers || {})
   };
 
-  if(token){
+  if (token) {
     headers.Authorization =
       `Bearer ${token}`;
   }
@@ -1677,54 +1615,53 @@ async function api(url, options={}){
       headers
     });
 
-  let data={};
+  let data = {};
 
-  try{
-    data=await response.json();
-  }catch{}
+  try {
+    data = await response.json();
+  } catch {}
 
-  if(!response.ok){
-
+  if (!response.ok) {
     throw new Error(
       data.error || "Request failed."
     );
-
   }
 
   return data;
-
 }
 
 
-/* AUTH */
+/* =========================
+   AUTH TABS
+========================= */
 
-$("loginTab").onclick=()=>{
+$("loginTab").onclick = () => {
 
   $("loginTab").classList.add("active");
   $("registerTab").classList.remove("active");
 
-  $("loginForm").style.display="block";
-  $("registerForm").style.display="none";
-
+  $("loginBox").classList.remove("hidden");
+  $("registerBox").classList.add("hidden");
 };
 
 
-$("registerTab").onclick=()=>{
-
-  $("registerTab").classList.remove("active");
-  $("loginTab").classList.add("active");
+$("registerTab").onclick = () => {
 
   $("registerTab").classList.add("active");
+  $("loginTab").classList.remove("active");
 
-  $("loginForm").style.display="none";
-  $("registerForm").style.display="block";
-
+  $("registerBox").classList.remove("hidden");
+  $("loginBox").classList.add("hidden");
 };
 
 
-$("registerBtn").onclick=async()=>{
+/* =========================
+   REGISTER
+========================= */
 
-  try{
+$("registerBtn").onclick = async () => {
+
+  try {
 
     const username =
       $("regUsername").value.trim();
@@ -1735,28 +1672,27 @@ $("registerBtn").onclick=async()=>{
     const password =
       $("regPassword").value;
 
-    if(!username || !email || !password){
-
+    if (!username || !email || !password) {
       showToast("⚠️ Odeeffannoo guuti.");
       return;
-
     }
 
-    const data =
-      await api("/api/register",{
+    $("registerBtn").disabled = true;
 
+    const data = await api(
+      "/api/register",
+      {
         method:"POST",
-
         body:JSON.stringify({
           username,
           email,
           password
         })
+      }
+    );
 
-      });
-
-    token=data.token;
-    currentUser=data.user;
+    token = data.token;
+    currentUser = data.user;
 
     localStorage.setItem(
       "waliin_token",
@@ -1770,46 +1706,55 @@ $("registerBtn").onclick=async()=>{
 
     enterApp();
 
-  }catch(err){
+    showToast("✅ Account uumame.");
 
-    showToast("❌ "+err.message);
+  } catch(error){
 
+    showToast("❌ " + error.message);
+
+  } finally {
+
+    $("registerBtn").disabled = false;
   }
-
 };
 
 
-$("loginBtn").onclick=async()=>{
+/* =========================
+   LOGIN
+========================= */
 
-  try{
+$("loginBtn").onclick = async () => {
 
-    const value =
+  try {
+
+    const login =
       $("loginValue").value.trim();
 
     const password =
       $("loginPassword").value;
 
-    if(!value || !password){
-
-      showToast("⚠️ Guuti.");
+    if (!login || !password) {
+      showToast(
+        "⚠️ Username/email fi password galchi."
+      );
       return;
-
     }
 
-    const data =
-      await api("/api/login",{
+    $("loginBtn").disabled = true;
 
+    const data = await api(
+      "/api/login",
+      {
         method:"POST",
-
         body:JSON.stringify({
-          value,
+          login,
           password
         })
+      }
+    );
 
-      });
-
-    token=data.token;
-    currentUser=data.user;
+    token = data.token;
+    currentUser = data.user;
 
     localStorage.setItem(
       "waliin_token",
@@ -1823,184 +1768,142 @@ $("loginBtn").onclick=async()=>{
 
     enterApp();
 
-  }catch(err){
+    showToast("✅ Baga nagaan dhuftan.");
 
-    showToast("❌ "+err.message);
+  } catch(error){
 
+    showToast("❌ " + error.message);
+
+  } finally {
+
+    $("loginBtn").disabled = false;
   }
-
 };
 
 
-$("forgotBtn").onclick=async()=>{
-
-  const email =
-    prompt("Email kee galchi:");
-
-  if(!email)return;
-
-  try{
-
-    const data =
-      await api("/api/forgot-password",{
-
-        method:"POST",
-
-        body:JSON.stringify({
-          email
-        })
-
-      });
-
-    if(data.resetToken){
-
-      prompt(
-        "Reset token kee:",
-        data.resetToken
-      );
-
-    }else{
-
-      showToast(
-        data.message ||
-        "Reset request ergame."
-      );
-
-    }
-
-  }catch(err){
-
-    showToast("❌ "+err.message);
-
-  }
-
-};
-
+/* =========================
+   ENTER APP
+========================= */
 
 function enterApp(){
 
-  $("authPage").style.display="none";
-  $("appPage").style.display="block";
+  $("authPage").classList.add("hidden");
+  $("appPage").classList.remove("hidden");
 
-  updateMyProfileUI();
+  $("welcomeName").textContent =
+    currentUser.username;
 
-  loadPosts();
+  socket.emit("identify", {
+    username: currentUser.username
+  });
+
   loadOnlineUsers();
-  loadHistory();
+  loadUnreadNotifications();
 
-  socket.emit(
-    "identify",
-    currentUser.username
-  );
-
+  showPage("home");
 }
 
 
-function updateMyProfileUI(){
-
-  if(!currentUser)return;
-
-  $("postMyName").textContent =
-    currentUser.username;
-
-  $("profileUsername").textContent =
-    currentUser.username;
-
-  $("profileEmail").textContent =
-    currentUser.email || "";
-
-  if(currentUser.bio)
-    $("profileBio").value =
-      currentUser.bio;
-
-  if(currentUser.avatar)
-    $("profileAvatarUrl").value =
-      currentUser.avatar;
-
-}
-
+/* =========================
+   AUTO LOGIN
+========================= */
 
 function restoreLogin(){
 
-  try{
+  const saved =
+    localStorage.getItem("waliin_user");
 
-    const saved =
-      localStorage.getItem("waliin_user");
+  if (!token || !saved) return;
 
-    if(saved && token){
+  try {
 
-      currentUser =
-        JSON.parse(saved);
+    currentUser = JSON.parse(saved);
 
+    if (currentUser?.username) {
       enterApp();
-
     }
 
-  }catch{
+  } catch {
 
-    localStorage.removeItem(
-      "waliin_user"
-    );
-
+    localStorage.removeItem("waliin_user");
+    localStorage.removeItem("waliin_token");
   }
-
 }
 
 
-/* NAVIGATION */
+/* =========================
+   NAVIGATION
+========================= */
 
 function showPage(page){
 
-  document
-    .querySelectorAll(".page")
-    .forEach(p=>{
-      p.classList.remove("active");
-    });
+  $("homePage").classList.add("hidden");
+  $("chatPage").classList.add("hidden");
+  $("clubPage").classList.add("hidden");
+  $("profilePage").classList.add("hidden");
 
-  const target =
-    $(page+"Page");
+  $("navHome").classList.remove("active");
+  $("navChat").classList.remove("active");
+  $("navClub").classList.remove("active");
+  $("navProfile").classList.remove("active");
 
-  if(target)
-    target.classList.add("active");
+  if(page === "home"){
+    $("homePage").classList.remove("hidden");
+    $("navHome").classList.add("active");
+  }
 
-  document
-    .querySelectorAll(".nav-btn")
-    .forEach(btn=>{
-      btn.classList.toggle(
-        "active",
-        btn.dataset.page===page
-      );
-    });
+  if(page === "chat"){
+    $("chatPage").classList.remove("hidden");
+    $("navChat").classList.add("active");
+  }
 
-  if(page==="home")
-    loadPosts();
+  if(page === "club"){
+    $("clubPage").classList.remove("hidden");
+    $("navClub").classList.add("active");
+  }
 
-  if(page==="profile")
-    loadHistory();
+  if(page === "profile"){
+    $("profilePage").classList.remove("hidden");
+    $("navProfile").classList.add("active");
 
+    loadMyProfile();
+  }
 }
 
 
-document
-  .querySelectorAll(".nav-btn")
-  .forEach(btn=>{
+$("navHome").onclick =
+  () => showPage("home");
 
-    btn.onclick=()=>{
-      showPage(btn.dataset.page);
-    };
+$("navChat").onclick = () => {
 
-  });
+  if (!currentChatUser) {
+    showToast("Nama user filadhu.");
+    return;
+  }
+
+  showPage("chat");
+};
+
+$("navClub").onclick =
+  () => showPage("club");
+
+$("navProfile").onclick =
+  () => showPage("profile");
 
 
-/* SEARCH */
+/* =========================
+   SEARCH
+========================= */
 
-$("searchBtn").onclick=searchUsers;
+$("searchBtn").onclick =
+  searchUsers;
 
 $("searchInput").addEventListener(
   "keydown",
-  e=>{
-    if(e.key==="Enter")
+  e => {
+    if(e.key === "Enter"){
       searchUsers();
+    }
   }
 );
 
@@ -2011,242 +1914,341 @@ async function searchUsers(){
     $("searchInput").value.trim();
 
   if(!q){
-
-    $("searchResults").innerHTML="";
+    $("searchResults").innerHTML = "";
     return;
-
   }
 
   try{
 
-    const data =
+    const users =
       await api(
-        "/api/users/search?q="+
+        "/api/users/search?q=" +
         encodeURIComponent(q)
       );
 
-    renderUsers(
-      $("searchResults"),
-      data.users || []
-    );
+    const box =
+      $("searchResults");
 
-  }catch(err){
+    box.innerHTML = "";
 
-    showToast("❌ "+err.message);
+    if(!users.length){
+
+      box.innerHTML =
+        "<p style='padding:12px'>User hin argamne.</p>";
+
+      return;
+    }
+
+    users.forEach(user => {
+
+      box.appendChild(
+        createUserItem(user)
+      );
+
+    });
+
+  }catch(error){
+
+    showToast("❌ " + error.message);
 
   }
-
 }
 
 
-function renderUsers(container,users){
-
-  if(!users.length){
-
-    container.innerHTML=
-      `<div class="empty">
-        User hin argamne.
-      </div>`;
-
-    return;
-
-  }
-
-  container.innerHTML =
-    users.map(user=>`
-
-      <div class="user-item">
-
-        <div class="avatar">
-          ${user.avatar
-            ? `<img src="${user.avatar}">`
-            : "👤"}
-        </div>
-
-        <div class="user-info">
-
-          <strong>
-            ${escapeHtml(user.username)}
-          </strong>
-
-          <div class="small">
-            ${user.online
-              ? `<span class="online-dot"></span>Online`
-              :"Offline"}
-          </div>
-
-        </div>
-
-        <button
-          class="secondary"
-          onclick="openChat('${escapeAttr(user.username)}')"
-        >
-          💬
-        </button>
-
-      </div>
-
-    `).join("");
-
-}
-
+/* =========================
+   ONLINE USERS
+========================= */
 
 async function loadOnlineUsers(){
 
   try{
 
-    const data =
-      await api("/api/users/online");
+    const users =
+      await api(
+        "/api/users/online"
+      );
 
-    renderUsers(
-      $("onlineUsers"),
-      data.users || []
-    );
+    const box =
+      $("onlineUsers");
 
-  }catch{
+    box.innerHTML = "";
 
-    $("onlineUsers").innerHTML=
-      `<div class="empty">
-        Online users fe'uu hin dandeenye.
-      </div>`;
+    if(!users.length){
 
+      box.textContent =
+        "Namni online hin jiru.";
+
+      return;
+    }
+
+    users.forEach(user => {
+
+      box.appendChild(
+        createUserItem(
+          user,
+          true
+        )
+      );
+
+    });
+
+  }catch(error){
+
+    console.error(error);
   }
-
 }
 
 
-/* CHAT */
+function createUserItem(
+  user,
+  showOnline = false
+){
+
+  const row =
+    document.createElement("div");
+
+  row.className = "user-item";
+
+  const avatar =
+    document.createElement("div");
+
+  avatar.className = "avatar";
+
+  if(user.avatar){
+
+    const img =
+      document.createElement("img");
+
+    img.src = user.avatar;
+    avatar.appendChild(img);
+
+  }else{
+
+    avatar.textContent =
+      (user.username || "U")
+      .charAt(0)
+      .toUpperCase();
+  }
+
+  const info =
+    document.createElement("div");
+
+  info.className = "user-info";
+
+  info.innerHTML = `
+    <strong>${escapeHtml(user.username)}</strong>
+    <small>${escapeHtml(user.bio || "")}</small>
+  `;
+
+  const dot =
+    document.createElement("div");
+
+  dot.className = "online-dot";
+
+  if(!showOnline){
+    dot.style.opacity = "0";
+  }
+
+  const button =
+    document.createElement("button");
+
+  button.className = "secondary";
+  button.textContent = "Chat";
+
+  button.onclick = () => {
+
+    openChat(user.username);
+
+  };
+
+  row.appendChild(avatar);
+  row.appendChild(info);
+  row.appendChild(dot);
+  row.appendChild(button);
+
+  row.onclick = e => {
+
+    if(e.target === button) return;
+
+    openUserProfile(user.username);
+
+  };
+
+  return row;
+}
+
+
+/* =========================
+   CHAT
+========================= */
 
 async function openChat(username){
 
-  currentChatUser=username;
+  username = String(username)
+    .trim()
+    .toLowerCase();
+
+  if(!username) return;
+
+  currentChatUser = username;
 
   showPage("chat");
 
-  $("chatWith").textContent=username;
+  $("chatWith").textContent =
+    username;
+
+  $("chatAvatar").textContent =
+    username.charAt(0).toUpperCase();
+
+  $("chatBox").innerHTML =
+    "<p style='text-align:center'>Loading...</p>";
 
   try{
 
-    const profile =
+    const messages =
       await api(
-        "/api/profile/"+
-        encodeURIComponent(username)
+        `/api/messages?user1=${encodeURIComponent(
+          currentUser.username
+        )}&user2=${encodeURIComponent(username)}`
       );
 
-    $("chatStatus").textContent =
-      profile.online
-        ? "🟢 Online"
-        : "Offline";
+    renderMessages(messages);
 
-    if(profile.avatar){
-
-      $("chatAvatar").innerHTML=
-        `<img src="${profile.avatar}">`;
-
-    }else{
-
-      $("chatAvatar").textContent="👤";
-
-    }
-
-  }catch{}
-
-  await loadMessages();
-
-}
-
-
-async function loadMessages(){
-
-  if(!currentUser ||
-     !currentChatUser)return;
-
-  try{
-
-    const data =
-      await api(
-        `/api/messages?user1=${encodeURIComponent(currentUser.username)}&user2=${encodeURIComponent(currentChatUser)}`
-      );
-
-    renderMessages(
-      data.messages || []
+    socket.emit(
+      "messageRead",
+      {
+        sender: username
+      }
     );
 
-  }catch(err){
+  }catch(error){
 
-    $("chatBox").innerHTML=
-      `<div class="empty">
-        ❌ Chat fe'uu hin dandeenye.
-      </div>`;
+    showToast(
+      "❌ Chat baname."
+    );
 
   }
-
 }
 
 
 function renderMessages(messages){
 
-  const box=$("chatBox");
+  const box = $("chatBox");
 
-  if(!messages.length){
+  box.innerHTML = "";
 
-    box.innerHTML=
-      `<div class="empty">
-        Message hin jiru.
-      </div>`;
+  messages.forEach(
+    message => {
 
-    return;
+      addMessageToUI(
+        message,
+        false
+      );
 
-  }
+    }
+  );
 
-  box.innerHTML =
-    messages.map(m=>{
-
-      const mine =
-        m.sender ===
-        currentUser.username;
-
-      return `
-
-        <div class="message ${mine?"mine":"theirs"}">
-
-          <div>
-            ${escapeHtml(
-              m.message ||
-              m.content ||
-              ""
-            )}
-          </div>
-
-          <div class="message-time">
-            ${m.created_at
-              ? new Date(
-                  m.created_at
-                ).toLocaleString()
-              : ""}
-          </div>
-
-        </div>
-
-      `;
-
-    }).join("");
-
-  box.scrollTop =
-    box.scrollHeight;
-
+  scrollChat();
 }
 
 
-$("sendMessageBtn").onclick=
-  sendMessage;
+function addMessageToUI(
+  item,
+  scroll = true
+){
 
+  if(
+    !item ||
+    !currentChatUser
+  ) return;
+
+  const box =
+    $("chatBox");
+
+  const me =
+    item.sender ===
+    currentUser.username;
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "message " +
+    (me ? "me" : "other");
+
+  div.dataset.id =
+    item.id;
+
+  const text =
+    escapeHtml(
+      item.message
+    );
+
+  div.innerHTML = `
+    <div>${text}</div>
+    <small>
+      ${formatTime(item.created_at)}
+      ${me
+        ? (item.is_read ? " ✓✓" : " ✓")
+        : ""}
+    </small>
+  `;
+
+  if(me){
+
+    div.title =
+      "Message haqsuuf long press/right click";
+
+    div.addEventListener(
+      "contextmenu",
+      e => {
+
+        e.preventDefault();
+
+        if(
+          confirm(
+            "Ergaa kana haqaa?"
+          )
+        ){
+
+          socket.emit(
+            "deleteMessage",
+            {
+              id:item.id
+            }
+          );
+
+        }
+
+      }
+    );
+  }
+
+  box.appendChild(div);
+
+  if(scroll){
+    scrollChat();
+  }
+}
+
+
+$("sendMessageBtn").onclick =
+  sendMessage;
 
 $("messageInput").addEventListener(
   "keydown",
-  e=>{
-    if(e.key==="Enter")
+  e => {
+
+    if(
+      e.key === "Enter" &&
+      !e.shiftKey
+    ){
+
+      e.preventDefault();
       sendMessage();
+
+    }
+
   }
 );
 
@@ -2254,13 +2256,8 @@ $("messageInput").addEventListener(
 function sendMessage(){
 
   if(!currentChatUser){
-
-    showToast(
-      "User tokko filadhu."
-    );
-
+    showToast("User filadhu.");
     return;
-
   }
 
   const input =
@@ -2269,710 +2266,230 @@ function sendMessage(){
   const message =
     input.value.trim();
 
-  if(!message)return;
+  if(!message) return;
+
+  if(!socket.connected){
+
+    showToast(
+      "🔴 Server waliin wal hin qabamne."
+    );
+
+    return;
+  }
 
   socket.emit(
     "privateMessage",
     {
-      targetUsername:
-        currentChatUser,
-
+      receiver: currentChatUser,
       message
     }
   );
 
-  input.value="";
-
+  input.value = "";
 }
 
 
 socket.on(
   "privateMessage",
-  message=>{
+  item => {
 
     if(
-      currentChatUser &&
+      !currentChatUser
+    ) return;
+
+    const belongs =
       (
-        message.sender===currentChatUser ||
-        message.receiver===currentChatUser
+        item.sender ===
+          currentUser.username &&
+        item.receiver ===
+          currentChatUser
       )
+      ||
+      (
+        item.receiver ===
+          currentUser.username &&
+        item.sender ===
+          currentChatUser
+      );
+
+    if(!belongs) return;
+
+    addMessageToUI(item);
+
+    if(
+      item.receiver ===
+      currentUser.username
     ){
 
-      loadMessages();
-
+      socket.emit(
+        "messageRead",
+        {
+          sender:item.sender
+        }
+      );
     }
+  }
+);
 
+
+socket.on(
+  "messageRead",
+  ({by}) => {
+
+    if(by !== currentChatUser)
+      return;
+
+    document
+      .querySelectorAll(
+        ".message.me"
+      )
+      .forEach(el => {
+
+        const small =
+          el.querySelector("small");
+
+        if(small){
+
+          small.textContent =
+            small.textContent
+              .replace(" ✓","") +
+            " ✓✓";
+
+        }
+
+      });
   }
 );
 
 
 socket.on(
   "messageDeleted",
-  ()=>{
-    loadMessages();
+  item => {
+
+    const el =
+      document.querySelector(
+        `.message[data-id="${item.id}"]`
+      );
+
+    if(!el) return;
+
+    el.innerHTML = `
+      <div><i>Ergaan haqameera.</i></div>
+      <small>${formatTime(
+        new Date().toISOString()
+      )}</small>
+    `;
   }
 );
 
 
 socket.on(
   "messageError",
-  data=>{
+  data => {
+
     showToast(
-      "❌ "+(data.error || "Error")
+      "❌ " +
+      (data.message ||
+      "Ergaa erguu hin dandeenye.")
     );
   }
 );
 
 
+/* =========================
+   PRESENCE
+========================= */
+
 socket.on(
   "presenceUpdate",
-  ()=>{
+  data => {
+
+    if(
+      currentChatUser ===
+      data.username
+    ){
+
+      $("chatStatus").textContent =
+        data.online
+          ? "🟢 Online"
+          : "⚪ Offline";
+
+    }
+
     loadOnlineUsers();
   }
 );
 
 
-/* POSTS */
+/* =========================
+   PROFILE
+========================= */
 
-function escapeHtml(value){
+async function loadMyProfile(){
 
-  return String(value || "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-
-}
-
-
-function escapeAttr(value){
-
-  return escapeHtml(value)
-    .replace(/`/g,"&#096;");
-
-}
-
-
-function safeImage(url){
-
-  const value=
-    String(url || "").trim();
-
-  if(
-    value.startsWith("https://") ||
-    value.startsWith("http://") ||
-    value.startsWith("data:image/")
-  )
-    return value;
-
-  return "";
-
-}
-
-
-function formatPostTime(value){
-
-  if(!value)return "";
-
-  const date=
-    new Date(value);
-
-  if(Number.isNaN(date.getTime()))
-    return "";
-
-  return date.toLocaleString();
-
-}
-
-
-async function loadPosts(){
-
-  const feed =
-    $("postFeed");
-
-  if(!feed)return;
-
-  feed.innerHTML=
-    `<div class="empty">
-      ⏳ Posts fe'aa jira...
-    </div>`;
+  if(!currentUser) return;
 
   try{
 
-    const data =
-      await api("/api/posts");
-
-    if(
-      !data.posts ||
-      !data.posts.length
-    ){
-
-      feed.innerHTML=
-        `<div class="empty">
-          📰 Post hin jiru.<br>
-          Post jalqabaa barreessi!
-        </div>`;
-
-      return;
-
-    }
-
-    feed.innerHTML =
-      data.posts
-        .map(renderPost)
-        .join("");
-
-  }catch(err){
-
-    feed.innerHTML=
-      `<div class="empty">
-        ❌ Posts fe'uu hin dandeenye.
-      </div>`;
-
-  }
-
-}
-
-
-function renderPost(post){
-
-  const content =
-    escapeHtml(post.content);
-
-  const username =
-    escapeHtml(post.username);
-
-  const image =
-    safeImage(post.image);
-
-  const mine =
-    currentUser &&
-    currentUser.username ===
-    post.username;
-
-  return `
-
-    <div
-      class="post-card"
-      id="post-${escapeAttr(post.id)}"
-    >
-
-      <div class="post-header">
-
-        <div class="avatar">
-          ${post.avatar
-            ? `<img src="${safeImage(post.avatar)}">`
-            : "👤"}
-        </div>
-
-        <div class="post-user-info">
-
-          <div class="post-username">
-            ${username}
-          </div>
-
-          <div class="post-time">
-            ${formatPostTime(
-              post.created_at
-            )}
-          </div>
-
-        </div>
-
-        ${
-          mine
-          ? `
-            <button
-              class="post-menu"
-              onclick="deletePost('${escapeAttr(post.id)}')"
-            >
-              🗑️
-            </button>
-          `
-          :""
-        }
-
-      </div>
-
-      ${
-        content
-        ? `
-          <div class="post-content">
-            ${content}
-          </div>
-        `
-        :""
-      }
-
-      ${
-        image
-        ? `
-          <img
-            src="${image}"
-            class="post-image"
-            loading="lazy"
-          >
-        `
-        :""
-      }
-
-      <div class="post-actions">
-
-        <button
-          class="post-action-btn"
-          onclick="likePost('${escapeAttr(post.id)}')"
-        >
-          ${post.liked?"❤️":"🤍"}
-          <span id="likes-${escapeAttr(post.id)}">
-            ${post.likes || 0}
-          </span>
-        </button>
-
-        <button
-          class="post-action-btn"
-          onclick="toggleComments('${escapeAttr(post.id)}')"
-        >
-          💬
-          <span id="comments-count-${escapeAttr(post.id)}">
-            ${post.comments || 0}
-          </span>
-        </button>
-
-        <button
-          class="post-action-btn"
-          onclick="sharePost('${escapeAttr(post.id)}')"
-        >
-          🔗 Share
-        </button>
-
-      </div>
-
-      <div
-        id="comments-${escapeAttr(post.id)}"
-        class="post-comments"
-      >
-
-        <div
-          id="comment-list-${escapeAttr(post.id)}"
-        >
-          ⏳
-        </div>
-
-        <div class="comment-input-row">
-
-          <input
-            id="comment-input-${escapeAttr(post.id)}"
-            maxlength="1000"
-            placeholder="Comment barreessi..."
-          >
-
-          <button
-            class="primary"
-            onclick="addComment('${escapeAttr(post.id)}')"
-          >
-            ➤
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  `;
-
-}
-
-
-async function createPost(){
-
-  const text =
-    $("postText").value.trim();
-
-  const image =
-    $("postImage").value.trim();
-
-  if(!text && !image){
-
-    showToast(
-      "Post ykn suuraa galchi."
-    );
-
-    return;
-
-  }
-
-  const btn =
-    $("createPostBtn");
-
-  btn.disabled=true;
-  btn.textContent="⏳";
-
-  try{
-
-    await api("/api/posts",{
-
-      method:"POST",
-
-      body:JSON.stringify({
-        content:text,
-        image
-      })
-
-    });
-
-    $("postText").value="";
-    $("postImage").value="";
-
-    showToast(
-      "🟢 Post maxxanfame."
-    );
-
-    await loadPosts();
-
-  }catch(err){
-
-    showToast(
-      "❌ "+err.message
-    );
-
-  }finally{
-
-    btn.disabled=false;
-    btn.textContent="📝 Post";
-
-  }
-
-}
-
-
-$("createPostBtn").onclick=
-  createPost;
-
-$("refreshPostsBtn").onclick=
-  loadPosts;
-
-
-async function likePost(id){
-
-  try{
-
-    const data =
+    const user =
       await api(
-        `/api/posts/${encodeURIComponent(id)}/like`,
-        {method:"POST"}
-      );
-
-    const count =
-      $(`likes-${id}`);
-
-    if(count)
-      count.textContent =
-        data.likes;
-
-    const card =
-      $(`post-${id}`);
-
-    if(card){
-
-      const btn =
-        card.querySelector(
-          ".post-action-btn"
-        );
-
-      if(btn){
-
-        btn.innerHTML =
-          `${data.liked?"❤️":"🤍"}
-           <span id="likes-${id}">
-             ${data.likes}
-           </span>`;
-
-      }
-
-    }
-
-  }catch{
-
-    showToast(
-      "❌ Like hin hojjenne."
-    );
-
-  }
-
-}
-
-
-async function deletePost(id){
-
-  if(
-    !confirm(
-      "Post kana haquu barbaaddaa?"
-    )
-  )return;
-
-  try{
-
-    await api(
-      `/api/posts/${encodeURIComponent(id)}`,
-      {method:"DELETE"}
-    );
-
-    const card =
-      $(`post-${id}`);
-
-    if(card)
-      card.remove();
-
-    showToast(
-      "🗑️ Post haqame."
-    );
-
-  }catch(err){
-
-    showToast(
-      "❌ "+err.message
-    );
-
-  }
-
-}
-
-
-async function toggleComments(id){
-
-  const box =
-    $(`comments-${id}`);
-
-  if(!box)return;
-
-  if(
-    box.classList.contains("show")
-  ){
-
-    box.classList.remove("show");
-    return;
-
-  }
-
-  box.classList.add("show");
-
-  await loadComments(id);
-
-}
-
-
-async function loadComments(id){
-
-  const list =
-    $(`comment-list-${id}`);
-
-  if(!list)return;
-
-  try{
-
-    const data =
-      await api(
-        `/api/posts/${encodeURIComponent(id)}/comments`
-      );
-
-    if(!data.comments.length){
-
-      list.innerHTML=
-        `<div class="empty">
-          Comment hin jiru.
-        </div>`;
-
-      return;
-
-    }
-
-    list.innerHTML =
-      data.comments
-        .map(c=>`
-
-          <div class="comment-item">
-
-            <div class="avatar">
-              ${c.avatar
-                ? `<img src="${safeImage(c.avatar)}">`
-                :"👤"}
-            </div>
-
-            <div class="comment-body">
-
-              <div class="comment-user">
-                ${escapeHtml(c.username)}
-              </div>
-
-              <div class="comment-text">
-                ${escapeHtml(c.comment)}
-              </div>
-
-            </div>
-
-          </div>
-
-        `)
-        .join("");
-
-  }catch{
-
-    list.innerHTML=
-      `<div class="empty">
-        ❌ Comment fe'uu hin dandeenye.
-      </div>`;
-
-  }
-
-}
-
-
-async function addComment(id){
-
-  const input =
-    $(`comment-input-${id}`);
-
-  if(!input)return;
-
-  const comment =
-    input.value.trim();
-
-  if(!comment){
-
-    showToast(
-      "Comment barreessi."
-    );
-
-    return;
-
-  }
-
-  try{
-
-    await api(
-      `/api/posts/${encodeURIComponent(id)}/comments`,
-      {
-        method:"POST",
-        body:JSON.stringify({
-          comment
-        })
-      }
-    );
-
-    input.value="";
-
-    await loadComments(id);
-
-    const count =
-      $(`comments-count-${id}`);
-
-    if(count){
-
-      count.textContent =
-        Number(count.textContent || 0)+1;
-
-    }
-
-  }catch(err){
-
-    showToast(
-      "❌ "+err.message
-    );
-
-  }
-
-}
-
-
-async function sharePost(id){
-
-  const url =
-    `${location.origin}${location.pathname}?post=${encodeURIComponent(id)}`;
-
-  const text =
-    "🟢 Waliin-GM irratti post ilaali.";
-
-  try{
-
-    if(navigator.share){
-
-      await navigator.share({
-        title:"Waliin-GM",
-        text,
-        url
-      });
-
-      return;
-
-    }
-
-    await navigator.clipboard.writeText(
-      `${text}\n${url}`
-    );
-
-    showToast(
-      "🔗 Link copy ta'e."
-    );
-
-  }catch{
-
-    showToast(
-      "Share hin milkoofne."
-    );
-
-  }
-
-}
-
-
-/* PROFILE */
-
-async function loadProfile(){
-
-  if(!currentUser)return;
-
-  try{
-
-    const data =
-      await api(
-        "/api/profile/"+
+        "/api/profile/" +
         encodeURIComponent(
           currentUser.username
         )
       );
 
-    $("profileUsername").textContent =
-      data.username ||
-      currentUser.username;
+    renderProfile(user);
 
-    $("profileEmail").textContent =
-      data.email || "";
+  }catch(error){
 
-    $("profileBio").value =
-      data.bio || "";
-
-    $("profileAvatarUrl").value =
-      data.avatar || "";
-
-    if(data.avatar){
-
-      $("profileAvatar").innerHTML=
-        `<img src="${safeImage(data.avatar)}">`;
-
-      $("postMyAvatar").innerHTML=
-        `<img src="${safeImage(data.avatar)}">`;
-
-    }
-
-  }catch{}
-
+    showToast(
+      "❌ Profile baname."
+    );
+  }
 }
 
 
-$("saveProfileBtn").onclick=
-  async()=>{
+function renderProfile(user){
+
+  $("profileUsername").textContent =
+    user.username;
+
+  $("profileEmail").textContent =
+    user.email || "";
+
+  $("bioInput").value =
+    user.bio || "";
+
+  $("avatarInput").value =
+    user.avatar || "";
+
+  const avatar =
+    $("profileAvatar");
+
+  avatar.innerHTML = "";
+
+  if(user.avatar){
+
+    const img =
+      document.createElement("img");
+
+    img.src = user.avatar;
+
+    avatar.appendChild(img);
+
+  }else{
+
+    avatar.textContent =
+      user.username
+        .charAt(0)
+        .toUpperCase();
+  }
+}
+
+
+$("saveProfileBtn").onclick =
+  async () => {
 
     try{
 
@@ -2981,21 +2498,20 @@ $("saveProfileBtn").onclick=
           "/api/profile/update",
           {
             method:"POST",
-
             body:JSON.stringify({
+              username:
+                currentUser.username,
 
               bio:
-                $("profileBio").value.trim(),
+                $("bioInput").value,
 
               avatar:
-                $("profileAvatarUrl").value.trim()
-
+                $("avatarInput").value
             })
-
           }
         );
 
-      currentUser={
+      currentUser = {
         ...currentUser,
         ...data.user
       };
@@ -3005,105 +2521,204 @@ $("saveProfileBtn").onclick=
         JSON.stringify(currentUser)
       );
 
-      await loadProfile();
+      renderProfile(data.user);
 
       showToast(
-        "🟢 Profile save ta'e."
+        "✅ Profile save ta'e."
       );
 
-    }catch(err){
+    }catch(error){
 
       showToast(
-        "❌ "+err.message
+        "❌ " + error.message
       );
-
     }
+  };
+
+
+/* =========================
+   USER PROFILE
+========================= */
+
+async function openUserProfile(username){
+
+  try{
+
+    currentProfileUser =
+      username;
+
+    const user =
+      await api(
+        "/api/profile/" +
+        encodeURIComponent(username)
+      );
+
+    const box =
+      $("userProfileContent");
+
+    box.innerHTML = `
+      <div style="text-align:center">
+        <div class="avatar"
+             style="width:90px;height:90px;margin:auto;font-size:30px">
+          ${
+            user.avatar
+              ? `<img src="${escapeAttribute(user.avatar)}">`
+              : escapeHtml(
+                  user.username
+                    .charAt(0)
+                    .toUpperCase()
+                )
+          }
+        </div>
+
+        <h2 style="margin-top:12px">
+          ${escapeHtml(user.username)}
+        </h2>
+
+        <p>${escapeHtml(user.bio || "")}</p>
+
+        <p style="margin-top:10px">
+          👥 Followers:
+          ${user.followers || 0}
+          <br>
+          ➕ Following:
+          ${user.following || 0}
+        </p>
+      </div>
+    `;
+
+    $("userModal")
+      .classList.remove("hidden");
+
+  }catch(error){
+
+    showToast(
+      "❌ User hin argamne."
+    );
+  }
+}
+
+
+$("closeUserModalBtn").onclick =
+  () => {
+
+    $("userModal")
+      .classList.add("hidden");
 
   };
 
 
-/* HISTORY */
+$("openUserChatBtn").onclick =
+  () => {
 
-async function loadHistory(){
-
-  if(!currentUser)return;
-
-  const list =
-    $("historyList");
-
-  if(!list)return;
-
-  try{
-
-    const data =
-      await api(
-        "/api/history?username="+
-        encodeURIComponent(
-          currentUser.username
-        )
-      );
-
-    if(
-      !data.history ||
-      !data.history.length
-    ){
-
-      list.innerHTML=
-        `<div class="empty">
-          History hin jiru.
-        </div>`;
-
+    if(!currentProfileUser)
       return;
 
+    $("userModal")
+      .classList.add("hidden");
+
+    openChat(
+      currentProfileUser
+    );
+  };
+
+
+/* =========================
+   FOLLOW
+========================= */
+
+$("followProfileBtn").onclick =
+  async () => {
+
+    if(!currentProfileUser)
+      return;
+
+    try{
+
+      const data =
+        await api(
+          "/api/follow",
+          {
+            method:"POST",
+            body:JSON.stringify({
+              follower:
+                currentUser.username,
+
+              following:
+                currentProfileUser
+            })
+          }
+        );
+
+      showToast(
+        data.following
+          ? "✅ Followed."
+          : "Follow irraa baate."
+      );
+
+    }catch(error){
+
+      showToast(
+        "❌ " + error.message
+      );
     }
-
-    list.innerHTML =
-      data.history
-        .map(item=>`
-
-          <div class="user-item">
-
-            <div class="avatar">
-              🕘
-            </div>
-
-            <div class="user-info">
-
-              <strong>
-                ${escapeHtml(
-                  item.type || "Activity"
-                )}
-              </strong>
-
-              <div class="small">
-                ${escapeHtml(
-                  item.description || ""
-                )}
-              </div>
-
-            </div>
-
-          </div>
-
-        `)
-        .join("");
-
-  }catch{
-
-    list.innerHTML=
-      `<div class="empty">
-        History hin argamne.
-      </div>`;
-
-  }
-
-}
+  };
 
 
-/* CLUB */
+/* =========================
+   BLOCK
+========================= */
 
-$("createClubBtn").onclick=
-  ()=>{
+$("blockProfileBtn").onclick =
+  async () => {
+
+    if(!currentProfileUser)
+      return;
+
+    if(
+      !confirm(
+        "User kana block/unblock gochuu barbaaddaa?"
+      )
+    ) return;
+
+    try{
+
+      const data =
+        await api(
+          "/api/block",
+          {
+            method:"POST",
+            body:JSON.stringify({
+              username:
+                currentUser.username,
+
+              blocked:
+                currentProfileUser
+            })
+          }
+        );
+
+      showToast(
+        data.blocked
+          ? "🚫 User blocked."
+          : "User unblock ta'e."
+      );
+
+    }catch(error){
+
+      showToast(
+        "❌ " + error.message
+      );
+    }
+  };
+
+
+/* =========================
+   CLUB
+========================= */
+
+$("createClubBtn").onclick =
+  () => {
 
     const name =
       $("clubName").value.trim();
@@ -3111,293 +2726,410 @@ $("createClubBtn").onclick=
     if(!name){
 
       showToast(
-        "Maqaa Club galchi."
+        "Maqaa club galchi."
       );
 
       return;
-
     }
 
     socket.emit(
       "createClub",
       {
         name,
-        seats:15
+        username:
+          currentUser.username
+      },
+      response => {
+
+        if(!response?.ok){
+
+          showToast(
+            "❌ " +
+            (response?.error ||
+             "Club uumamuu dide.")
+          );
+
+          return;
+        }
+
+        openClub(
+          response.club
+        );
+
+        showToast(
+          "✅ Club uumame."
+        );
       }
     );
-
   };
 
 
-$("joinClubBtn").onclick=
-  ()=>{
+$("joinClubBtn").onclick =
+  () => {
 
-    const id =
+    const clubId =
       $("clubIdInput").value.trim();
 
-    if(!id){
+    if(!clubId){
 
       showToast(
         "Club ID galchi."
       );
 
       return;
-
     }
 
     socket.emit(
       "joinClub",
       {
-        clubId:id
+        clubId,
+        username:
+          currentUser.username
+      },
+      response => {
+
+        if(!response?.ok){
+
+          showToast(
+            "❌ " +
+            (response?.error ||
+             "Club seenuu dide.")
+          );
+
+          return;
+        }
+
+        openClub(
+          response.club
+        );
       }
     );
+  };
 
+
+function openClub(club){
+
+  currentClub =
+    club;
+
+  $("clubEmpty")
+    .classList.add("hidden");
+
+  $("clubArea")
+    .classList.remove("hidden");
+
+  $("clubTitle").textContent =
+    club.name;
+
+  $("clubIdText").textContent =
+    club.id;
+
+  renderSeats(club);
+  renderClubMessages(
+    club.messages || []
+  );
+
+  showPage("club");
+}
+
+
+function renderSeats(club){
+
+  const box =
+    $("seats");
+
+  box.innerHTML = "";
+
+  club.seats.forEach(
+    seat => {
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "seat";
+
+      if(seat.username){
+        div.classList.add("active");
+      }
+
+      if(
+        seat.username ===
+        currentUser.username
+      ){
+        selectedSeat =
+          seat.seat;
+      }
+
+      div.innerHTML = `
+        <div class="seat-number">
+          ${seat.seat + 1}
+        </div>
+
+        <small>
+          ${
+            seat.username
+              ? escapeHtml(
+                  seat.username
+                )
+              : "Duwwaa"
+          }
+        </small>
+
+        ${
+          seat.muted
+            ? "<span>🔇</span>"
+            : "<span>🎙️</span>"
+        }
+      `;
+
+      div.onclick = () => {
+
+        if(
+          club.owner ===
+          currentUser.username
+        ){
+
+          const username =
+            prompt(
+              "Username seat kanaaf kennamu:"
+            );
+
+          if(!username) return;
+
+          const seatNumber =
+            prompt(
+              "Seat 1-15:"
+            );
+
+          const number =
+            Number(seatNumber);
+
+          if(
+            number < 1 ||
+            number > 15
+          ){
+
+            showToast(
+              "Seat 1 hanga 15."
+            );
+
+            return;
+          }
+
+          socket.emit(
+            "giveSeat",
+            {
+              username:
+                username.trim()
+                  .toLowerCase(),
+
+              seat:number - 1
+            }
+          );
+        }
+      };
+
+      box.appendChild(div);
+    }
+  );
+
+  $("ownerControls")
+    .classList.toggle(
+      "hidden",
+      club.owner !==
+      currentUser.username
+    );
+}
+
+
+$("requestSeatBtn").onclick =
+  () => {
+
+    socket.emit(
+      "requestSeat"
+    );
+
+    showToast(
+      "🙋 Seat request ergame."
+    );
+  };
+
+
+$("leaveSeatBtn").onclick =
+  () => {
+
+    socket.emit(
+      "leaveSeat"
+    );
+  };
+
+
+$("selfMuteBtn").onclick =
+  () => {
+
+    const muted =
+      $("selfMuteBtn")
+        .dataset.muted !== "true";
+
+    $("selfMuteBtn")
+      .dataset.muted =
+      String(muted);
+
+    $("selfMuteBtn").textContent =
+      muted
+        ? "🔊 Unmute"
+        : "🎙️ Mute";
+
+    socket.emit(
+      "muteSelf",
+      { muted }
+    );
+  };
+
+
+$("ownerMuteBtn").onclick =
+  () => {
+
+    if(!currentClub) return;
+
+    const username =
+      prompt(
+        "Username mute godhu:"
+      );
+
+    if(!username) return;
+
+    socket.emit(
+      "ownerMute",
+      {
+        username:
+          username.trim()
+            .toLowerCase()
+      }
+    );
+  };
+
+
+$("removeMemberBtn").onclick =
+  () => {
+
+    const username =
+      prompt(
+        "Username remove godhu:"
+      );
+
+    if(!username) return;
+
+    socket.emit(
+      "removeMember",
+      {
+        username:
+          username.trim()
+            .toLowerCase()
+      }
+    );
+  };
+
+
+$("leaveClubBtn").onclick =
+  () => {
+
+    socket.emit(
+      "leaveClub"
+    );
+
+    currentClub = null;
+
+    $("clubArea")
+      .classList.add("hidden");
+
+    $("clubEmpty")
+      .classList.remove("hidden");
   };
 
 
 socket.on(
   "clubUpdated",
-  club=>{
-    currentClub=club;
-    renderClub();
+  club => {
+
+    if(
+      !currentClub ||
+      club.id !== currentClub.id
+    ) return;
+
+    currentClub = club;
+
+    renderSeats(club);
+
+    renderClubMessages(
+      club.messages || []
+    );
   }
 );
 
 
 socket.on(
   "clubMemberUpdate",
-  club=>{
-    currentClub=club;
-    renderClub();
+  club => {
+
+    if(
+      !currentClub ||
+      club.id !== currentClub.id
+    ) return;
+
+    currentClub = club;
+
+    renderSeats(club);
   }
 );
-
-
-function renderClub(){
-
-  if(!currentClub)return;
-
-  $("clubEmpty").style.display=
-    "none";
-
-  $("clubArea").style.display=
-    "block";
-
-  $("clubTitle").textContent=
-    currentClub.name ||
-    "Club";
-
-  $("clubIdText").textContent=
-    "ID: "+
-    (currentClub.id || "");
-
-  const seats =
-    $("seats");
-
-  const seatList =
-    currentClub.seats ||
-    [];
-
-  seats.innerHTML =
-    Array.from(
-      {length:15},
-      (_,i)=>{
-
-        const seat =
-          seatList[i];
-
-        const occupied =
-          seat &&
-          seat.username;
-
-        return `
-
-          <div class="seat
-            ${occupied?"occupied":""}
-            ${
-              occupied &&
-              currentUser &&
-              seat.username===
-              currentUser.username
-              ?"mine":""
-            }"
-          >
-
-            <div class="seat-number">
-              ${i+1}
-            </div>
-
-            <div class="seat-user">
-              ${
-                occupied
-                ? escapeHtml(
-                    seat.username
-                  )
-                :"Empty"
-              }
-            </div>
-
-          </div>
-
-        `;
-
-      }
-    ).join("");
-
-}
-
-
-/* CLUB CONTROLS */
-
-$("requestSeatBtn").onclick=
-  ()=>{
-
-    if(!currentClub)return;
-
-    socket.emit(
-      "requestSeat",
-      {
-        clubId:currentClub.id
-      }
-    );
-
-    showToast(
-      "🙋 Seat request ergame."
-    );
-
-  };
-
-
-$("leaveSeatBtn").onclick=
-  ()=>{
-
-    if(!currentClub)return;
-
-    socket.emit(
-      "leaveSeat",
-      {
-        clubId:currentClub.id
-      }
-    );
-
-  };
-
-
-let clubMuted=false;
-
-$("selfMuteBtn").onclick=
-  ()=>{
-
-    if(!currentClub)return;
-
-    clubMuted=!clubMuted;
-
-    socket.emit(
-      "muteSelf",
-      {
-        clubId:currentClub.id,
-        muted:clubMuted
-      }
-    );
-
-    $("selfMuteBtn").textContent =
-      clubMuted
-      ? "🔊 Unmute"
-      : "🎙️ Mic";
-
-  };
-
-
-$("leaveClubBtn").onclick=
-  ()=>{
-
-    if(!currentClub)return;
-
-    socket.emit(
-      "leaveClub",
-      {
-        clubId:currentClub.id
-      }
-    );
-
-    currentClub=null;
-
-    $("clubArea").style.display=
-      "none";
-
-    $("clubEmpty").style.display=
-      "block";
-
-  };
-
-
-document
-  .querySelectorAll("[data-gift]")
-  .forEach(btn=>{
-
-    btn.onclick=()=>{
-
-      if(!currentClub){
-
-        showToast(
-          "Club keessa seeni."
-        );
-
-        return;
-
-      }
-
-      socket.emit(
-        "sendGift",
-        {
-          clubId:currentClub.id,
-          gift:btn.dataset.gift
-        }
-      );
-
-    };
-
-  });
 
 
 socket.on(
-  "giftReceived",
-  data=>{
+  "removedFromClub",
+  () => {
+
+    currentClub = null;
+
+    $("clubArea")
+      .classList.add("hidden");
+
+    $("clubEmpty")
+      .classList.remove("hidden");
 
     showToast(
-      `🎁 ${data.username || "User"} ${data.gift || "🎁"} erge.`
+      "🚫 Club keessaa si baasan."
     );
-
   }
 );
 
 
-/* CLUB CHAT */
+/* =========================
+   CLUB CHAT
+========================= */
 
-$("sendClubMessageBtn").onclick=
+$("sendClubMessageBtn").onclick =
   sendClubMessage;
 
 
 $("clubMessage").addEventListener(
   "keydown",
-  e=>{
-    if(e.key==="Enter")
+  e => {
+
+    if(
+      e.key === "Enter"
+    ){
+
+      e.preventDefault();
+
       sendClubMessage();
+    }
+
   }
 );
 
 
 function sendClubMessage(){
-
-  if(!currentClub){
-
-    showToast(
-      "Club keessa seeni."
-    );
-
-    return;
-
-  }
 
   const input =
     $("clubMessage");
@@ -3405,54 +3137,128 @@ function sendClubMessage(){
   const message =
     input.value.trim();
 
-  if(!message)return;
+  if(!message) return;
 
   socket.emit(
     "chatMessage",
     {
-      clubId:currentClub.id,
       message
     }
   );
 
-  input.value="";
-
+  input.value = "";
 }
 
 
 socket.on(
   "clubChatMessage",
-  data=>{
+  message => {
 
-    const box =
-      $("clubChatBox");
+    if(!currentClub) return;
 
-    const div =
-      document.createElement("div");
-
-    div.style.marginBottom="8px";
-
-    div.innerHTML =
-      `<strong>
-        ${escapeHtml(data.username || "")}
-      </strong>: ${escapeHtml(data.message || "")}`;
-
-    box.appendChild(div);
-
-    box.scrollTop=
-      box.scrollHeight;
-
+    addClubMessage(
+      message
+    );
   }
 );
 
 
-/* CALLS */
+function renderClubMessages(
+  messages
+){
 
-$("voiceCallBtn").onclick=
-  ()=>startCall("voice");
+  $("clubChatBox").innerHTML = "";
 
-$("videoCallBtn").onclick=
-  ()=>startCall("video");
+  messages.forEach(
+    addClubMessage
+  );
+}
+
+
+function addClubMessage(
+  message
+){
+
+  const box =
+    $("clubChatBox");
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "club-message";
+
+  div.innerHTML = `
+    <strong>
+      ${escapeHtml(message.username)}
+    </strong>
+    :
+    ${escapeHtml(message.message)}
+    <small style="float:right">
+      ${formatTime(message.created_at)}
+    </small>
+  `;
+
+  box.appendChild(div);
+
+  box.scrollTop =
+    box.scrollHeight;
+}
+
+
+/* =========================
+   GIFTS
+========================= */
+
+document
+  .querySelectorAll(
+    "[data-gift]"
+  )
+  .forEach(button => {
+
+    button.onclick = () => {
+
+      if(!currentClub){
+
+        showToast(
+          "Jalqaba club seeni."
+        );
+
+        return;
+      }
+
+      socket.emit(
+        "sendGift",
+        {
+          gift:
+            button.dataset.gift
+        }
+      );
+    };
+  });
+
+
+socket.on(
+  "giftReceived",
+  data => {
+
+    showToast(
+      `${data.from} ${data.gift} erge!`
+    );
+  }
+);
+
+
+/* =========================
+   CALLS
+========================= */
+
+$("voiceCallBtn").onclick =
+  () => startCall("voice");
+
+
+$("videoCallBtn").onclick =
+  () => startCall("video");
 
 
 async function startCall(type){
@@ -3460,231 +3266,308 @@ async function startCall(type){
   if(!currentChatUser){
 
     showToast(
-      "User tokko filadhu."
+      "Jalqaba user filadhu."
     );
 
     return;
-
   }
 
-  currentCallTarget=
+  if(!socket.connected){
+
+    showToast(
+      "🔴 Server waliin wal hin qabamne."
+    );
+
+    return;
+  }
+
+  currentCallTarget =
     currentChatUser;
 
-  currentCallType=
+  currentCallType =
     type;
 
   try{
 
     localStream =
-      await navigator.mediaDevices.getUserMedia({
+      await navigator.mediaDevices
+        .getUserMedia({
+          audio:true,
+          video:type === "video"
+        });
 
-        audio:true,
-
-        video:
-          type==="video"
-
-      });
-
-    $("localVideo").srcObject=
-      localStream;
-
-    $("remoteVideo").style.display=
-      type==="video"
-      ? "block"
-      :"none";
-
-    $("callTitle").textContent =
-      type==="video"
-      ? "📹 Video Call"
-      : "📞 Voice Call";
-
-    $("callStatus").textContent=
-      "Calling "+currentChatUser+"...";
-
-    $("callModal").classList.add("show");
+    showCallModal(
+      type,
+      currentChatUser
+    );
 
     socket.emit(
       "callUser",
       {
-        targetUsername:
+        username:
           currentChatUser,
 
-        type
+        callType:type
       }
     );
 
-  }catch{
+  }catch(error){
+
+    console.error(error);
 
     showToast(
-      "❌ Camera/Microphone hin banamne."
+      "❌ Camera/Microphone eeyyama gaafadhu."
     );
-
   }
-
 }
 
 
 socket.on(
   "incomingCall",
-  data=>{
+  data => {
 
-    incomingCallData=data;
+    incomingCallData =
+      data;
 
-    $("incomingCallName").textContent =
-      data.from ||
-      data.username ||
-      "User";
+    $("callerName")
+      .textContent =
+      data.from;
 
-    $("incomingCallType").textContent =
-      data.type==="video"
-      ? "📹 Video Call"
-      : "📞 Voice Call";
+    $("callerType")
+      .textContent =
+      data.callType === "video"
+        ? "📹 Video Call"
+        : "📞 Voice Call";
 
     $("incomingCallModal")
-      .classList.add("show");
-
+      .classList.remove(
+        "hidden"
+      );
   }
 );
 
 
-$("acceptCallBtn").onclick=
-  async()=>{
+$("acceptCallBtn").onclick =
+  async () => {
 
-    if(!incomingCallData)return;
+    if(!incomingCallData)
+      return;
 
-    currentCallTarget =
-      incomingCallData.from ||
-      incomingCallData.username;
-
-    currentCallTargetSocketId =
-      incomingCallData.socketId ||
-      incomingCallData.fromSocketId ||
-      null;
-
-    currentCallType =
-      incomingCallData.type ||
-      "voice";
+    const data =
+      incomingCallData;
 
     $("incomingCallModal")
-      .classList.remove("show");
+      .classList.add(
+        "hidden"
+      );
+
+    currentCallTarget =
+      data.from;
+
+    currentCallType =
+      data.callType;
 
     try{
 
       localStream =
-        await navigator.mediaDevices.getUserMedia({
+        await navigator.mediaDevices
+          .getUserMedia({
+            audio:true,
+            video:
+              data.callType === "video"
+          });
 
-          audio:true,
-
-          video:
-            currentCallType==="video"
-
-        });
-
-      $("localVideo").srcObject=
-        localStream;
-
-      $("remoteVideo").style.display =
-        currentCallType==="video"
-        ? "block"
-        :"none";
-
-      $("callModal").classList.add("show");
-
-      $("callTitle").textContent =
-        currentCallType==="video"
-        ? "📹 Video Call"
-        : "📞 Voice Call";
-
-      $("callStatus").textContent=
-        "Connected";
+      showCallModal(
+        data.callType,
+        data.from
+      );
 
       socket.emit(
         "acceptCall",
         {
           callerSocketId:
-            currentCallTargetSocketId,
+            data.callerSocketId,
 
-          from:
-            currentUser.username
+          callType:
+            data.callType
         }
       );
 
-    }catch{
+    }catch(error){
 
       showToast(
-        "❌ Camera/Microphone hin banamne."
+        "❌ Camera/Microphone eeyyama dhabde."
       );
-
     }
 
-    incomingCallData=null;
-
+    incomingCallData =
+      null;
   };
 
 
-$("rejectCallBtn").onclick=
-  ()=>{
+$("rejectCallBtn").onclick =
+  () => {
 
-    if(incomingCallData){
-
-      socket.emit(
-        "rejectCall",
-        {
-          callerSocketId:
-            incomingCallData.socketId ||
-            incomingCallData.fromSocketId,
-
-          from:
-            currentUser.username
-        }
-      );
-
-    }
-
-    incomingCallData=null;
-
-    $("incomingCallModal")
-      .classList.remove("show");
-
-  };
-
-
-$("endCallBtn").onclick=
-  endCall;
-
-
-async function endCall(){
-
-  if(currentCallTargetSocketId){
+    if(!incomingCallData)
+      return;
 
     socket.emit(
-      "endCall",
+      "rejectCall",
       {
-        targetSocketId:
-          currentCallTargetSocketId
+        callerSocketId:
+          incomingCallData.callerSocketId
       }
     );
 
+    $("incomingCallModal")
+      .classList.add(
+        "hidden"
+      );
+
+    incomingCallData = null;
+  };
+
+
+socket.on(
+  "callAccepted",
+  async data => {
+
+    if(!currentCallTarget)
+      return;
+
+    await createPeerConnection(
+      data.targetSocketId
+    );
+
+    const offer =
+      await peerConnection
+        .createOffer();
+
+    await peerConnection
+      .setLocalDescription(
+        offer
+      );
+
+    socket.emit(
+      "webrtc-offer",
+      {
+        target:
+          data.targetSocketId,
+
+        offer
+      }
+    );
   }
-
-  cleanupCall();
-
-}
+);
 
 
-function cleanupCall(){
+socket.on(
+  "webrtc-offer",
+  async data => {
 
-  if(localStream){
+    try{
 
-    localStream
-      .getTracks()
-      .forEach(track=>{
-        track.stop();
-      });
+      await createPeerConnection(
+        data.from
+      );
 
+      await peerConnection
+        .setRemoteDescription(
+          new RTCSessionDescription(
+            data.offer
+          )
+        );
+
+      const answer =
+        await peerConnection
+          .createAnswer();
+
+      await peerConnection
+        .setLocalDescription(
+          answer
+        );
+
+      socket.emit(
+        "webrtc-answer",
+        {
+          target:
+            data.from,
+
+          answer
+        }
+      );
+
+    }catch(error){
+
+      console.error(
+        "WEBRTC OFFER:",
+        error
+      );
+    }
   }
+);
 
-  localStream=null;
+
+socket.on(
+  "webrtc-answer",
+  async data => {
+
+    if(!peerConnection)
+      return;
+
+    try{
+
+      await peerConnection
+        .setRemoteDescription(
+          new RTCSessionDescription(
+            data.answer
+          )
+        );
+
+    }catch(error){
+
+      console.error(
+        "WEBRTC ANSWER:",
+        error
+      );
+    }
+  }
+);
+
+
+socket.on(
+  "webrtc-ice",
+  async data => {
+
+    if(!peerConnection)
+      return;
+
+    try{
+
+      if(
+        peerConnection.remoteDescription
+      ){
+
+        await peerConnection
+          .addIceCandidate(
+            data.candidate
+          );
+      }
+
+    }catch(error){
+
+      console.error(
+        "ICE:",
+        error
+      );
+    }
+  }
+);
+
+
+async function createPeerConnection(
+  targetSocketId
+){
 
   if(peerConnection){
 
@@ -3692,238 +3575,174 @@ function cleanupCall(){
 
   }
 
-  peerConnection=null;
-
-  $("localVideo").srcObject=null;
-  $("remoteVideo").srcObject=null;
-
-  $("callModal")
-    .classList.remove("show");
-
-  currentCallTarget=null;
-  currentCallTargetSocketId=null;
-  currentCallType=null;
-
-}
-
-
-socket.on(
-  "callAccepted",
-  async data=>{
-
-    currentCallTargetSocketId =
-      data.socketId ||
-      data.targetSocketId ||
-      currentCallTargetSocketId;
-
-    $("callStatus").textContent=
-      "Connected";
-
-    await createOffer();
-
-  }
-);
-
-
-async function createOffer(){
-
-  if(!localStream)return;
-
   peerConnection =
     new RTCPeerConnection(
       rtcConfig
     );
 
-  localStream
-    .getTracks()
-    .forEach(track=>{
+  if(localStream){
 
-      peerConnection.addTrack(
-        track,
-        localStream
+    localStream
+      .getTracks()
+      .forEach(
+        track => {
+
+          peerConnection
+            .addTrack(
+              track,
+              localStream
+            );
+
+        }
       );
-
-    });
+  }
 
   peerConnection.ontrack =
-    event=>{
+    event => {
 
-      $("remoteVideo").srcObject =
-        event.streams[0];
-
-    };
-
-  peerConnection.onicecandidate =
-    event=>{
+      const video =
+        $("remoteVideo");
 
       if(
-        event.candidate &&
-        currentCallTargetSocketId
+        event.streams &&
+        event.streams[0]
+      ){
+
+        video.srcObject =
+          event.streams[0];
+
+      }
+    };
+
+
+  peerConnection.onicecandidate =
+    event => {
+
+      if(
+        event.candidate
       ){
 
         socket.emit(
           "webrtc-ice",
           {
-            targetSocketId:
-              currentCallTargetSocketId,
+            target:
+              targetSocketId,
 
             candidate:
               event.candidate
           }
         );
-
       }
-
     };
 
-  const offer =
-    await peerConnection.createOffer();
 
-  await peerConnection.setLocalDescription(
-    offer
-  );
+  peerConnection.onconnectionstatechange =
+    () => {
 
-  socket.emit(
-    "webrtc-offer",
-    {
-      targetSocketId:
-        currentCallTargetSocketId,
+      console.log(
+        "WebRTC:",
+        peerConnection
+          .connectionState
+      );
 
-      offer
-    }
-  );
+      if(
+        [
+          "failed",
+          "disconnected",
+          "closed"
+        ].includes(
+          peerConnection.connectionState
+        )
+      ){
 
+        showToast(
+          "📵 Call connection cite."
+        );
+      }
+    };
+}
+
+
+function showCallModal(
+  type,
+  username
+){
+
+  $("callTitle").textContent =
+    type === "video"
+      ? "📹 Video Call"
+      : "📞 Voice Call";
+
+  $("voiceCaller").textContent =
+    username;
+
+  $("voiceCallInfo")
+    .classList.toggle(
+      "hidden",
+      type === "video"
+    );
+
+  $("videoArea")
+    .classList.toggle(
+      "hidden",
+      type !== "video"
+    );
+
+  $("localVideo")
+    .classList.toggle(
+      "hidden",
+      type !== "video"
+    );
+
+  $("callModal")
+    .classList.remove(
+      "hidden"
+    );
+
+  if(
+    type === "video" &&
+    localStream
+  ){
+
+    $("localVideo")
+      .srcObject =
+      localStream;
+  }
+}
+
+
+$("endCallBtn").onclick =
+  endCall;
+
+
+function endCall(){
+
+  if(currentCallTarget){
+
+    const sockets =
+      [...socket.connected
+        ? []
+        : []];
+
+    socket.emit(
+      "endCall",
+      {
+        targetSocketId:
+          currentCallTarget
+      }
+    );
+  }
+
+  cleanupCall();
 }
 
 
 socket.on(
-  "webrtc-offer",
-  async data=>{
-
-    if(!localStream)return;
-
-    peerConnection =
-      new RTCPeerConnection(
-        rtcConfig
-      );
-
-    localStream
-      .getTracks()
-      .forEach(track=>{
-
-        peerConnection.addTrack(
-          track,
-          localStream
-        );
-
-      });
-
-    peerConnection.ontrack=
-      event=>{
-
-        $("remoteVideo").srcObject=
-          event.streams[0];
-
-      };
-
-    peerConnection.onicecandidate=
-      event=>{
-
-        if(
-          event.candidate &&
-          data.socketId
-        ){
-
-          socket.emit(
-            "webrtc-ice",
-            {
-              targetSocketId:
-                data.socketId,
-
-              candidate:
-                event.candidate
-            }
-          );
-
-        }
-
-      };
-
-    await peerConnection.setRemoteDescription(
-      data.offer
-    );
-
-    const answer =
-      await peerConnection.createAnswer();
-
-    await peerConnection.setLocalDescription(
-      answer
-    );
-
-    socket.emit(
-      "webrtc-answer",
-      {
-        targetSocketId:
-          data.socketId,
-
-        answer
-      }
-    );
-
-  }
-);
-
-
-socket.on(
-  "webrtc-answer",
-  async data=>{
-
-    if(!peerConnection)return;
-
-    await peerConnection.setRemoteDescription(
-      data.answer
-    );
-
-  }
-);
-
-
-socket.on(
-  "webrtc-ice",
-  async data=>{
-
-    if(
-      peerConnection &&
-      data.candidate
-    ){
-
-      try{
-
-        await peerConnection.addIceCandidate(
-          data.candidate
-        );
-
-      }catch{}
-
-    }
-
-  }
-);
-
-
-socket.on(
-  "callEnded",
-  ()=>{
-    cleanupCall();
-  }
-);
-
-
-socket.on(
   "callRejected",
-  ()=>{
+  () => {
+
     showToast(
-      "📞 Call rejected."
+      "❌ Call diddaa ta'e."
     );
 
     cleanupCall();
@@ -3933,9 +3752,12 @@ socket.on(
 
 socket.on(
   "callUnavailable",
-  ()=>{
+  data => {
+
     showToast(
-      "User yeroo ammaa hin jirre."
+      "⚠️ " +
+      (data.message ||
+       "User online miti.")
     );
 
     cleanupCall();
@@ -3943,273 +3765,446 @@ socket.on(
 );
 
 
-/* SETTINGS */
+socket.on(
+  "callEnded",
+  () => {
 
-$("settingsBtn").onclick=
-  ()=>{
-    $("settingsModal")
-      .classList.add("show");
-  };
-
-
-$("closeSettingsBtn").onclick=
-  ()=>{
-    $("settingsModal")
-      .classList.remove("show");
-  };
-
-
-$("darkModeBtn").onclick=
-  ()=>{
-
-    document.body.classList.toggle(
-      "dark"
+    showToast(
+      "📵 Call xumurame."
     );
 
-    localStorage.setItem(
-      "waliin_dark",
-      document.body.classList.contains(
-        "dark"
-      )
+    cleanupCall();
+  }
+);
+
+
+function cleanupCall(){
+
+  if(localStream){
+
+    localStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
+
+    localStream = null;
+  }
+
+  if(peerConnection){
+
+    peerConnection.close();
+    peerConnection = null;
+  }
+
+  $("remoteVideo").srcObject =
+    null;
+
+  $("localVideo").srcObject =
+    null;
+
+  $("callModal")
+    .classList.add(
+      "hidden"
     );
 
-  };
-
-
-if(
-  localStorage.getItem(
-    "waliin_dark"
-  )==="true"
-){
-
-  document.body.classList.add("dark");
-
+  currentCallTarget = null;
+  currentCallType = null;
 }
 
 
-$("notificationToggleBtn").onclick=
-  ()=>{
+/* =========================
+   NOTIFICATIONS
+========================= */
 
-    notificationEnabled=
-      !notificationEnabled;
-
-    localStorage.setItem(
-      "waliin_notifications",
-      notificationEnabled
-    );
-
-    showToast(
-      notificationEnabled
-      ? "🔔 Notifications ON"
-      : "🔕 Notifications OFF"
-    );
-
-  };
+$("notificationBtn").onclick =
+  openNotifications;
 
 
-/* NOTIFICATIONS */
-
-$("notificationBtn").onclick=
-  async()=>{
-
-    $("notificationModal")
-      .classList.add("show");
-
-    await loadNotifications();
-
-  };
-
-
-$("closeNotificationBtn").onclick=
-  ()=>{
-    $("notificationModal")
-      .classList.remove("show");
-  };
-
-
-async function loadNotifications(){
-
-  if(!currentUser)return;
+async function openNotifications(){
 
   try{
 
     const data =
       await api(
-        "/api/notifications/"+
+        "/api/notifications/" +
         encodeURIComponent(
           currentUser.username
         )
       );
 
-    const list =
-      $("notificationList");
+    const box =
+      $("notifications");
 
-    if(
-      !data.notifications ||
-      !data.notifications.length
-    ){
+    box.innerHTML = "";
 
-      list.innerHTML=
-        `<div class="empty">
-          Notifications hin jiru.
-        </div>`;
+    if(!data.length){
 
-      return;
+      box.innerHTML =
+        "<p>Notification hin jiru.</p>";
 
+    }else{
+
+      data.forEach(item => {
+
+        const div =
+          document.createElement("div");
+
+        div.className =
+          "card";
+
+        div.style.marginBottom =
+          "8px";
+
+        div.innerHTML = `
+          <strong>
+            ${escapeHtml(
+              item.from_user || "Waliin-GM"
+            )}
+          </strong>
+
+          <p>
+            ${escapeHtml(
+              item.message || ""
+            )}
+          </p>
+
+          <small>
+            ${formatTime(
+              item.created_at
+            )}
+          </small>
+        `;
+
+        box.appendChild(div);
+
+      });
     }
 
-    list.innerHTML =
-      data.notifications
-        .map(n=>`
+    $("notificationModal")
+      .classList.remove(
+        "hidden"
+      );
 
-          <div class="user-item">
-
-            <div class="avatar">
-              🔔
-            </div>
-
-            <div class="user-info">
-
-              <div>
-                ${escapeHtml(
-                  n.message || ""
-                )}
-              </div>
-
-              <div class="small">
-                ${n.created_at
-                  ? new Date(
-                      n.created_at
-                    ).toLocaleString()
-                  : ""}
-              </div>
-
-            </div>
-
-          </div>
-
-        `)
-        .join("");
-
-    await api(
-      "/api/notifications/read",
-      {
-        method:"POST"
-      }
-    );
-
-  }catch{
+  }catch(error){
 
     showToast(
-      "Notifications fe'uu hin dandeenye."
+      "❌ Notification baname."
     );
-
   }
-
 }
 
 
-/* LOGOUT */
+$("closeNotificationBtn").onclick =
+  () => {
 
-$("logoutBtn").onclick=
-  async()=>{
+    $("notificationModal")
+      .classList.add(
+        "hidden"
+      );
+  };
+
+
+$("readNotificationsBtn").onclick =
+  async () => {
+
+    try{
+
+      await api(
+        "/api/notifications/read",
+        {
+          method:"POST",
+          body:JSON.stringify({
+            username:
+              currentUser.username
+          })
+        }
+      );
+
+      $("notifBadge")
+        .classList.add(
+          "hidden"
+        );
+
+      $("notificationModal")
+        .classList.add(
+          "hidden"
+        );
+
+    }catch(error){
+
+      console.error(error);
+    }
+  };
+
+
+async function loadUnreadNotifications(){
+
+  try{
+
+    const data =
+      await api(
+        "/api/notifications/unread-count/" +
+        encodeURIComponent(
+          currentUser.username
+        )
+      );
+
+    const badge =
+      $("notifBadge");
+
+    if(data.count > 0){
+
+      badge.textContent =
+        data.count > 99
+          ? "99+"
+          : data.count;
+
+      badge.classList.remove(
+        "hidden"
+      );
+
+    }else{
+
+      badge.classList.add(
+        "hidden"
+      );
+    }
+
+  }catch(error){
+
+    console.error(error);
+  }
+}
+
+
+socket.on(
+  "notification",
+  data => {
+
+    if(
+      notificationEnabled
+    ){
+
+      showToast(
+        "🔔 " +
+        (data.message || "Notification haaraa")
+      );
+    }
+
+    loadUnreadNotifications();
+  }
+);
+
+
+/* =========================
+   SETTINGS
+========================= */
+
+$("settingsBtn").onclick =
+  () => {
+
+    $("settingsModal")
+      .classList.remove(
+        "hidden"
+      );
+  };
+
+
+$("closeSettingsBtn").onclick =
+  () => {
+
+    $("settingsModal")
+      .classList.add(
+        "hidden"
+      );
+  };
+
+
+$("darkModeToggle").checked =
+  localStorage.getItem(
+    "waliin_dark"
+  ) === "true";
+
+
+if($("darkModeToggle").checked){
+  document.body.classList.add(
+    "dark"
+  );
+}
+
+
+$("darkModeToggle").onchange =
+  () => {
+
+    const enabled =
+      $("darkModeToggle").checked;
+
+    document.body.classList.toggle(
+      "dark",
+      enabled
+    );
+
+    localStorage.setItem(
+      "waliin_dark",
+      String(enabled)
+    );
+  };
+
+
+$("notificationToggle").checked =
+  notificationEnabled;
+
+
+$("notificationToggle").onchange =
+  () => {
+
+    notificationEnabled =
+      $("notificationToggle")
+        .checked;
+
+    localStorage.setItem(
+      "waliin_notifications",
+      String(notificationEnabled)
+    );
+  };
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+$("logoutBtn").onclick =
+  async () => {
 
     try{
 
       await api(
         "/api/logout",
         {
-          method:"POST"
+          method:"POST",
+          body:JSON.stringify({
+            username:
+              currentUser.username
+          })
         }
       );
 
-    }catch{}
+    }catch(error){
 
-    token=null;
-    currentUser=null;
+      console.error(error);
 
-    localStorage.removeItem(
-      "waliin_token"
-    );
+    }finally{
 
-    localStorage.removeItem(
-      "waliin_user"
-    );
+      cleanupCall();
 
-    $("appPage").style.display=
-      "none";
+      currentUser = null;
+      token = null;
 
-    $("authPage").style.display=
-      "flex";
+      localStorage.removeItem(
+        "waliin_token"
+      );
 
+      localStorage.removeItem(
+        "waliin_user"
+      );
+
+      $("settingsModal")
+        .classList.add(
+          "hidden"
+        );
+
+      $("appPage")
+        .classList.add(
+          "hidden"
+        );
+
+      $("authPage")
+        .classList.remove(
+          "hidden"
+        );
+
+      showToast(
+        "Ati baate."
+      );
+    }
   };
 
 
-/* SOCKET */
+/* =========================
+   HELPERS
+========================= */
 
-const socket =
-  io({
-    autoConnect:true,
-    reconnection:true,
-    reconnectionAttempts:Infinity,
-    reconnectionDelay:1000,
-    reconnectionDelayMax:5000,
-    transports:[
-      "websocket",
-      "polling"
-    ]
-  });
+function escapeHtml(value){
+
+  return String(value || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
 
-socket.on(
-  "connect",
-  ()=>{
+function escapeAttribute(value){
 
-    if(currentUser){
+  return String(value || "")
+    .replaceAll("&","&amp;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
 
-      socket.emit(
-        "identify",
-        currentUser.username
+
+function formatTime(date){
+
+  try{
+
+    return new Date(date)
+      .toLocaleTimeString(
+        [],
+        {
+          hour:"2-digit",
+          minute:"2-digit"
+        }
       );
 
-    }
+  }catch{
 
+    return "";
   }
-);
+}
 
 
-socket.on(
-  "connect_error",
-  ()=>{
-    console.log(
-      "Socket connection error"
-    );
+function scrollChat(){
+
+  const box =
+    $("chatBox");
+
+  if(box){
+
+    box.scrollTop =
+      box.scrollHeight;
   }
-);
+}
 
 
-/* START */
-
+/* =========================
+   START
+========================= */
 restoreLogin();
 
-if("serviceWorker" in navigator){
-
-  window.addEventListener(
-    "load",
-    ()=>{
-
-      navigator.serviceWorker
-        .register("/sw.js")
-        .catch(err=>{
-          console.log(
-            "SW error",
-            err
-          );
-        });
-
-    }
-  );
-
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => {
+        console.log("🟢 Waliin-GM Service Worker registered");
+      })
+      .catch((error) => {
+        console.error("❌ Service Worker error:", error);
+      });
+  });
 }
 
 </script>
