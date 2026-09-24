@@ -30,6 +30,10 @@ if (DATABASE_URL) {
   });
 }
 
+/* =========================
+   DATABASE
+========================= */
+
 async function initDatabase() {
   if (!pool) {
     console.log("⚠️ DATABASE_URL hin jiru.");
@@ -61,10 +65,14 @@ async function initDatabase() {
   console.log("✅ Database ready.");
 }
 
+/* =========================
+   PASSWORD
+========================= */
+
 function hashPassword(password, salt) {
   return crypto
     .createHash("sha256")
-    .update(String(password) + salt)
+    .update(password + salt)
     .digest("hex");
 }
 
@@ -72,12 +80,8 @@ function createToken() {
   return crypto.randomBytes(32).toString("hex");
 }
 
-function makeClubId() {
-  return crypto.randomBytes(4).toString("hex");
-}
-
 /* =========================
-   REGISTER
+   AUTH
 ========================= */
 
 app.post("/api/register", async (req, res) => {
@@ -89,9 +93,7 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const username = String(req.body.username || "").trim();
-    const email = String(req.body.email || "").trim().toLowerCase();
-    const password = String(req.body.password || "");
+    const { username, email, password } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -109,7 +111,7 @@ app.post("/api/register", async (req, res) => {
 
     const exists = await pool.query(
       "SELECT id FROM users WHERE email=$1",
-      [email]
+      [email.toLowerCase()]
     );
 
     if (exists.rows.length > 0) {
@@ -129,8 +131,8 @@ app.post("/api/register", async (req, res) => {
        VALUES ($1,$2,$3,$4,$5)
        RETURNING id,username,email,token`,
       [
-        username,
-        email,
+        username.trim(),
+        email.toLowerCase().trim(),
         passwordHash,
         salt,
         token
@@ -145,17 +147,12 @@ app.post("/api/register", async (req, res) => {
 
   } catch (err) {
     console.error("REGISTER ERROR:", err);
-
     res.status(500).json({
       success: false,
       message: "Register irratti rakkoo uumame."
     });
   }
 });
-
-/* =========================
-   LOGIN
-========================= */
 
 app.post("/api/login", async (req, res) => {
   try {
@@ -166,15 +163,11 @@ app.post("/api/login", async (req, res) => {
       });
     }
 
-    const email = String(req.body.email || "")
-      .trim()
-      .toLowerCase();
-
-    const password = String(req.body.password || "");
+    const { email, password } = req.body;
 
     const result = await pool.query(
       "SELECT * FROM users WHERE email=$1",
-      [email]
+      [String(email || "").toLowerCase().trim()]
     );
 
     if (result.rows.length === 0) {
@@ -217,17 +210,12 @@ app.post("/api/login", async (req, res) => {
 
   } catch (err) {
     console.error("LOGIN ERROR:", err);
-
     res.status(500).json({
       success: false,
       message: "Login irratti rakkoo uumame."
     });
   }
 });
-
-/* =========================
-   LOGOUT
-========================= */
 
 app.post("/api/logout", async (req, res) => {
   try {
@@ -238,25 +226,24 @@ app.post("/api/logout", async (req, res) => {
       );
     }
 
-    res.json({
-      success: true
-    });
+    res.json({ success: true });
 
   } catch (err) {
-    res.json({
-      success: true
-    });
+    res.json({ success: true });
   }
 });
 
 /* =========================
-   CLUB SYSTEM
+   CLUB MEMORY
 ========================= */
 
 const clubs = new Map();
 
-function createClub(name, owner, ownerSocketId) {
+function makeClubId() {
+  return crypto.randomBytes(4).toString("hex");
+}
 
+function createClub(name, owner) {
   const id = makeClubId();
 
   const club = {
@@ -272,7 +259,6 @@ function createClub(name, owner, ownerSocketId) {
 
   club.members.set(owner, {
     username: owner,
-    socketId: ownerSocketId,
     muted: false,
     seat: 0
   });
@@ -285,45 +271,31 @@ function createClub(name, owner, ownerSocketId) {
 }
 
 /* =========================
-   PUBLIC CLUB DATA
+   CLUB INFO
 ========================= */
 
 function publicClub(club) {
-
   return {
     id: club.id,
-
     name: club.name,
-
     owner: club.owner,
-
     members: [...club.members.values()],
-
     requests: club.requests,
-
     seats: club.seats,
-
-    messages: club.messages,
-
     listenerCount: Math.max(
       0,
-      club.members.size -
-      club.seats.filter(Boolean).length
+      club.members.size - club.seats.filter(Boolean).length
     )
   };
 }
 
 /* =========================
-   SOCKET CONNECTION
+   SOCKET
 ========================= */
 
 io.on("connection", (socket) => {
 
-  console.log("🟢 Connected:", socket.id);
-
-  /* =========================
-     CREATE CLUB
-  ========================= */
+  console.log("🔌 Connected:", socket.id);
 
   socket.on("createClub", ({ name, username }, callback) => {
 
@@ -334,14 +306,9 @@ io.on("connection", (socket) => {
       });
     }
 
-    const club = createClub(
-      name,
-      username,
-      socket.id
-    );
+    const club = createClub(name, username);
 
     socket.join(club.id);
-
     socket.clubId = club.id;
     socket.username = username;
 
@@ -350,15 +317,8 @@ io.on("connection", (socket) => {
       club: publicClub(club)
     });
 
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
+    io.to(club.id).emit("clubUpdate", publicClub(club));
   });
-
-  /* =========================
-     JOIN CLUB
-  ========================= */
 
   socket.on("joinClub", ({ clubId, username }, callback) => {
 
@@ -371,51 +331,24 @@ io.on("connection", (socket) => {
       });
     }
 
-    if (!username) {
-      return callback?.({
-        success: false,
-        message: "Username barbaachisa."
-      });
-    }
-
-    /*
-      Yoo username duraan jiru,
-      socket ID haarawa itti galchina.
-    */
-
     if (club.members.has(username)) {
-
-      const member = club.members.get(username);
-
-      member.socketId = socket.id;
-
       socket.join(clubId);
-
       socket.clubId = clubId;
       socket.username = username;
 
-      callback?.({
+      return callback?.({
         success: true,
         club: publicClub(club)
       });
-
-      io.to(club.id).emit(
-        "clubUpdate",
-        publicClub(club)
-      );
-
-      return;
     }
 
     club.members.set(username, {
       username,
-      socketId: socket.id,
       muted: false,
       seat: null
     });
 
     socket.join(clubId);
-
     socket.clubId = clubId;
     socket.username = username;
 
@@ -424,10 +357,7 @@ io.on("connection", (socket) => {
       club: publicClub(club)
     });
 
-    io.to(club.id).emit(
-      "clubUpdate",
-      publicClub(club)
-    );
+    io.to(clubId).emit("clubUpdate", publicClub(club));
   });
 
   /* =========================
@@ -437,18 +367,10 @@ io.on("connection", (socket) => {
   socket.on("requestSeat", () => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
-    if (!club.members.has(socket.username)) {
-      return;
-    }
-
     if (!club.requests.includes(socket.username)) {
-
-      club.requests.push(
-        socket.username
-      );
+      club.requests.push(socket.username);
     }
 
     io.to(club.id).emit(
@@ -471,39 +393,22 @@ io.on("connection", (socket) => {
   socket.on("giveSeat", ({ username, seat }) => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
-    if (socket.username !== club.owner) {
-      return;
-    }
+    if (socket.username !== club.owner) return;
 
     seat = Number(seat);
 
-    if (
-      Number.isNaN(seat) ||
-      seat < 0 ||
-      seat >= 15
-    ) {
-      return;
-    }
+    if (seat < 0 || seat >= 15) return;
 
-    if (club.seats[seat]) {
-      return;
-    }
+    if (club.seats[seat]) return;
 
     const member = club.members.get(username);
+    if (!member) return;
 
-    if (!member) {
-      return;
-    }
-
-    if (member.seat !== null) {
-      return;
-    }
+    if (member.seat !== null) return;
 
     club.seats[seat] = username;
-
     member.seat = seat;
 
     club.requests = club.requests.filter(
@@ -531,18 +436,13 @@ io.on("connection", (socket) => {
   socket.on("leaveSeat", () => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
-    const member =
-      club.members.get(socket.username);
-
+    const member = club.members.get(socket.username);
     if (!member) return;
 
     if (member.seat !== null) {
-
       club.seats[member.seat] = null;
-
       member.seat = null;
     }
 
@@ -553,18 +453,15 @@ io.on("connection", (socket) => {
   });
 
   /* =========================
-     SELF MUTE
+     MUTE SELF
   ========================= */
 
   socket.on("muteSelf", ({ muted }) => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
-    const member =
-      club.members.get(socket.username);
-
+    const member = club.members.get(socket.username);
     if (!member) return;
 
     member.muted = !!muted;
@@ -590,16 +487,11 @@ io.on("connection", (socket) => {
   socket.on("ownerMute", ({ username }) => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
-    if (socket.username !== club.owner) {
-      return;
-    }
+    if (socket.username !== club.owner) return;
 
-    const member =
-      club.members.get(username);
-
+    const member = club.members.get(username);
     if (!member) return;
 
     member.muted = true;
@@ -626,19 +518,13 @@ io.on("connection", (socket) => {
   socket.on("removeMember", ({ username }) => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
-    if (socket.username !== club.owner) {
-      return;
-    }
+    if (socket.username !== club.owner) return;
 
-    if (username === club.owner) {
-      return;
-    }
+    if (username === club.owner) return;
 
-    const member =
-      club.members.get(username);
+    const member = club.members.get(username);
 
     if (!member) return;
 
@@ -648,24 +534,13 @@ io.on("connection", (socket) => {
 
     club.members.delete(username);
 
-    club.requests =
-      club.requests.filter(
-        u => u !== username
-      );
-
-    for (
-      const s of io.sockets.sockets.values()
-    ) {
-
+    for (const s of io.sockets.sockets.values()) {
       if (
         s.clubId === club.id &&
         s.username === username
       ) {
-
         s.emit("removedFromClub");
-
         s.leave(club.id);
-
         s.clubId = null;
       }
     }
@@ -683,11 +558,9 @@ io.on("connection", (socket) => {
   socket.on("chatMessage", ({ message }) => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
-    const text =
-      String(message || "").trim();
+    const text = String(message || "").trim();
 
     if (!text) return;
 
@@ -710,13 +583,12 @@ io.on("connection", (socket) => {
   });
 
   /* =========================
-     GIFTS
+     GIFT
   ========================= */
 
   socket.on("sendGift", async ({ gift }) => {
 
     const club = clubs.get(socket.clubId);
-
     if (!club) return;
 
     const allowed = [
@@ -727,9 +599,7 @@ io.on("connection", (socket) => {
       "👑"
     ];
 
-    if (!allowed.includes(gift)) {
-      return;
-    }
+    if (!allowed.includes(gift)) return;
 
     const item = {
       username: socket.username,
@@ -738,9 +608,7 @@ io.on("connection", (socket) => {
     };
 
     if (pool) {
-
       try {
-
         await pool.query(
           `INSERT INTO gifts
            (club_id,sender,gift)
@@ -751,13 +619,8 @@ io.on("connection", (socket) => {
             gift
           ]
         );
-
       } catch (err) {
-
-        console.error(
-          "Gift DB error:",
-          err.message
-        );
+        console.error("Gift DB error:", err.message);
       }
     }
 
@@ -767,84 +630,49 @@ io.on("connection", (socket) => {
     );
   });
 
-  /* ==================================================
-     WEBRTC SIGNALING
-     ================================================== */
-
-  /*
-    User tokko nama biraa argachuuf
-    socket ID isaa barbaada.
-
-    Backend kun socket ID members keessatti
-    dabala.
-  */
-
-  socket.on(
-    "webrtc-offer",
-    ({ target, offer }) => {
-
-      if (!target || !offer) return;
-
-      io.to(target).emit(
-        "webrtc-offer",
-        {
-          from: socket.id,
-          offer
-        }
-      );
-    }
-  );
-
-  socket.on(
-    "webrtc-answer",
-    ({ target, answer }) => {
-
-      if (!target || !answer) return;
-
-      io.to(target).emit(
-        "webrtc-answer",
-        {
-          from: socket.id,
-          answer
-        }
-      );
-    }
-  );
-
-  socket.on(
-    "webrtc-ice",
-    ({ target, candidate }) => {
-
-      if (!target || !candidate) return;
-
-      io.to(target).emit(
-        "webrtc-ice",
-        {
-          from: socket.id,
-          candidate
-        }
-      );
-    }
-  );
-
   /* =========================
-     GET MY SOCKET INFO
+     WEBRTC OFFER
   ========================= */
 
-  socket.on("getClubMembers", (callback) => {
+  socket.on("webrtc-offer", ({ target, offer }) => {
 
-    const club = clubs.get(socket.clubId);
+    io.to(target).emit(
+      "webrtc-offer",
+      {
+        from: socket.id,
+        offer
+      }
+    );
+  });
 
-    if (!club) {
-      return callback?.({
-        success: false
-      });
-    }
+  /* =========================
+     WEBRTC ANSWER
+  ========================= */
 
-    callback?.({
-      success: true,
-      members: [...club.members.values()]
-    });
+  socket.on("webrtc-answer", ({ target, answer }) => {
+
+    io.to(target).emit(
+      "webrtc-answer",
+      {
+        from: socket.id,
+        answer
+      }
+    );
+  });
+
+  /* =========================
+     ICE
+  ========================= */
+
+  socket.on("webrtc-ice", ({ target, candidate }) => {
+
+    io.to(target).emit(
+      "webrtc-ice",
+      {
+        from: socket.id,
+        candidate
+      }
+    );
   });
 
   /* =========================
@@ -853,27 +681,17 @@ io.on("connection", (socket) => {
 
   socket.on("leaveClub", () => {
 
-    const club =
-      clubs.get(socket.clubId);
+    const club = clubs.get(socket.clubId);
 
     if (!club) return;
 
-    const member =
-      club.members.get(socket.username);
+    const member = club.members.get(socket.username);
 
     if (member && member.seat !== null) {
-
       club.seats[member.seat] = null;
     }
 
-    club.members.delete(
-      socket.username
-    );
-
-    club.requests =
-      club.requests.filter(
-        u => u !== socket.username
-      );
+    club.members.delete(socket.username);
 
     socket.leave(club.id);
 
@@ -891,65 +709,37 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
 
-    const club =
-      clubs.get(socket.clubId);
+    const club = clubs.get(socket.clubId);
 
     if (!club) return;
 
-    const member =
-      club.members.get(socket.username);
+    const member = club.members.get(socket.username);
 
-    /*
-      Socket ID isaa qofa yoo disconnect ta'e
-      member haqna.
-    */
-
-    if (
-      member &&
-      member.socketId === socket.id
-    ) {
-
-      if (member.seat !== null) {
-        club.seats[member.seat] = null;
-      }
-
-      club.members.delete(
-        socket.username
-      );
-
-      club.requests =
-        club.requests.filter(
-          u => u !== socket.username
-        );
-
-      io.to(club.id).emit(
-        "clubUpdate",
-        publicClub(club)
-      );
+    if (member && member.seat !== null) {
+      club.seats[member.seat] = null;
     }
 
-    console.log(
-      "🔴 Disconnected:",
-      socket.id
+    club.members.delete(socket.username);
+
+    io.to(club.id).emit(
+      "clubUpdate",
+      publicClub(club)
     );
+
+    console.log("🔴 Disconnected:", socket.id);
   });
 });
 
 /* =========================
-   HEALTH CHECK
+   HEALTH
 ========================= */
 
 app.get("/health", (req, res) => {
-
   res.json({
     success: true,
-
     app: "Waliin-GM",
-
     server: "online",
-
     database: !!pool,
-
     features: {
       login: true,
       register: true,
@@ -962,47 +752,35 @@ app.get("/health", (req, res) => {
       remove: true,
       chat: true,
       gift: true,
-      webrtc: true,
-      socketIds: true
+      webrtc: true
     }
   });
 });
 
 /* =========================
-   FRONTEND
+   ALL OTHER ROUTES
 ========================= */
 
 app.get("*", (req, res) => {
-
   res.sendFile(
-    path.join(
-      __dirname,
-      "public",
-      "index.html"
-    )
+    path.join(__dirname, "public", "index.html")
   );
 });
 
 /* =========================
-   START SERVER
+   START
 ========================= */
 
 async function startServer() {
 
   try {
-
     await initDatabase();
 
-    server.listen(
-      PORT,
-      "0.0.0.0",
-      () => {
-
-        console.log(
-          `🚀 Waliin-GM server running on port ${PORT}`
-        );
-      }
-    );
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(
+        `🚀 Waliin-GM server running on port ${PORT}`
+      );
+    });
 
   } catch (err) {
 
