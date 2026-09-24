@@ -23,7 +23,6 @@ body{
 button,input,textarea{font:inherit}
 button{cursor:pointer}
 .hidden{display:none!important}
-
 .page{min-height:100vh}
 
 .auth{
@@ -353,6 +352,75 @@ input:focus,textarea:focus{
   border-radius:10px;
   background:#e7eee9;
 }
+
+/* CLUB VOICE */
+.club-voice{
+  background:linear-gradient(135deg,#064d2d,#087443);
+  color:white;
+  border-radius:18px;
+  padding:15px;
+  margin-top:14px;
+}
+.club-voice-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.voice-status{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:#ffffff22;
+  border-radius:20px;
+  padding:6px 10px;
+  font-size:12px;
+}
+.voice-members{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:12px;
+}
+.voice-member{
+  background:#ffffff18;
+  border:1px solid #ffffff35;
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:13px;
+}
+.voice-member.speaking{
+  border-color:#8affbd;
+  box-shadow:0 0 0 2px #8affbd33;
+}
+.voice-buttons{
+  display:flex;
+  gap:8px;
+  margin-top:12px;
+}
+.voice-buttons button{
+  flex:1;
+  border:0;
+  border-radius:11px;
+  padding:11px;
+}
+.voice-on{
+  background:white;
+  color:#087443;
+}
+.voice-off{
+  background:#d93636;
+  color:white;
+}
+.club-audience{
+  background:#eef6f1;
+  color:#087443;
+  padding:10px;
+  border-radius:12px;
+  margin-top:10px;
+  font-size:13px;
+}
+
 .club-chat{
   background:white;
   border-radius:15px;
@@ -561,6 +629,10 @@ body.dark .bottom-nav button{
   background:#18221d;
   color:#ddd;
 }
+body.dark .club-audience{
+  background:#18221d;
+  color:#b9f2d0;
+}
 
 @media(max-width:600px){
   .seats{
@@ -707,6 +779,47 @@ body.dark .bottom-nav button{
     <div class="club-header">
       <h2 id="clubTitle">Voice Club</h2>
       <div>🆔 <span id="clubIdText"></span></div>
+    </div>
+
+    <!-- REAL CLUB VOICE -->
+    <div class="club-voice">
+
+      <div class="club-voice-title">
+        <div>
+          <b>🎙️ Live Voice</b>
+          <div style="font-size:12px;margin-top:4px">
+            Speakers fi audience
+          </div>
+        </div>
+
+        <div id="clubVoiceStatus" class="voice-status">
+          🔴 Voice Off
+        </div>
+      </div>
+
+      <div id="clubVoiceMembers" class="voice-members">
+        <div class="voice-member">
+          👂 Audience
+        </div>
+      </div>
+
+      <div id="clubAudienceInfo" class="club-audience">
+        👂 Audience: club keessa jiran dhaggeeffachuu danda'u.
+      </div>
+
+      <div class="voice-buttons">
+        <button id="clubVoiceBtn" class="voice-on">
+          🎙️ Voice Seeni
+        </button>
+
+        <button id="clubVoiceMuteBtn" class="voice-on">
+          🔊 Mic On
+        </button>
+      </div>
+
+      <!-- Remote audio elements are created here by JavaScript -->
+      <div id="clubAudioContainer"></div>
+
     </div>
 
     <div class="card">
@@ -934,6 +1047,15 @@ const rtcConfig = {
   ]
 };
 
+/* ================= CLUB VOICE GLOBALS ================= */
+
+let clubVoiceStream = null;
+let clubVoiceReady = false;
+let clubVoiceMuted = false;
+let clubVoicePeers = new Map();
+let clubVoiceConnections = new Map();
+let clubVoicePendingIce = new Map();
+
 /* ================= SOCKET ================= */
 
 const socket = io({
@@ -955,6 +1077,12 @@ socket.on("connect",()=>{
   }
 
   updateConnectionStatus(true);
+
+  if(currentClub){
+    setTimeout(()=>{
+      refreshClubVoice();
+    },500);
+  }
 });
 
 socket.on("disconnect",()=>{
@@ -1087,6 +1215,7 @@ $("loginBtn").onclick=async()=>{
       method:"POST",
       body:JSON.stringify({
         login,
+        value:login,
         password
       })
     });
@@ -2037,6 +2166,961 @@ function cleanupCall(){
 
 }
 
+/* =========================================================
+   ================= REAL CLUB VOICE =======================
+   ========================================================= */
+
+/*
+  Speaker:
+  - Mic qaba
+  - clubVoiceReady = true
+  - offer erga
+
+  Audience:
+  - Mic hin qabu
+  - offer speaker irraa fudhata
+  - answer deebisa
+  - audio qofa dhaggeeffata
+*/
+
+async function startClubVoice(){
+
+  if(!currentClub){
+    showToast("🎙️ Jalqaba Club seeni.");
+    return;
+  }
+
+  if(!hasClubSeat()){
+
+    showToast(
+      "🪑 Voice dubbachuuf seat qabaachuu qabda. Audience ta'ee dhaggeeffachuu garuu dandeessa."
+    );
+
+    return;
+  }
+
+  if(!navigator.mediaDevices ||
+     !navigator.mediaDevices.getUserMedia){
+
+    showToast(
+      "❌ Browser kee microphone hin deeggaru."
+    );
+
+    return;
+  }
+
+  try{
+
+    if(!clubVoiceStream){
+
+      clubVoiceStream=
+        await navigator.mediaDevices.getUserMedia({
+          audio:{
+            echoCancellation:true,
+            noiseSuppression:true,
+            autoGainControl:true
+          },
+          video:false
+        });
+
+    }
+
+    clubVoiceStream
+      .getAudioTracks()
+      .forEach(track=>{
+        track.enabled=!clubVoiceMuted;
+      });
+
+    clubVoiceReady=true;
+
+    $("clubVoiceStatus").innerHTML=
+      "🟢 Speaker";
+
+    $("clubVoiceBtn").textContent=
+      "🔴 Voice Cufi";
+
+    $("clubVoiceMuteBtn").textContent=
+      clubVoiceMuted
+      ?"🔇 Mic Off"
+      :"🔊 Mic On";
+
+    socket.emit("clubVoiceReady",{
+      clubId:currentClub.id,
+      username:currentUser.username
+    });
+
+    showToast("🎙️ Voice keessatti seente.");
+
+  }catch(err){
+
+    console.error("Club microphone:",err);
+
+    showToast(
+      "❌ Microphone hayyami: "+
+      err.message
+    );
+
+  }
+
+}
+
+function stopClubVoice(){
+
+  clubVoiceReady=false;
+
+  if(clubVoiceStream){
+
+    clubVoiceStream
+      .getTracks()
+      .forEach(track=>track.stop());
+
+  }
+
+  clubVoiceStream=null;
+
+  clubVoiceConnections
+    .forEach(pc=>{
+      try{
+        pc.close();
+      }catch{}
+    });
+
+  clubVoiceConnections.clear();
+  clubVoicePeers.clear();
+  clubVoicePendingIce.clear();
+
+  if($("clubAudioContainer")){
+    $("clubAudioContainer").innerHTML="";
+  }
+
+  if(currentClub){
+
+    socket.emit("clubVoiceStop",{
+      clubId:currentClub.id,
+      username:currentUser?.username
+    });
+
+  }
+
+  if($("clubVoiceStatus")){
+    $("clubVoiceStatus").innerHTML=
+      "🔴 Voice Off";
+  }
+
+  if($("clubVoiceBtn")){
+    $("clubVoiceBtn").textContent=
+      "🎙️ Voice Seeni";
+  }
+
+  if($("clubVoiceMuteBtn")){
+    $("clubVoiceMuteBtn").textContent=
+      "🔊 Mic On";
+  }
+
+}
+
+function hasClubSeat(){
+
+  if(!currentClub||!currentUser)return false;
+
+  return (currentClub.seats||[]).some(
+    seat =>
+      seat?.username === currentUser.username
+  );
+
+}
+
+async function toggleClubVoice(){
+
+  if(clubVoiceReady){
+
+    stopClubVoice();
+
+    showToast("🔴 Voice cufame.");
+
+  }else{
+
+    await startClubVoice();
+
+  }
+
+}
+
+async function toggleClubVoiceMute(){
+
+  if(!clubVoiceReady){
+
+    await startClubVoice();
+
+    if(!clubVoiceReady)return;
+
+  }
+
+  clubVoiceMuted=!clubVoiceMuted;
+
+  if(clubVoiceStream){
+
+    clubVoiceStream
+      .getAudioTracks()
+      .forEach(track=>{
+        track.enabled=!clubVoiceMuted;
+      });
+
+  }
+
+  if($("clubVoiceMuteBtn")){
+
+    $("clubVoiceMuteBtn").textContent=
+      clubVoiceMuted
+      ?"🔇 Mic Off"
+      :"🔊 Mic On";
+
+  }
+
+  if(currentClub){
+
+    socket.emit("muteSelf",{
+      clubId:currentClub.id,
+      username:currentUser.username,
+      muted:clubVoiceMuted
+    });
+
+  }
+
+}
+
+/* ===== create peer ===== */
+
+async function createClubVoicePeer(peer){
+
+  if(!peer||
+     !peer.socketId||
+     peer.socketId===socket.id){
+
+    return null;
+  }
+
+  if(
+    !currentClub ||
+    !peer
+  ){
+
+    return null;
+  }
+
+  if(clubVoiceConnections.has(peer.socketId)){
+
+    return clubVoiceConnections.get(
+      peer.socketId
+    );
+
+  }
+
+  const pc=
+    new RTCPeerConnection(rtcConfig);
+
+  clubVoiceConnections.set(
+    peer.socketId,
+    pc
+  );
+
+  clubVoicePendingIce.set(
+    peer.socketId,
+    []
+  );
+
+  /*
+    Only speaker adds microphone track.
+    Audience has no local track.
+  */
+
+  if(
+    clubVoiceStream &&
+    clubVoiceReady
+  ){
+
+    clubVoiceStream
+      .getAudioTracks()
+      .forEach(track=>{
+
+        pc.addTrack(
+          track,
+          clubVoiceStream
+        );
+
+      });
+
+  }
+
+  pc.ontrack=event=>{
+
+    if(!event.streams||
+       !event.streams[0]){
+
+      return;
+    }
+
+    const stream=
+      event.streams[0];
+
+    attachClubRemoteAudio(
+      peer.socketId,
+      stream,
+      peer.username
+    );
+
+  };
+
+  pc.onicecandidate=event=>{
+
+    if(!event.candidate)return;
+
+    socket.emit("club-webrtc-ice",{
+      clubId:currentClub?.id,
+      target:peer.socketId,
+      candidate:event.candidate
+    });
+
+  };
+
+  pc.onconnectionstatechange=()=>{
+
+    console.log(
+      "Club Voice",
+      peer.username,
+      pc.connectionState
+    );
+
+    if(
+      pc.connectionState==="failed"
+    ){
+
+      try{
+        pc.restartIce();
+      }catch{}
+
+    }
+
+    if(
+      pc.connectionState==="closed" ||
+      pc.connectionState==="disconnected"
+    ){
+
+      removeClubRemoteAudio(
+        peer.socketId
+      );
+
+    }
+
+  };
+
+  return pc;
+}
+
+/* ===== create offer ===== */
+
+async function createClubVoiceOffer(peer){
+
+  if(!clubVoiceReady)return;
+
+  if(!peer||
+     !peer.socketId||
+     peer.socketId===socket.id){
+
+    return;
+  }
+
+  /*
+    Speakers initiate:
+    - to audience: yes
+    - speaker to speaker: lower socket id starts
+  */
+
+  if(peer.voiceReady){
+
+    if(
+      String(socket.id)>
+      String(peer.socketId)
+    ){
+
+      return;
+    }
+
+  }
+
+  try{
+
+    const pc=
+      await createClubVoicePeer(peer);
+
+    if(!pc)return;
+
+    if(
+      pc.signalingState!=="stable"
+    ){
+
+      return;
+    }
+
+    const offer=
+      await pc.createOffer();
+
+    await pc.setLocalDescription(
+      offer
+    );
+
+    socket.emit("club-webrtc-offer",{
+      clubId:currentClub.id,
+      target:peer.socketId,
+      offer
+    });
+
+  }catch(err){
+
+    console.error(
+      "Club offer:",
+      err
+    );
+
+  }
+
+}
+
+/* ===== remote audio ===== */
+
+function attachClubRemoteAudio(
+  socketId,
+  stream,
+  username
+){
+
+  let audio=
+    document.querySelector(
+      `audio[data-club-peer="${socketId}"]`
+    );
+
+  if(!audio){
+
+    audio=
+      document.createElement("audio");
+
+    audio.autoplay=true;
+    audio.playsInline=true;
+    audio.controls=false;
+
+    audio.dataset.clubPeer=
+      socketId;
+
+    audio.style.display="none";
+
+    $("clubAudioContainer")
+      .appendChild(audio);
+
+  }
+
+  audio.srcObject=stream;
+
+  const playPromise=
+    audio.play();
+
+  if(playPromise){
+
+    playPromise.catch(()=>{
+      showToast(
+        "🔊 Sagalee "+
+        username+
+        " dhaggeeffachuuf screen tuqi."
+      );
+    });
+
+  }
+
+}
+
+/* ===== remove remote audio ===== */
+
+function removeClubRemoteAudio(socketId){
+
+  const audio=
+    document.querySelector(
+      `audio[data-club-peer="${socketId}"]`
+    );
+
+  if(audio){
+
+    audio.srcObject=null;
+    audio.remove();
+
+  }
+
+  const pc=
+    clubVoiceConnections.get(socketId);
+
+  if(pc){
+
+    try{
+      pc.close();
+    }catch{}
+
+  }
+
+  clubVoiceConnections.delete(socketId);
+  clubVoicePendingIce.delete(socketId);
+
+}
+
+/* ===== flush club ICE ===== */
+
+async function flushClubVoiceIce(socketId){
+
+  const pc=
+    clubVoiceConnections.get(socketId);
+
+  const list=
+    clubVoicePendingIce.get(socketId)||[];
+
+  if(!pc)return;
+
+  for(
+    const candidate of list
+  ){
+
+    try{
+
+      await pc.addIceCandidate(
+        new RTCIceCandidate(candidate)
+      );
+
+    }catch(err){
+
+      console.error(
+        "Club ICE:",
+        err
+      );
+
+    }
+
+  }
+
+  clubVoicePendingIce.set(
+    socketId,
+    []
+  );
+
+}
+
+/* ===== peer list from server ===== */
+
+socket.on("clubVoicePeers",async data=>{
+
+  if(!currentClub)return;
+
+  const clubId=
+    data?.clubId||
+    data?.id;
+
+  if(
+    clubId &&
+    clubId!==currentClub.id
+  ){
+
+    return;
+  }
+
+  const peers=
+    Array.isArray(data)
+    ?data
+    :(data?.peers||[]);
+
+  clubVoicePeers.clear();
+
+  peers.forEach(peer=>{
+
+    if(
+      peer.socketId!==socket.id
+    ){
+
+      clubVoicePeers.set(
+        peer.socketId,
+        peer
+      );
+
+    }
+
+  });
+
+  renderClubVoiceMembers(
+    peers
+  );
+
+  /*
+    If I am a speaker:
+    connect to audience and other speakers.
+  */
+
+  if(clubVoiceReady){
+
+    for(
+      const peer of peers
+    ){
+
+      if(
+        peer.socketId===socket.id
+      ){
+
+        continue;
+      }
+
+      await createClubVoiceOffer(
+        peer
+      );
+
+    }
+
+  }
+
+});
+
+/* ===== server says voice stopped ===== */
+
+socket.on("clubVoiceStopped",data=>{
+
+  if(!currentClub)return;
+
+  if(
+    data?.socketId
+  ){
+
+    removeClubRemoteAudio(
+      data.socketId
+    );
+
+  }
+
+  if(
+    data?.username
+  ){
+
+    showToast(
+      "🔴 "+
+      data.username+
+      " Voice keessaa ba'e."
+    );
+
+  }
+
+});
+
+/* ===== incoming club offer ===== */
+
+socket.on(
+  "club-webrtc-offer",
+  async data=>{
+
+    if(!currentClub)return;
+
+    if(
+      data.clubId &&
+      data.clubId!==currentClub.id
+    ){
+
+      return;
+    }
+
+    const from=
+      data.from||
+      data.senderSocketId||
+      data.socketId;
+
+    if(!from||!data.offer)return;
+
+    try{
+
+      let peer=
+        clubVoicePeers.get(from);
+
+      if(!peer){
+
+        peer={
+          socketId:from,
+          username:"Speaker",
+          voiceReady:true
+        };
+
+        clubVoicePeers.set(
+          from,
+          peer
+        );
+
+      }
+
+      const pc=
+        await createClubVoicePeer(
+          peer
+        );
+
+      if(!pc)return;
+
+      /*
+        If old connection is making an offer,
+        close it before accepting a new offer.
+      */
+
+      if(
+        pc.signalingState===
+        "have-local-offer"
+      ){
+
+        try{
+          await pc.setLocalDescription({
+            type:"rollback"
+          });
+        }catch{}
+
+      }
+
+      await pc.setRemoteDescription(
+        new RTCSessionDescription(
+          data.offer
+        )
+      );
+
+      await flushClubVoiceIce(from);
+
+      const answer=
+        await pc.createAnswer();
+
+      await pc.setLocalDescription(
+        answer
+      );
+
+      socket.emit(
+        "club-webrtc-answer",
+        {
+          clubId:currentClub.id,
+          target:from,
+          answer
+        }
+      );
+
+    }catch(err){
+
+      console.error(
+        "Club incoming offer:",
+        err
+      );
+
+    }
+
+  }
+);
+
+/* ===== incoming club answer ===== */
+
+socket.on(
+  "club-webrtc-answer",
+  async data=>{
+
+    const from=
+      data.from||
+      data.senderSocketId||
+      data.socketId;
+
+    if(!from||!data.answer)return;
+
+    const pc=
+      clubVoiceConnections.get(from);
+
+    if(!pc)return;
+
+    try{
+
+      await pc.setRemoteDescription(
+        new RTCSessionDescription(
+          data.answer
+        )
+      );
+
+      await flushClubVoiceIce(from);
+
+    }catch(err){
+
+      console.error(
+        "Club answer:",
+        err
+      );
+
+    }
+
+  }
+);
+
+/* ===== incoming club ICE ===== */
+
+socket.on(
+  "club-webrtc-ice",
+  async data=>{
+
+    const from=
+      data.from||
+      data.senderSocketId||
+      data.socketId;
+
+    if(!from||!data.candidate)return;
+
+    const pc=
+      clubVoiceConnections.get(from);
+
+    if(!pc){
+
+      if(!clubVoicePendingIce.has(from)){
+
+        clubVoicePendingIce.set(
+          from,
+          []
+        );
+
+      }
+
+      clubVoicePendingIce
+        .get(from)
+        .push(data.candidate);
+
+      return;
+    }
+
+    if(
+      pc.remoteDescription &&
+      pc.remoteDescription.type
+    ){
+
+      try{
+
+        await pc.addIceCandidate(
+          new RTCIceCandidate(
+            data.candidate
+          )
+        );
+
+      }catch(err){
+
+        console.error(
+          "Club ICE:",
+          err
+        );
+
+      }
+
+    }else{
+
+      if(!clubVoicePendingIce.has(from)){
+
+        clubVoicePendingIce.set(
+          from,
+          []
+        );
+
+      }
+
+      clubVoicePendingIce
+        .get(from)
+        .push(data.candidate);
+
+    }
+
+  }
+);
+
+/* ===== render voice members ===== */
+
+function renderClubVoiceMembers(peers){
+
+  const container=
+    $("clubVoiceMembers");
+
+  if(!container)return;
+
+  container.innerHTML="";
+
+  if(!peers.length){
+
+    container.innerHTML=`
+      <div class="voice-member">
+        👂 Namni voice keessa hin jiru.
+      </div>
+    `;
+
+    return;
+  }
+
+  peers.forEach(peer=>{
+
+    const div=
+      document.createElement("div");
+
+    div.className=
+      "voice-member";
+
+    if(peer.voiceReady){
+
+      div.classList.add(
+        "speaking"
+      );
+
+    }
+
+    const role=
+      peer.owner
+      ?"👑 Host"
+      :peer.voiceReady
+      ?"🎙️ Speaker"
+      :"👂 Audience";
+
+    const mute=
+      peer.muted
+      ?" 🔇"
+      :"";
+
+    div.innerHTML=
+      `${role} ${escapeHtml(
+        peer.username||"User"
+      )}${mute}`;
+
+    container.appendChild(div);
+
+  });
+
+}
+
+/* ===== ask server for current peers ===== */
+
+function refreshClubVoice(){
+
+  if(!currentClub)return;
+
+  socket.emit(
+    "getClubVoicePeers",
+    {
+      clubId:currentClub.id
+    }
+  );
+
+}
+
+/* Club Voice buttons */
+
+$("clubVoiceBtn").onclick=async()=>{
+
+  await toggleClubVoice();
+
+};
+
+$("clubVoiceMuteBtn").onclick=async()=>{
+
+  await toggleClubVoiceMute();
+
+};
+
 /* ================= CLUB ================= */
 
 $("createClubBtn").onclick=()=>{
@@ -2112,6 +3196,38 @@ function openClub(club){
 
   renderSeats(club);
   renderClubMessages(club.messages||[]);
+
+  /*
+    If user already had voice state from old club,
+    reset local audio before entering new club.
+  */
+
+  if(clubVoiceReady){
+
+    stopClubVoice();
+
+  }
+
+  clubVoiceMuted=false;
+
+  if($("clubVoiceStatus")){
+    $("clubVoiceStatus").innerHTML=
+      "🔴 Voice Off";
+  }
+
+  if($("clubVoiceBtn")){
+    $("clubVoiceBtn").textContent=
+      "🎙️ Voice Seeni";
+  }
+
+  if($("clubVoiceMuteBtn")){
+    $("clubVoiceMuteBtn").textContent=
+      "🔊 Mic On";
+  }
+
+  setTimeout(()=>{
+    refreshClubVoice();
+  },300);
 
 }
 
@@ -2191,33 +3307,36 @@ $("requestSeatBtn").onclick=()=>{
 
 };
 
+/*
+  Old self mute button is now connected
+  to the real microphone.
+*/
+
+$("selfMuteBtn").onclick=async()=>{
+
+  await toggleClubVoiceMute();
+
+};
+
 $("leaveSeatBtn").onclick=()=>{
 
   if(!currentClub)return;
+
+  /*
+    Seat keessaa yoo ba'e voice speaker
+    dhaabna.
+  */
+
+  if(clubVoiceReady){
+
+    stopClubVoice();
+
+  }
 
   socket.emit("leaveSeat",{
     clubId:currentClub.id,
     username:currentUser.username
   });
-
-};
-
-let selfMuted=false;
-
-$("selfMuteBtn").onclick=()=>{
-
-  selfMuted=!selfMuted;
-
-  socket.emit("muteSelf",{
-    clubId:currentClub?.id,
-    username:currentUser.username,
-    muted:selfMuted
-  });
-
-  $("selfMuteBtn").textContent=
-    selfMuted
-    ?"🔊 Mic Ban"
-    :"🎙️ Mic On";
 
 };
 
@@ -2257,6 +3376,12 @@ $("removeMemberBtn").onclick=()=>{
 
 $("leaveClubBtn").onclick=()=>{
 
+  if(clubVoiceReady){
+
+    stopClubVoice();
+
+  }
+
   if(currentClub){
 
     socket.emit("leaveClub",{
@@ -2267,6 +3392,19 @@ $("leaveClubBtn").onclick=()=>{
   }
 
   currentClub=null;
+
+  clubVoicePeers.clear();
+
+  clubVoiceConnections
+    .forEach(pc=>{
+      try{
+        pc.close();
+      }catch{}
+    });
+
+  clubVoiceConnections.clear();
+
+  $("clubAudioContainer").innerHTML="";
 
   $("clubArea").classList.add("hidden");
   $("clubEmpty").classList.remove("hidden");
@@ -2286,6 +3424,26 @@ socket.on("clubUpdated",club=>{
     currentClub=club;
     renderSeats(club);
 
+    /*
+      If current user no longer has a seat,
+      stop speaking but remain audience.
+    */
+
+    if(
+      clubVoiceReady &&
+      !hasClubSeat()
+    ){
+
+      stopClubVoice();
+
+      showToast(
+        "🪑 Seat irraa kaafamte. Amma audience taate."
+      );
+
+    }
+
+    refreshClubVoice();
+
   }
 
 });
@@ -2300,11 +3458,32 @@ socket.on("clubMemberUpdate",club=>{
     currentClub=club;
     renderSeats(club);
 
+    if(
+      clubVoiceReady &&
+      !hasClubSeat()
+    ){
+
+      stopClubVoice();
+
+      showToast(
+        "🪑 Seat irraa kaafamte."
+      );
+
+    }
+
+    refreshClubVoice();
+
   }
 
 });
 
 socket.on("removedFromClub",data=>{
+
+  if(clubVoiceReady){
+
+    stopClubVoice();
+
+  }
 
   showToast("🚫 Club keessaa baafamte.");
 
@@ -3189,6 +4368,10 @@ $("logoutBtn").onclick=async()=>{
 
   try{
 
+    if(clubVoiceReady){
+      stopClubVoice();
+    }
+
     await api("/api/logout",{
       method:"POST"
     });
@@ -3201,6 +4384,10 @@ $("logoutBtn").onclick=async()=>{
 };
 
 function logoutLocal(){
+
+  if(clubVoiceReady){
+    stopClubVoice();
+  }
 
   token=null;
   currentUser=null;
@@ -3298,6 +4485,10 @@ setInterval(()=>{
 
     loadOnlineUsers();
     loadNotificationCount();
+
+    if(currentClub){
+      refreshClubVoice();
+    }
 
   }
 
