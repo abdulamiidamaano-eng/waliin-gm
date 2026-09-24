@@ -186,7 +186,9 @@ function removeOnline(socketId) {
 
     if (sockets.size === 0) {
       onlineUsers.delete(username);
-    } function getClubVoicePeers(club) {
+    } 
+    
+    function getClubVoicePeers(club) {
   const peers = [];
 
   if (!club) return peers;
