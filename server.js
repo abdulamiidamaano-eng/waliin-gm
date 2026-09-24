@@ -1,2529 +1,3236 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const { Pool } = require("pg");
-const crypto = require("crypto");
-const path = require("path");
+<!DOCTYPE html>
+<html lang="om">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b7a53">
+  <title>Waliin-GM</title>
 
-const app = express();
-const server = http.createServer(app);
-
-/* =========================
-   SOCKET.IO
-========================= */
-
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  },
-  transports: ["websocket", "polling"],
-  pingInterval: 25000,
-  pingTimeout: 60000
-});
-
-const PORT = process.env.PORT || 10000;
-
-/* =========================
-   DATABASE
-========================= */
-
-if (!process.env.DATABASE_URL) {
-  console.error("❌ DATABASE_URL hin argamne.");
-  process.exit(1);
-}
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
-
-pool.on("error", (error) => {
-  console.error("❌ PostgreSQL pool error:", error.message);
-});
-
-/* =========================
-   EXPRESS
-========================= */
-
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
-
-/* =========================
-   MEMORY
-========================= */
-
-const onlineUsers = new Map();
-const clubs = new Map();
-
-/* =========================
-   HELPERS
-========================= */
-
-function cleanUsername(value) {
-  return String(value || "").trim().toLowerCase();
-}
-
-function cleanText(value, max = 2000) {
-  return String(value || "").trim().slice(0, max);
-}
-
-function makeToken() {
-  return crypto.randomBytes(32).toString("hex");
-}
-
-function makeId() {
-  return crypto.randomBytes(8).toString("hex");
-}
-
-function hashPassword(password, salt) {
-  return crypto
-    .createHash("sha256")
-    .update(String(password) + String(salt))
-    .digest("hex");
-}
-
-function userSockets(username) {
-  return onlineUsers.get(cleanUsername(username)) || new Set();
-}
-
-function notifyUser(username, data) {
-  for (const socketId of userSockets(username)) {
-    io.to(socketId).emit("notification", data);
-  }
-}
-
-/* =========================
-   BLOCK CHECK
-========================= */
-
-async function isBlocked(a, b) {
-  try {
-    const result = await pool.query(
-      `SELECT 1
-       FROM blocks
-       WHERE
-         (username=$1 AND blocked_username=$2)
-         OR
-         (username=$2 AND blocked_username=$1)
-       LIMIT 1`,
-      [
-        cleanUsername(a),
-        cleanUsername(b)
-      ]
-    );
-
-    return result.rows.length > 0;
-  } catch (error) {
-    console.error("BLOCK CHECK ERROR:", error.message);
-    return false;
-  }
-}
-
-/* =====================================================
-   DATABASE INITIALIZATION + SAFE MIGRATION
-===================================================== */
-
-async function initDatabase() {
-  console.log("🔄 Database initialization started...");
-
-  /* =========================
-     USERS
-  ========================= */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      salt TEXT NOT NULL,
-      token TEXT,
-      bio TEXT DEFAULT '',
-      avatar TEXT DEFAULT '',
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  /* =========================
-     PRIVATE MESSAGES
-  ========================= */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS private_messages (
-      id SERIAL PRIMARY KEY,
-      sender TEXT NOT NULL,
-      receiver TEXT NOT NULL,
-      message TEXT NOT NULL,
-      is_read BOOLEAN DEFAULT FALSE,
-      deleted BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  /* =========================
-     FOLLOWS
-  ========================= */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS follows (
-      id SERIAL PRIMARY KEY,
-      follower TEXT NOT NULL,
-      following TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT NOW(),
-      UNIQUE(follower, following)
-    )
-  `);
-
-  /* =========================
-     NOTIFICATIONS
-  ========================= */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS notifications (
-      id SERIAL PRIMARY KEY,
-      username TEXT,
-      type TEXT,
-      from_user TEXT,
-      message TEXT,
-      is_read BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  /* =========================
-     BLOCKS
-  ========================= */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS blocks (
-      id SERIAL PRIMARY KEY,
-      username TEXT,
-      blocked_username TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  /* =========================
-     GIFTS
-  ========================= */
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS gifts (
-      id SERIAL PRIMARY KEY,
-      sender TEXT,
-      receiver TEXT,
-      gift TEXT,
-      created_at TIMESTAMP DEFAULT NOW()
-    )
-  `);
-
-  /* =====================================================
-     SAFE MIGRATION
-     Table duraan jiru yoo ta'e, columns hafan dabala.
-     Data hin haqu.
-  ===================================================== */
-
-  console.log("🔧 Checking old database columns...");
-
-  const migrations = [
-    ["users", "username", "TEXT"],
-    ["users", "email", "TEXT"],
-    ["users", "password_hash", "TEXT"],
-    ["users", "salt", "TEXT"],
-    ["users", "token", "TEXT"],
-    ["users", "bio", "TEXT DEFAULT ''"],
-    ["users", "avatar", "TEXT DEFAULT ''"],
-    ["users", "created_at", "TIMESTAMP DEFAULT NOW()"],
-
-    ["private_messages", "sender", "TEXT"],
-    ["private_messages", "receiver", "TEXT"],
-    ["private_messages", "message", "TEXT"],
-    ["private_messages", "is_read", "BOOLEAN DEFAULT FALSE"],
-    ["private_messages", "deleted", "BOOLEAN DEFAULT FALSE"],
-    ["private_messages", "created_at", "TIMESTAMP DEFAULT NOW()"],
-
-    ["follows", "follower", "TEXT"],
-    ["follows", "following", "TEXT"],
-    ["follows", "created_at", "TIMESTAMP DEFAULT NOW()"],
-
-    ["notifications", "username", "TEXT"],
-    ["notifications", "type", "TEXT"],
-    ["notifications", "from_user", "TEXT"],
-    ["notifications", "message", "TEXT"],
-    ["notifications", "is_read", "BOOLEAN DEFAULT FALSE"],
-    ["notifications", "created_at", "TIMESTAMP DEFAULT NOW()"],
-
-    ["blocks", "username", "TEXT"],
-    ["blocks", "blocked_username", "TEXT"],
-    ["blocks", "created_at", "TIMESTAMP DEFAULT NOW()"],
-
-    ["gifts", "sender", "TEXT"],
-    ["gifts", "receiver", "TEXT"],
-    ["gifts", "gift", "TEXT"],
-    ["gifts", "created_at", "TIMESTAMP DEFAULT NOW()"]
-  ];
-
-  for (const [table, column, definition] of migrations) {
-    try {
-      await pool.query(`
-        ALTER TABLE "${table}"
-        ADD COLUMN IF NOT EXISTS "${column}" ${definition}
-      `);
-    } catch (error) {
-      console.error(
-        `⚠️ Migration warning ${table}.${column}:`,
-        error.message
-      );
-    }
-  }
-
-  /* =========================
-     FIX NULL VALUES
-  ========================= */
-
-  try {
-    await pool.query(`
-      UPDATE notifications
-      SET username=''
-      WHERE username IS NULL
-    `);
-  } catch (error) {
-    console.error("⚠️ notifications username update:", error.message);
-  }
-
-  try {
-    await pool.query(`
-      UPDATE notifications
-      SET type='system'
-      WHERE type IS NULL
-    `);
-  } catch (error) {
-    console.error("⚠️ notifications type update:", error.message);
-  }
-
-  try {
-    await pool.query(`
-      UPDATE notifications
-      SET is_read=false
-      WHERE is_read IS NULL
-    `);
-  } catch (error) {
-    console.error("⚠️ notifications is_read update:", error.message);
-  }
-
-  try {
-    await pool.query(`
-      UPDATE private_messages
-      SET is_read=false
-      WHERE is_read IS NULL
-    `);
-  } catch (error) {
-    console.error("⚠️ private_messages is_read update:", error.message);
-  }
-
-  try {
-    await pool.query(`
-      UPDATE private_messages
-      SET deleted=false
-      WHERE deleted IS NULL
-    `);
-  } catch (error) {
-    console.error("⚠️ private_messages deleted update:", error.message);
-  }
-
-  console.log("✅ Database tables checked.");
-  console.log("✅ Database migrations completed.");
-}
-
-/* =========================
-   HEALTH
-========================= */
-
-app.get("/health", async (req, res) => {
-  try {
-    await pool.query("SELECT 1");
-
-    res.json({
-      ok: true,
-      database: true,
-      service: "Waliin-GM"
-    });
-  } catch (error) {
-    res.status(500).json({
-      ok: false,
-      database: false,
-      error: error.message
-    });
-  }
-});
-
-/* =========================
-   REGISTER
-========================= */
-
-app.post("/api/register", async (req, res) => {
-  try {
-    const username = cleanUsername(req.body.username);
-    const email = cleanText(req.body.email, 150).toLowerCase();
-    const password = String(req.body.password || "");
-
-    if (!username || !email || !password) {
-      return res.status(400).json({
-        error: "Username, email fi password guuti."
-      });
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    if (username.length < 3) {
-      return res.status(400).json({
-        error: "Username yoo xiqqaate qubee 3 qabaachuu qaba."
-      });
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f7f5;
+      color: #17221d;
+      min-height: 100vh;
     }
 
-    if (password.length < 4) {
-      return res.status(400).json({
-        error: "Password yoo xiqqaate qubee 4 qabaachuu qaba."
-      });
+    button,
+    input {
+      font: inherit;
     }
 
-    const exists = await pool.query(
-      `SELECT id
-       FROM users
-       WHERE LOWER(username)=LOWER($1)
-          OR LOWER(email)=LOWER($2)
-       LIMIT 1`,
-      [username, email]
-    );
-
-    if (exists.rows.length) {
-      return res.status(409).json({
-        error: "Username ykn email duraan jira."
-      });
+    button {
+      cursor: pointer;
+      border: none;
     }
 
-    const salt = makeToken();
-    const passwordHash = hashPassword(password, salt);
-    const token = makeToken();
-
-    const result = await pool.query(
-      `INSERT INTO users
-       (username,email,password_hash,salt,token)
-       VALUES($1,$2,$3,$4,$5)
-       RETURNING id,username,email,bio,avatar,created_at`,
-      [
-        username,
-        email,
-        passwordHash,
-        salt,
-        token
-      ]
-    );
-
-    res.json({
-      ok: true,
-      token,
-      user: result.rows[0]
-    });
-  } catch (error) {
-    console.error("REGISTER ERROR:", error);
-
-    res.status(500).json({
-      error: "Register irratti dogoggorri uumame."
-    });
-  }
-});
-
-/* =========================
-   LOGIN
-========================= */
-
-app.post("/api/login", async (req, res) => {
-  try {
-    const login = cleanText(
-      req.body.login ||
-      req.body.email ||
-      req.body.username,
-      150
-    );
-
-    const password = String(req.body.password || "");
-
-    if (!login || !password) {
-      return res.status(400).json({
-        error: "Username/email fi password galchi."
-      });
+    .hidden {
+      display: none !important;
     }
 
-    const result = await pool.query(
-      `SELECT *
-       FROM users
-       WHERE LOWER(email)=LOWER($1)
-          OR LOWER(username)=LOWER($1)
-       LIMIT 1`,
-      [login]
-    );
-
-    if (!result.rows.length) {
-      return res.status(401).json({
-        error: "Username/email ykn password sirrii miti."
-      });
+    .page {
+      min-height: 100vh;
+      padding-bottom: 75px;
     }
 
-    const user = result.rows[0];
+    /* AUTH */
 
-    const hash = hashPassword(
-      password,
-      user.salt
-    );
-
-    if (hash !== user.password_hash) {
-      return res.status(401).json({
-        error: "Username/email ykn password sirrii miti."
-      });
+    #authPage {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(145deg, #075b3d, #0b8b60);
     }
 
-    const token = makeToken();
-
-    await pool.query(
-      `UPDATE users
-       SET token=$1
-       WHERE id=$2`,
-      [token, user.id]
-    );
-
-    delete user.password_hash;
-    delete user.salt;
-    delete user.token;
-
-    res.json({
-      ok: true,
-      token,
-      user
-    });
-  } catch (error) {
-    console.error("LOGIN ERROR:", error);
-
-    res.status(500).json({
-      error: "Login irratti dogoggorri uumame."
-    });
-  }
-});
-
-/* =========================
-   LOGOUT
-========================= */
-
-app.post("/api/logout", async (req, res) => {
-  try {
-    const username = cleanUsername(
-      req.body.username
-    );
-
-    await pool.query(
-      `UPDATE users
-       SET token=NULL
-       WHERE username=$1`,
-      [username]
-    );
-
-    res.json({
-      ok: true
-    });
-  } catch (error) {
-    console.error("LOGOUT ERROR:", error);
-
-    res.status(500).json({
-      error: "Logout failed."
-    });
-  }
-});
-
-/* =========================
-   PROFILE
-========================= */
-
-app.get("/api/profile/:username", async (req, res) => {
-  try {
-    const username = cleanUsername(
-      req.params.username
-    );
-
-    const result = await pool.query(
-      `SELECT id,username,email,bio,avatar,created_at
-       FROM users
-       WHERE username=$1`,
-      [username]
-    );
-
-    if (!result.rows.length) {
-      return res.status(404).json({
-        error: "User hin argamne."
-      });
+    .auth-box {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      border-radius: 24px;
+      padding: 28px 22px;
+      box-shadow: 0 15px 40px rgba(0,0,0,.2);
     }
 
-    const user = result.rows[0];
-
-    const followers = await pool.query(
-      `SELECT COUNT(*)::int AS count
-       FROM follows
-       WHERE following=$1`,
-      [username]
-    );
-
-    const following = await pool.query(
-      `SELECT COUNT(*)::int AS count
-       FROM follows
-       WHERE follower=$1`,
-      [username]
-    );
-
-    res.json({
-      ...user,
-      followers: followers.rows[0].count,
-      following: following.rows[0].count
-    });
-  } catch (error) {
-    console.error("PROFILE ERROR:", error);
-
-    res.status(500).json({
-      error: "Profile error."
-    });
-  }
-});
-
-app.post("/api/profile/update", async (req, res) => {
-  try {
-    const username = cleanUsername(
-      req.body.username
-    );
-
-    const bio = cleanText(
-      req.body.bio,
-      500
-    );
-
-    const avatar = String(
-      req.body.avatar || ""
-    ).slice(0, 500000);
-
-    const result = await pool.query(
-      `UPDATE users
-       SET bio=$1, avatar=$2
-       WHERE username=$3
-       RETURNING id,username,email,bio,avatar,created_at`,
-      [
-        bio,
-        avatar,
-        username
-      ]
-    );
-
-    if (!result.rows.length) {
-      return res.status(404).json({
-        error: "User hin argamne."
-      });
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #0b7a53;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0 auto 15px;
     }
 
-    res.json({
-      ok: true,
-      user: result.rows[0]
-    });
-  } catch (error) {
-    console.error("PROFILE UPDATE:", error);
-
-    res.status(500).json({
-      error: "Profile update failed."
-    });
-  }
-});
-
-/* =========================
-   SEARCH
-========================= */
-
-app.get("/api/users/search", async (req, res) => {
-  try {
-    const q = cleanText(
-      req.query.q,
-      100
-    );
-
-    if (!q) {
-      return res.json([]);
+    .auth-box h1 {
+      text-align: center;
+      color: #075b3d;
+      margin-bottom: 6px;
     }
 
-    const result = await pool.query(
-      `SELECT username,bio,avatar
-       FROM users
-       WHERE username ILIKE $1
-       ORDER BY username
-       LIMIT 30`,
-      [`%${q}%`]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error("SEARCH ERROR:", error);
-
-    res.status(500).json([]);
-  }
-});
-
-/* =========================
-   ONLINE USERS
-========================= */
-
-app.get("/api/users/online", async (req, res) => {
-  try {
-    const usernames = [
-      ...onlineUsers.keys()
-    ];
-
-    if (!usernames.length) {
-      return res.json([]);
+    .auth-box p {
+      text-align: center;
+      color: #68736e;
+      margin-bottom: 22px;
     }
 
-    const result = await pool.query(
-      `SELECT username,bio,avatar
-       FROM users
-       WHERE username = ANY($1::text[])
-       ORDER BY username`,
-      [usernames]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error("ONLINE USERS ERROR:", error);
-
-    res.status(500).json([]);
-  }
-});
-
-/* =========================
-   FOLLOW
-========================= */
-
-app.post("/api/follow", async (req, res) => {
-  try {
-    const follower = cleanUsername(
-      req.body.follower
-    );
-
-    const following = cleanUsername(
-      req.body.following
-    );
-
-    if (
-      !follower ||
-      !following ||
-      follower === following
-    ) {
-      return res.status(400).json({
-        error: "Follow data sirrii miti."
-      });
+    .field {
+      margin-bottom: 13px;
     }
 
-    const existing = await pool.query(
-      `SELECT id
-       FROM follows
-       WHERE follower=$1
-         AND following=$2`,
-      [
-        follower,
-        following
-      ]
-    );
-
-    if (existing.rows.length) {
-      await pool.query(
-        `DELETE FROM follows
-         WHERE follower=$1
-           AND following=$2`,
-        [
-          follower,
-          following
-        ]
-      );
-
-      return res.json({
-        ok: true,
-        following: false
-      });
+    .field label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+      font-weight: bold;
     }
 
-    await pool.query(
-      `INSERT INTO follows
-       (follower,following)
-       VALUES($1,$2)
-       ON CONFLICT DO NOTHING`,
-      [
-        follower,
-        following
-      ]
-    );
-
-    try {
-      await pool.query(
-        `INSERT INTO notifications
-         (username,type,from_user,message)
-         VALUES($1,$2,$3,$4)`,
-        [
-          following,
-          "follow",
-          follower,
-          `${follower} si hordofeera.`
-        ]
-      );
-    } catch (notificationError) {
-      console.error(
-        "FOLLOW NOTIFICATION ERROR:",
-        notificationError.message
-      );
+    .field input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d5ddd9;
+      border-radius: 12px;
+      outline: none;
     }
 
-    notifyUser(following, {
-      type: "follow",
-      from: follower,
-      message: `${follower} si hordofeera.`
-    });
-
-    res.json({
-      ok: true,
-      following: true
-    });
-  } catch (error) {
-    console.error("FOLLOW ERROR:", error);
-
-    res.status(500).json({
-      error: "Follow failed."
-    });
-  }
-});
-
-app.get("/api/follow/status", async (req, res) => {
-  try {
-    const follower = cleanUsername(
-      req.query.follower
-    );
-
-    const following = cleanUsername(
-      req.query.following
-    );
-
-    const result = await pool.query(
-      `SELECT id
-       FROM follows
-       WHERE follower=$1
-         AND following=$2`,
-      [
-        follower,
-        following
-      ]
-    );
-
-    res.json({
-      following: result.rows.length > 0
-    });
-  } catch (error) {
-    res.json({
-      following: false
-    });
-  }
-});
-
-/* =========================
-   BLOCK
-========================= */
-
-app.post("/api/block", async (req, res) => {
-  try {
-    const username = cleanUsername(
-      req.body.username
-    );
-
-    const blocked = cleanUsername(
-      req.body.blocked
-    );
-
-    if (
-      !username ||
-      !blocked ||
-      username === blocked
-    ) {
-      return res.status(400).json({
-        error: "Block data sirrii miti."
-      });
+    .field input:focus {
+      border-color: #0b7a53;
     }
 
-    const existing = await pool.query(
-      `SELECT id
-       FROM blocks
-       WHERE username=$1
-         AND blocked_username=$2`,
-      [
-        username,
-        blocked
-      ]
-    );
-
-    if (existing.rows.length) {
-      await pool.query(
-        `DELETE FROM blocks
-         WHERE username=$1
-           AND blocked_username=$2`,
-        [
-          username,
-          blocked
-        ]
-      );
-
-      return res.json({
-        ok: true,
-        blocked: false
-      });
+    .main-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 13px;
+      background: #0b7a53;
+      color: white;
+      font-weight: bold;
+      margin-top: 5px;
     }
 
-    await pool.query(
-      `INSERT INTO blocks
-       (username,blocked_username)
-       VALUES($1,$2)`,
-      [
-        username,
-        blocked
-      ]
-    );
-
-    res.json({
-      ok: true,
-      blocked: true
-    });
-  } catch (error) {
-    console.error("BLOCK ERROR:", error);
-
-    res.status(500).json({
-      error: "Block failed."
-    });
-  }
-});
-
-app.get("/api/block/status", async (req, res) => {
-  try {
-    const username = cleanUsername(
-      req.query.username
-    );
-
-    const blocked = cleanUsername(
-      req.query.blocked
-    );
-
-    const result = await pool.query(
-      `SELECT id
-       FROM blocks
-       WHERE username=$1
-         AND blocked_username=$2`,
-      [
-        username,
-        blocked
-      ]
-    );
-
-    res.json({
-      blocked: result.rows.length > 0
-    });
-  } catch (error) {
-    res.json({
-      blocked: false
-    });
-  }
-});
-
-/* =========================
-   NOTIFICATIONS
-========================= */
-
-app.get(
-  "/api/notifications/:username",
-  async (req, res) => {
-    try {
-      const username = cleanUsername(
-        req.params.username
-      );
-
-      const result = await pool.query(
-        `SELECT *
-         FROM notifications
-         WHERE username=$1
-         ORDER BY created_at DESC
-         LIMIT 100`,
-        [username]
-      );
-
-      res.json(result.rows);
-    } catch (error) {
-      console.error(
-        "NOTIFICATIONS ERROR:",
-        error
-      );
-
-      res.status(500).json([]);
+    .secondary-btn {
+      width: 100%;
+      padding: 13px;
+      border-radius: 13px;
+      background: #e8f1ed;
+      color: #075b3d;
+      font-weight: bold;
+      margin-top: 10px;
     }
-  }
-);
 
-app.get(
-  "/api/notifications/unread-count/:username",
-  async (req, res) => {
-    try {
-      const username = cleanUsername(
-        req.params.username
-      );
-
-      const result = await pool.query(
-        `SELECT COUNT(*)::int AS count
-         FROM notifications
-         WHERE username=$1
-           AND is_read=false`,
-        [username]
-      );
-
-      res.json({
-        count: result.rows[0].count
-      });
-    } catch (error) {
-      res.json({
-        count: 0
-      });
+    .auth-message {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 14px;
     }
-  }
-);
 
-app.post(
-  "/api/notifications/read",
-  async (req, res) => {
-    try {
-      const username = cleanUsername(
-        req.body.username
-      );
+    /* HEADER */
 
-      await pool.query(
-        `UPDATE notifications
-         SET is_read=true
-         WHERE username=$1`,
-        [username]
-      );
-
-      res.json({
-        ok: true
-      });
-    } catch (error) {
-      res.status(500).json({
-        ok: false
-      });
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: white;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e1e8e4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-  }
-);
 
-/* =========================
-   PRIVATE MESSAGES
-========================= */
-
-app.get("/api/messages", async (req, res) => {
-  try {
-    const user1 = cleanUsername(
-      req.query.user1
-    );
-
-    const user2 = cleanUsername(
-      req.query.user2
-    );
-
-    const result = await pool.query(
-      `SELECT
-         id,
-         sender,
-         receiver,
-         message,
-         is_read,
-         deleted,
-         created_at
-       FROM private_messages
-       WHERE
-         (sender=$1 AND receiver=$2)
-         OR
-         (sender=$2 AND receiver=$1)
-       ORDER BY created_at ASC
-       LIMIT 500`,
-      [
-        user1,
-        user2
-      ]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error(
-      "GET MESSAGES ERROR:",
-      error
-    );
-
-    res.status(500).json([]);
-  }
-});
-
-app.get(
-  "/api/messages/unread/:username",
-  async (req, res) => {
-    try {
-      const username = cleanUsername(
-        req.params.username
-      );
-
-      const result = await pool.query(
-        `SELECT COUNT(*)::int AS count
-         FROM private_messages
-         WHERE receiver=$1
-           AND is_read=false`,
-        [username]
-      );
-
-      res.json({
-        count: result.rows[0].count
-      });
-    } catch (error) {
-      res.json({
-        count: 0
-      });
+    .brand {
+      font-size: 22px;
+      font-weight: bold;
+      color: #075b3d;
     }
-  }
-);
 
-/* =========================
-   SOCKET.IO
-========================= */
+    .online {
+      font-size: 12px;
+      color: #0b7a53;
+      font-weight: bold;
+    }
 
-io.engine.on(
-  "connection_error",
-  (err) => {
-    console.error(
-      "❌ SOCKET CONNECTION ERROR:",
-      err.message,
-      "CODE:",
-      err.code
-    );
-  }
-);
+    /* HOME */
 
-io.on("connection", (socket) => {
-  console.log(
-    "🟢 Socket connected:",
-    socket.id
-  );
+    .content {
+      padding: 18px 15px;
+      max-width: 900px;
+      margin: auto;
+    }
 
-  /* =========================
-     IDENTIFY
-  ========================= */
+    .welcome {
+      background: linear-gradient(135deg, #075b3d, #0b8b60);
+      color: white;
+      border-radius: 20px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
 
-  socket.on(
-    "identify",
-    ({ username }) => {
-      username = cleanUsername(username);
+    .welcome h2 {
+      margin-bottom: 6px;
+    }
 
-      if (!username) return;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
 
-      socket.username = username;
+    .feature {
+      background: white;
+      border-radius: 17px;
+      padding: 18px 12px;
+      min-height: 115px;
+      box-shadow: 0 2px 9px rgba(0,0,0,.05);
+      text-align: center;
+    }
 
-      if (!onlineUsers.has(username)) {
-        onlineUsers.set(
-          username,
-          new Set()
-        );
+    .feature .icon {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .feature strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .feature small {
+      color: #75807b;
+    }
+
+    /* CLUB */
+
+    .club-box {
+      background: white;
+      border-radius: 20px;
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .club-box h3 {
+      margin-bottom: 12px;
+      color: #075b3d;
+    }
+
+    .club-input {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d5ddd9;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .room-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .action-btn {
+      padding: 13px 8px;
+      border-radius: 12px;
+      background: #0b7a53;
+      color: white;
+      font-weight: bold;
+    }
+
+    .action-btn.gray {
+      background: #e8f1ed;
+      color: #075b3d;
+    }
+
+    /* ROOM */
+
+    #roomPage {
+      background: #07140f;
+      color: white;
+      min-height: 100vh;
+      padding-bottom: 20px;
+    }
+
+    .room-header {
+      padding: 14px;
+      background: #0b2118;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+
+    .room-title {
+      font-weight: bold;
+    }
+
+    .room-id {
+      font-size: 11px;
+      color: #9fb7aa;
+      margin-top: 3px;
+    }
+
+    .leave-room {
+      background: #d83a3a;
+      color: white;
+      padding: 9px 13px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .room-body {
+      max-width: 1000px;
+      margin: auto;
+      padding: 14px;
+    }
+
+    .room-info {
+      background: #10291f;
+      border-radius: 16px;
+      padding: 13px;
+      margin-bottom: 14px;
+    }
+
+    .speaker-title {
+      margin: 12px 0 9px;
+      font-weight: bold;
+    }
+
+    .seats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 9px;
+    }
+
+    .seat {
+      min-height: 86px;
+      background: #10291f;
+      border: 1px solid #214637;
+      border-radius: 15px;
+      padding: 8px 4px;
+      text-align: center;
+      position: relative;
+    }
+
+    .seat-number {
+      position: absolute;
+      top: 5px;
+      left: 6px;
+      font-size: 9px;
+      color: #7f9a8e;
+    }
+
+    .avatar {
+      width: 37px;
+      height: 37px;
+      border-radius: 50%;
+      background: #0b7a53;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 8px auto 5px;
+      font-weight: bold;
+    }
+
+    .seat-name {
+      font-size: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .mic-state {
+      font-size: 10px;
+      margin-top: 3px;
+    }
+
+    .empty-seat {
+      color: #668276;
+      padding-top: 30px;
+      font-size: 11px;
+    }
+
+    .room-controls {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 15px 0;
+    }
+
+    .room-control {
+      padding: 11px 5px;
+      border-radius: 12px;
+      background: #17382a;
+      color: white;
+      font-size: 12px;
+    }
+
+    .room-control.active {
+      background: #0b7a53;
+    }
+
+    .room-control.danger {
+      background: #7d2525;
+    }
+
+    .gift-row {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .gift {
+      min-width: 58px;
+      padding: 9px 5px;
+      border-radius: 12px;
+      background: #17382a;
+      color: white;
+    }
+
+    .gift span {
+      display: block;
+      font-size: 22px;
+    }
+
+    .gift small {
+      font-size: 9px;
+    }
+
+    .room-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .panel {
+      background: #10291f;
+      border-radius: 15px;
+      padding: 13px;
+    }
+
+    .panel h4 {
+      margin-bottom: 10px;
+    }
+
+    .member-item,
+    .request-item {
+      background: #17382a;
+      padding: 9px;
+      border-radius: 9px;
+      margin-bottom: 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5px;
+    }
+
+    .small-btn {
+      padding: 6px 8px;
+      border-radius: 7px;
+      background: #0b7a53;
+      color: white;
+      font-size: 10px;
+    }
+
+    .small-btn.red {
+      background: #8d2929;
+    }
+
+    /* CHAT */
+
+    .chat {
+      margin-top: 14px;
+      background: #10291f;
+      border-radius: 15px;
+      padding: 12px;
+    }
+
+    #chatMessages {
+      height: 170px;
+      overflow-y: auto;
+      margin-bottom: 9px;
+    }
+
+    .message {
+      margin-bottom: 7px;
+      font-size: 12px;
+    }
+
+    .message b {
+      color: #62d5a5;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 7px;
+    }
+
+    .chat-form input {
+      flex: 1;
+      padding: 11px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+    }
+
+    .chat-form button {
+      padding: 11px 15px;
+      border-radius: 10px;
+      background: #0b7a53;
+      color: white;
+    }
+
+    /* BOTTOM NAV */
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: 65px;
+      background: white;
+      border-top: 1px solid #dce5e0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .nav-btn {
+      background: white;
+      color: #718079;
+      font-size: 10px;
+    }
+
+    .nav-btn .nav-icon {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .nav-btn.active {
+      color: #0b7a53;
+      font-weight: bold;
+    }
+
+    /* MODAL */
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 420px;
+      background: white;
+      color: #17221d;
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .modal-box h3 {
+      color: #075b3d;
+      margin-bottom: 14px;
+    }
+
+    .modal-box button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 11px;
+      margin-top: 8px;
+      background: #0b7a53;
+      color: white;
+    }
+
+    .modal-box .close {
+      background: #e8f1ed;
+      color: #075b3d;
+    }
+
+    @media (max-width: 600px) {
+      .seats {
+        grid-template-columns: repeat(5, 1fr);
       }
 
-      onlineUsers
-        .get(username)
-        .add(socket.id);
+      .room-panels {
+        grid-template-columns: 1fr;
+      }
 
-      io.emit(
-        "presenceUpdate",
-        {
-          username,
-          online: true
-        }
-      );
-
-      console.log(
-        "👤 Identified:",
-        username
-      );
+      .room-controls {
+        grid-template-columns: repeat(4, 1fr);
+      }
     }
-  );
+  </style>
+</head>
 
-  /* =========================
-     PRIVATE MESSAGE
-  ========================= */
+<body>
 
-  socket.on(
-    "privateMessage",
-    async ({
-      receiver,
-      message
-    }) => {
+  <!-- AUTH PAGE -->
+
+  <section id="authPage">
+
+    <div class="auth-box">
+
+      <div class="logo">W</div>
+
+      <h1>Waliin-GM</h1>
+
+      <p>Chat • Voice • Club • Room</p>
+
+      <div id="loginForm">
+
+        <div class="field">
+          <label>Email</label>
+          <input
+            id="loginEmail"
+            type="email"
+            placeholder="Email kee"
+          >
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <input
+            id="loginPassword"
+            type="password"
+            placeholder="Password kee"
+          >
+        </div>
+
+        <button
+          class="main-btn"
+          onclick="login()"
+        >
+          Seeni
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="showRegister()"
+        >
+          Account Haaraa Uumi
+        </button>
+
+      </div>
+
+      <div id="registerForm" class="hidden">
+
+        <div class="field">
+          <label>Username</label>
+          <input
+            id="regUsername"
+            type="text"
+            placeholder="Maqaa fayyadamaa"
+          >
+        </div>
+
+        <div class="field">
+          <label>Email</label>
+          <input
+            id="regEmail"
+            type="email"
+            placeholder="Email"
+          >
+        </div>
+
+        <div class="field">
+          <label>Password</label>
+          <input
+            id="regPassword"
+            type="password"
+            placeholder="Password (6+)"
+          >
+        </div>
+
+        <button
+          class="main-btn"
+          onclick="register()"
+        >
+          Account Uumi
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="showLogin()"
+        >
+          Gara Login
+        </button>
+
+      </div>
+
+      <div
+        id="authMessage"
+        class="auth-message"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- HOME PAGE -->
+
+  <section id="homePage" class="page hidden">
+
+    <header class="topbar">
+
+      <div class="brand">
+        Waliin-GM
+      </div>
+
+      <div
+        id="connectionStatus"
+        class="online"
+      >
+        ● Online
+      </div>
+
+    </header>
+
+    <main class="content">
+
+      <div class="welcome">
+
+        <h2>
+          Baga nagaan dhuftan 👋
+        </h2>
+
+        <div id="welcomeUser">
+          Waliin-GM
+        </div>
+
+      </div>
+
+
+      <div class="grid">
+
+        <button
+          class="feature"
+          onclick="openCreateClub()"
+        >
+          <div class="icon">🎙️</div>
+          <strong>Voice Room</strong>
+          <small>Room uumi</small>
+        </button>
+
+        <button
+          class="feature"
+          onclick="openJoinClub()"
+        >
+          <div class="icon">🚪</div>
+          <strong>Join Room</strong>
+          <small>Room seeni</small>
+        </button>
+
+        <button
+          class="feature"
+          onclick="showComing('Chat')"
+        >
+          <div class="icon">💬</div>
+          <strong>Chat</strong>
+          <small>Ergaa ergi</small>
+        </button>
+
+        <button
+          class="feature"
+          onclick="showComing('Video Room')"
+        >
+          <div class="icon">🎥</div>
+          <strong>Video</strong>
+          <small>Video room</small>
+        </button>
+
+        <button
+          class="feature"
+          onclick="showComing('Call')"
+        >
+          <div class="icon">📞</div>
+          <strong>Call</strong>
+          <small>Bilbila</small>
+        </button>
+
+        <button
+          class="feature"
+          onclick="showComing('Club')"
+        >
+          <div class="icon">👥</div>
+          <strong>Club</strong>
+          <small>Club ilaali</small>
+        </button>
+
+        <button
+          class="feature"
+          onclick="showComing('Search')"
+        >
+          <div class="icon">🔎</div>
+          <strong>Search</strong>
+          <small>Barbaadi</small>
+        </button>
+
+        <button
+          class="feature"
+          onclick="openSettings()"
+        >
+          <div class="icon">⚙️</div>
+          <strong>Settings</strong>
+          <small>Qindaa'ina</small>
+        </button>
+
+      </div>
+
+
+      <div class="club-box">
+
+        <h3>
+          🎙️ Voice Club
+        </h3>
+
+        <input
+          id="clubName"
+          class="club-input"
+          placeholder="Maqaa Club"
+        >
+
+        <div class="room-actions">
+
+          <button
+            class="action-btn"
+            onclick="createClub()"
+          >
+            ➕ Create Club
+          </button>
+
+          <button
+            class="action-btn gray"
+            onclick="openJoinClub()"
+          >
+            🔗 Join Club
+          </button>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+
+      <button
+        class="nav-btn active"
+        onclick="goHome()"
+      >
+        <span class="nav-icon">🏠</span>
+        Home
+      </button>
+
+      <button
+        class="nav-btn"
+        onclick="showComing('Chat')"
+      >
+        <span class="nav-icon">💬</span>
+        Chat
+      </button>
+
+      <button
+        class="nav-btn"
+        onclick="showComing('Club')"
+      >
+        <span class="nav-icon">👥</span>
+        Club
+      </button>
+
+      <button
+        class="nav-btn"
+        onclick="showComing('Notifications')"
+      >
+        <span class="nav-icon">🔔</span>
+        Notify
+      </button>
+
+      <button
+        class="nav-btn"
+        onclick="openSettings()"
+      >
+        <span class="nav-icon">⚙️</span>
+        Settings
+      </button>
+
+    </nav>
+
+  </section>
+
+
+  <!-- ROOM PAGE -->
+
+  <section
+    id="roomPage"
+    class="hidden"
+  >
+
+    <header class="room-header">
+
+      <div>
+
+        <div
+          id="roomName"
+          class="room-title"
+        >
+          Waliin-GM Club
+        </div>
+
+        <div
+          id="roomId"
+          class="room-id"
+        >
+          ID: -
+        </div>
+
+      </div>
+
+      <button
+        class="leave-room"
+        onclick="leaveRoom()"
+      >
+        Ba'i 🚪
+      </button>
+
+    </header>
+
+
+    <main class="room-body">
+
+      <div class="room-info">
+
+        👥 Members:
+        <b id="memberCount">0</b>
+
+        &nbsp;&nbsp;
+
+        🎧 Listeners:
+        <b id="listenerCount">0</b>
+
+      </div>
+
+
+      <div class="speaker-title">
+        🎤 Speakers — 15 Seats
+      </div>
+
+      <div
+        id="seats"
+        class="seats"
+      ></div>
+
+
+      <div class="room-controls">
+
+        <button
+          id="micButton"
+          class="room-control"
+          onclick="toggleMic()"
+        >
+          🎤 Mic ON
+        </button>
+
+        <button
+          class="room-control"
+          onclick="requestSeat()"
+        >
+          🙋 Seat
+        </button>
+
+        <button
+          class="room-control"
+          onclick="leaveSeat()"
+        >
+          🪑 Leave Seat
+        </button>
+
+        <button
+          class="room-control"
+          onclick="shareRoom()"
+        >
+          🔗 Share
+        </button>
+
+      </div>
+
+
+      <div class="panel">
+
+        <h4>🎁 Gifts</h4>
+
+        <div class="gift-row">
+
+          <button
+            class="gift"
+            onclick="sendGift('❤️')"
+          >
+            <span>❤️</span>
+            <small>Heart</small>
+          </button>
+
+          <button
+            class="gift"
+            onclick="sendGift('🌹')"
+          >
+            <span>🌹</span>
+            <small>Rose</small>
+          </button>
+
+          <button
+            class="gift"
+            onclick="sendGift('🎁')"
+          >
+            <span>🎁</span>
+            <small>Gift</small>
+          </button>
+
+          <button
+            class="gift"
+            onclick="sendGift('⭐')"
+          >
+            <span>⭐</span>
+            <small>Star</small>
+          </button>
+
+          <button
+            class="gift"
+            onclick="sendGift('👑')"
+          >
+            <span>👑</span>
+            <small>Crown</small>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="room-panels">
+
+        <div class="panel">
+
+          <h4>👥 Members</h4>
+
+          <div id="membersList"></div>
+
+        </div>
+
+
+        <div
+          id="ownerPanel"
+          class="panel hidden"
+        >
+
+          <h4>👑 Owner Control</h4>
+
+          <div id="requestsList"></div>
+
+        </div>
+
+      </div>
+
+
+      <div class="chat">
+
+        <h4>💬 Room Chat</h4>
+
+        <div id="chatMessages"></div>
+
+        <div class="chat-form">
+
+          <input
+            id="chatInput"
+            placeholder="Ergaa barreessi..."
+            onkeydown="if(event.key==='Enter') sendChat()"
+          >
+
+          <button
+            onclick="sendChat()"
+          >
+            Ergi
+          </button>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </section>
+
+
+  <!-- MODAL -->
+
+  <div
+    id="modal"
+    class="modal hidden"
+  >
+
+    <div class="modal-box">
+
+      <h3 id="modalTitle">
+        Waliin-GM
+      </h3>
+
+      <div id="modalContent"></div>
+
+      <button
+        class="close"
+        onclick="closeModal()"
+      >
+        Cufi
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- REMOTE AUDIO -->
+
+  <div
+    id="audioContainer"
+    class="hidden"
+  ></div>
+
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    /* =========================================
+       GLOBAL VARIABLES
+    ========================================= */
+
+    let socket = null;
+
+    let currentUser = null;
+
+    let currentClub = null;
+
+    let localStream = null;
+
+    let micEnabled = true;
+
+    const peers = new Map();
+
+    const remoteAudios = new Map();
+
+    let pendingCandidates = new Map();
+
+
+    /* =========================================
+       DOM HELPERS
+    ========================================= */
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+
+    function showMessage(text, good = false) {
+
+      $("authMessage").textContent = text;
+
+      $("authMessage").style.color =
+        good ? "#0b7a53" : "#c22e2e";
+    }
+
+
+    function showLogin() {
+
+      $("loginForm").classList.remove("hidden");
+
+      $("registerForm").classList.add("hidden");
+
+      showMessage("");
+    }
+
+
+    function showRegister() {
+
+      $("loginForm").classList.add("hidden");
+
+      $("registerForm").classList.remove("hidden");
+
+      showMessage("");
+    }
+
+
+    /* =========================================
+       REGISTER
+    ========================================= */
+
+    async function register() {
+
+      const username =
+        $("regUsername").value.trim();
+
+      const email =
+        $("regEmail").value.trim();
+
+      const password =
+        $("regPassword").value;
+
+      if (!username || !email || !password) {
+
+        showMessage(
+          "Username, email fi password guuti."
+        );
+
+        return;
+      }
+
       try {
-        const sender = cleanUsername(
-          socket.username
-        );
 
-        receiver = cleanUsername(
-          receiver
-        );
+        const response =
+          await fetch("/api/register", {
 
-        message = cleanText(
-          message
-        );
+            method: "POST",
 
-        if (
-          !sender ||
-          !receiver ||
-          !message
-        ) {
-          return;
-        }
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
 
-        if (
-          await isBlocked(
-            sender,
-            receiver
-          )
-        ) {
-          socket.emit(
-            "messageError",
-            {
-              message:
-                "Namni kun si block godhe ykn ati isa block goote."
-            }
+            body: JSON.stringify({
+              username,
+              email,
+              password
+            })
+          });
+
+        const data =
+          await response.json();
+
+        if (!data.success) {
+
+          showMessage(
+            data.message ||
+            "Register hin milkoofne."
           );
 
           return;
         }
 
-        /* SAVE MESSAGE */
-
-        const result =
-          await pool.query(
-            `INSERT INTO private_messages
-             (sender,receiver,message)
-             VALUES($1,$2,$3)
-             RETURNING
-               id,
-               sender,
-               receiver,
-               message,
-               is_read,
-               deleted,
-               created_at`,
-            [
-              sender,
-              receiver,
-              message
-            ]
-          );
-
-        const item =
-          result.rows[0];
-
-        /* SEND MESSAGE */
-
-        socket.emit(
-          "privateMessage",
-          item
+        showMessage(
+          "Account uumame. Amma seeni.",
+          true
         );
 
-        for (
-          const s of io.sockets.sockets.values()
-        ) {
+        $("loginEmail").value = email;
+
+        $("loginPassword").value = "";
+
+        showLogin();
+
+      } catch (error) {
+
+        showMessage(
+          "Server waliin wal qunnamtiin hin jiru."
+        );
+      }
+    }
+
+
+    /* =========================================
+       LOGIN
+    ========================================= */
+
+    async function login() {
+
+      const email =
+        $("loginEmail").value.trim();
+
+      const password =
+        $("loginPassword").value;
+
+      if (!email || !password) {
+
+        showMessage(
+          "Email fi password guuti."
+        );
+
+        return;
+      }
+
+      try {
+
+        const response =
+          await fetch("/api/login", {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              email,
+              password
+            })
+          });
+
+        const data =
+          await response.json();
+
+        if (!data.success) {
+
+          showMessage(
+            data.message ||
+            "Login hin milkoofne."
+          );
+
+          return;
+        }
+
+        currentUser = data.user;
+
+        localStorage.setItem(
+          "waliin_gm_user",
+          JSON.stringify(data.user)
+        );
+
+        connectSocket();
+
+        showHome();
+
+      } catch (error) {
+
+        showMessage(
+          "Server waliin wal qunnamtiin hin jiru."
+        );
+      }
+    }
+
+
+    /* =========================================
+       SOCKET
+    ========================================= */
+
+    function connectSocket() {
+
+      if (socket) {
+
+        try {
+          socket.disconnect();
+        } catch (e) {}
+
+      }
+
+      socket = io();
+
+      socket.on("connect", () => {
+
+        $("connectionStatus").textContent =
+          "● Online";
+
+        $("connectionStatus").style.color =
+          "#0b7a53";
+      });
+
+
+      socket.on("disconnect", () => {
+
+        $("connectionStatus").textContent =
+          "● Offline";
+
+        $("connectionStatus").style.color =
+          "#c22e2e";
+      });
+
+
+      /* CLUB UPDATE */
+
+      socket.on(
+        "clubUpdate",
+        async (club) => {
+
+          currentClub = club;
+
           if (
-            s.username === receiver
+            !$("roomPage").classList.contains("hidden")
           ) {
-            s.emit(
-              "privateMessage",
-              item
+
+            renderClub();
+
+            await syncVoiceConnections();
+          }
+        }
+      );
+
+
+      /* SEAT REQUEST */
+
+      socket.on(
+        "seatRequest",
+        (data) => {
+
+          if (
+            currentClub &&
+            currentUser.username ===
+              currentClub.owner
+          ) {
+
+            renderClub();
+          }
+        }
+      );
+
+
+      /* SEAT GRANTED */
+
+      socket.on(
+        "seatGranted",
+        async (data) => {
+
+          if (
+            data.username ===
+            currentUser.username
+          ) {
+
+            await startMicrophone();
+
+            alert(
+              "🎤 Seat siif kennameera!"
+            );
+          }
+
+          await syncVoiceConnections();
+        }
+      );
+
+
+      /* MUTE */
+
+      socket.on(
+        "memberMute",
+        (data) => {
+
+          const audio =
+            remoteAudios.get(
+              getUsernameBySocket(data.username)
+            );
+
+          if (audio) {
+            audio.muted = data.muted;
+          }
+
+          renderClub();
+        }
+      );
+
+
+      /* REMOVED */
+
+      socket.on(
+        "removedFromClub",
+        () => {
+
+          closeRoom();
+
+          alert(
+            "🚫 Ati room kana keessaa haqamte."
+          );
+        }
+      );
+
+
+      /* CHAT */
+
+      socket.on(
+        "chatMessage",
+        (item) => {
+
+          addChatMessage(item);
+        }
+      );
+
+
+      /* GIFT */
+
+      socket.on(
+        "giftReceived",
+        (item) => {
+
+          addGiftMessage(item);
+        }
+      );
+
+
+      /* WEBRTC OFFER */
+
+      socket.on(
+        "webrtc-offer",
+        async ({ from, offer }) => {
+
+          try {
+
+            const peer =
+              await getOrCreatePeer(
+                from,
+                false
+              );
+
+            await peer.setRemoteDescription(
+              new RTCSessionDescription(offer)
+            );
+
+            await flushCandidates(from);
+
+            const answer =
+              await peer.createAnswer();
+
+            await peer.setLocalDescription(
+              answer
+            );
+
+            socket.emit(
+              "webrtc-answer",
+              {
+                target: from,
+                answer: peer.localDescription
+              }
+            );
+
+          } catch (error) {
+
+            console.error(
+              "Offer error:",
+              error
             );
           }
         }
+      );
 
-        /* NOTIFICATION
-           Yoo notification rakkoo qaba
-           message hin kufu.
-        */
 
-        try {
-          await pool.query(
-            `INSERT INTO notifications
-             (username,type,from_user,message)
-             VALUES($1,$2,$3,$4)`,
-            [
-              receiver,
-              "message",
-              sender,
-              `${sender} ergaa siif erge.`
-            ]
-          );
-        } catch (
-          notificationError
-        ) {
-          console.error(
-            "⚠️ MESSAGE NOTIFICATION ERROR:",
-            notificationError.message
-          );
+      /* WEBRTC ANSWER */
+
+      socket.on(
+        "webrtc-answer",
+        async ({ from, answer }) => {
+
+          try {
+
+            const peer =
+              peers.get(from);
+
+            if (!peer) return;
+
+            await peer.setRemoteDescription(
+              new RTCSessionDescription(answer)
+            );
+
+            await flushCandidates(from);
+
+          } catch (error) {
+
+            console.error(
+              "Answer error:",
+              error
+            );
+          }
+        }
+      );
+
+
+      /* ICE */
+
+      socket.on(
+        "webrtc-ice",
+        async ({ from, candidate }) => {
+
+          if (!candidate) return;
+
+          const peer =
+            peers.get(from);
+
+          if (
+            peer &&
+            peer.remoteDescription
+          ) {
+
+            try {
+
+              await peer.addIceCandidate(
+                new RTCIceCandidate(candidate)
+              );
+
+            } catch (error) {
+
+              console.error(
+                "ICE error:",
+                error
+              );
+            }
+
+          } else {
+
+            if (!pendingCandidates.has(from)) {
+              pendingCandidates.set(from, []);
+            }
+
+            pendingCandidates
+              .get(from)
+              .push(candidate);
+          }
+        }
+      );
+    }
+
+
+    /* =========================================
+       HOME
+    ========================================= */
+
+    function showHome() {
+
+      $("authPage").classList.add("hidden");
+
+      $("homePage").classList.remove("hidden");
+
+      $("roomPage").classList.add("hidden");
+
+      $("welcomeUser").textContent =
+        currentUser
+          ? currentUser.username
+          : "Waliin-GM";
+    }
+
+
+    function goHome() {
+
+      if (
+        !$("roomPage").classList.contains("hidden")
+      ) {
+
+        closeRoom();
+      }
+
+      showHome();
+    }
+
+
+    /* =========================================
+       CREATE CLUB
+    ========================================= */
+
+    function openCreateClub() {
+
+      $("clubName").focus();
+
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth"
+      });
+    }
+
+
+    function createClub() {
+
+      if (!socket) {
+
+        alert("Socket hin qindaa'in.");
+
+        return;
+      }
+
+      const name =
+        $("clubName").value.trim() ||
+        "Waliin-GM Club";
+
+      socket.emit(
+        "createClub",
+        {
+          name,
+          username: currentUser.username
+        },
+        (response) => {
+
+          if (!response || !response.success) {
+
+            alert(
+              response?.message ||
+              "Club uumuu hin dandeenye."
+            );
+
+            return;
+          }
+
+          currentClub = response.club;
+
+          openRoom();
+        }
+      );
+    }
+
+
+    /* =========================================
+       JOIN CLUB
+    ========================================= */
+
+    function openJoinClub() {
+
+      openModal(
+        "🔗 Join Club",
+        `
+          <input
+            id="joinClubId"
+            class="club-input"
+            placeholder="Club ID galchi"
+          >
+
+          <button onclick="joinClub()">
+            Seeni
+          </button>
+        `
+      );
+    }
+
+
+    function joinClub() {
+
+      const clubId =
+        $("joinClubId").value.trim();
+
+      if (!clubId) {
+
+        alert("Club ID galchi.");
+
+        return;
+      }
+
+      socket.emit(
+        "joinClub",
+        {
+          clubId,
+          username: currentUser.username
+        },
+        (response) => {
+
+          if (!response || !response.success) {
+
+            alert(
+              response?.message ||
+              "Club seenuu hin dandeenye."
+            );
+
+            return;
+          }
+
+          currentClub = response.club;
+
+          closeModal();
+
+          openRoom();
+        }
+      );
+    }
+
+
+    /* =========================================
+       OPEN ROOM
+    ========================================= */
+
+    function openRoom() {
+
+      $("homePage").classList.add("hidden");
+
+      $("roomPage").classList.remove("hidden");
+
+      renderClub();
+
+      startMicrophone();
+
+      syncVoiceConnections();
+    }
+
+
+    /* =========================================
+       RENDER CLUB
+    ========================================= */
+
+    function renderClub() {
+
+      if (!currentClub) return;
+
+      $("roomName").textContent =
+        currentClub.name;
+
+      $("roomId").textContent =
+        "ID: " + currentClub.id;
+
+      $("memberCount").textContent =
+        currentClub.members.length;
+
+      $("listenerCount").textContent =
+        currentClub.listenerCount;
+
+
+      /* SEATS */
+
+      const seats =
+        $("seats");
+
+      seats.innerHTML = "";
+
+      for (
+        let i = 0;
+        i < 15;
+        i++
+      ) {
+
+        const username =
+          currentClub.seats[i];
+
+        const div =
+          document.createElement("div");
+
+        div.className = "seat";
+
+        if (username) {
+
+          const member =
+            currentClub.members.find(
+              m => m.username === username
+            );
+
+          const muted =
+            member?.muted || false;
+
+          const owner =
+            username === currentClub.owner;
+
+          div.innerHTML = `
+            <div class="seat-number">
+              ${i + 1}
+            </div>
+
+            <div class="avatar">
+              ${escapeHtml(
+                username
+                  .charAt(0)
+                  .toUpperCase()
+              )}
+            </div>
+
+            <div class="seat-name">
+              ${escapeHtml(username)}
+              ${owner ? " 👑" : ""}
+            </div>
+
+            <div class="mic-state">
+              ${muted ? "🔇" : "🎤"}
+            </div>
+          `;
+
+        } else {
+
+          div.innerHTML = `
+            <div class="seat-number">
+              ${i + 1}
+            </div>
+
+            <div class="empty-seat">
+              🪑<br>
+              Empty
+            </div>
+          `;
         }
 
-        notifyUser(
-          receiver,
-          {
-            type: "message",
-            from: sender,
-            message:
-              `${sender} ergaa siif erge.`
+        seats.appendChild(div);
+      }
+
+
+      /* MEMBERS */
+
+      const membersList =
+        $("membersList");
+
+      membersList.innerHTML = "";
+
+      currentClub.members.forEach(
+        member => {
+
+          const item =
+            document.createElement("div");
+
+          item.className =
+            "member-item";
+
+          const isOwner =
+            currentUser.username ===
+            currentClub.owner;
+
+          let controls = "";
+
+          if (
+            isOwner &&
+            member.username !==
+              currentClub.owner
+          ) {
+
+            controls = `
+              <button
+                class="small-btn"
+                onclick="ownerMute('${encodeURIComponent(member.username)}')"
+              >
+                🔇
+              </button>
+
+              <button
+                class="small-btn red"
+                onclick="removeMember('${encodeURIComponent(member.username)}')"
+              >
+                🚫
+              </button>
+            `;
           }
+
+          item.innerHTML = `
+            <span>
+              ${member.username}
+              ${member.username === currentClub.owner ? " 👑" : ""}
+              ${member.seat !== null ? " 🎤" : " 🎧"}
+            </span>
+
+            <span>
+              ${controls}
+            </span>
+          `;
+
+          membersList.appendChild(item);
+        }
+      );
+
+
+      /* OWNER PANEL */
+
+      if (
+        currentUser.username ===
+        currentClub.owner
+      ) {
+
+        $("ownerPanel")
+          .classList.remove("hidden");
+
+        renderRequests();
+
+      } else {
+
+        $("ownerPanel")
+          .classList.add("hidden");
+      }
+    }
+
+
+    /* =========================================
+       REQUESTS
+    ========================================= */
+
+    function renderRequests() {
+
+      const box =
+        $("requestsList");
+
+      box.innerHTML = "";
+
+      if (
+        !currentClub.requests ||
+        currentClub.requests.length === 0
+      ) {
+
+        box.innerHTML =
+          `<div style="font-size:12px;color:#9fb7aa">
+             Request hin jiru.
+           </div>`;
+
+        return;
+      }
+
+      currentClub.requests.forEach(
+        username => {
+
+          const row =
+            document.createElement("div");
+
+          row.className =
+            "request-item";
+
+          row.innerHTML = `
+            <span>🙋 ${escapeHtml(username)}</span>
+
+            <button
+              class="small-btn"
+              onclick="grantSeat('${encodeURIComponent(username)}')"
+            >
+              🎤 Seat kenni
+            </button>
+          `;
+
+          box.appendChild(row);
+        }
+      );
+    }
+
+
+    /* =========================================
+       REQUEST SEAT
+    ========================================= */
+
+    function requestSeat() {
+
+      if (!socket || !currentClub) return;
+
+      socket.emit("requestSeat");
+
+      alert(
+        "🙋 Request kee Owner bira gaheera."
+      );
+    }
+
+
+    /* =========================================
+       GRANT SEAT
+    ========================================= */
+
+    function grantSeat(username) {
+
+      username =
+        decodeURIComponent(username);
+
+      if (!currentClub) return;
+
+      const freeSeat =
+        currentClub.seats.findIndex(
+          seat => !seat
         );
 
+      if (freeSeat === -1) {
+
+        alert(
+          "🪑 Seats 15 guutamaniiru."
+        );
+
+        return;
+      }
+
+      socket.emit(
+        "giveSeat",
+        {
+          username,
+          seat: freeSeat
+        }
+      );
+    }
+
+
+    /* =========================================
+       LEAVE SEAT
+    ========================================= */
+
+    function leaveSeat() {
+
+      if (!socket) return;
+
+      socket.emit("leaveSeat");
+
+      stopMicrophone();
+    }
+
+
+    /* =========================================
+       MICROPHONE
+    ========================================= */
+
+    async function startMicrophone() {
+
+      if (localStream) {
+
+        localStream
+          .getAudioTracks()
+          .forEach(
+            track => {
+              track.enabled =
+                micEnabled;
+            }
+          );
+
+        return true;
+      }
+
+      try {
+
+        localStream =
+          await navigator.mediaDevices
+            .getUserMedia({
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+              },
+              video: false
+            });
+
+        localStream
+          .getAudioTracks()
+          .forEach(
+            track => {
+              track.enabled =
+                micEnabled;
+            }
+          );
+
+        await updatePeerTracks();
+
+        updateMicButton();
+
+        return true;
+
       } catch (error) {
+
         console.error(
-          "PRIVATE MESSAGE:",
+          "Microphone error:",
           error
         );
 
-        socket.emit(
-          "messageError",
-          {
-            message:
-              "Ergaa erguu hin dandeenye."
+        alert(
+          "🎤 Microphone eeyyama gaafata. Browser irratti Allow jedhu filadhu."
+        );
+
+        return false;
+      }
+    }
+
+
+    function stopMicrophone() {
+
+      if (!localStream) return;
+
+      localStream
+        .getTracks()
+        .forEach(
+          track => track.stop()
+        );
+
+      localStream = null;
+
+      peers.forEach(
+        peer => {
+
+          peer.getSenders()
+            .forEach(sender => {
+
+              if (
+                sender.track &&
+                sender.track.kind ===
+                  "audio"
+              ) {
+
+                try {
+                  peer.removeTrack(sender);
+                } catch (e) {}
+              }
+            });
+        }
+      );
+    }
+
+
+    async function toggleMic() {
+
+      if (!localStream) {
+
+        const started =
+          await startMicrophone();
+
+        if (!started) return;
+      }
+
+      micEnabled =
+        !micEnabled;
+
+      localStream
+        .getAudioTracks()
+        .forEach(
+          track => {
+            track.enabled =
+              micEnabled;
           }
+        );
+
+      socket.emit(
+        "muteSelf",
+        {
+          muted: !micEnabled
+        }
+      );
+
+      updateMicButton();
+    }
+
+
+    function updateMicButton() {
+
+      const button =
+        $("micButton");
+
+      if (micEnabled) {
+
+        button.textContent =
+          "🎤 Mic ON";
+
+        button.classList.add(
+          "active"
+        );
+
+      } else {
+
+        button.textContent =
+          "🔇 Mic OFF";
+
+        button.classList.remove(
+          "active"
         );
       }
     }
-  );
 
-  /* =========================
-     MESSAGE READ
-  ========================= */
 
-  socket.on(
-    "messageRead",
-    async ({ sender }) => {
-      try {
-        const receiver =
-          cleanUsername(
-            socket.username
-          );
+    /* =========================================
+       WEBRTC
+    ========================================= */
 
-        sender =
-          cleanUsername(sender);
+    function rtcConfig() {
 
-        if (
-          !receiver ||
-          !sender
-        ) {
-          return;
-        }
+      return {
+        iceServers: [
+          {
+            urls:
+              "stun:stun.l.google.com:19302"
+          },
+          {
+            urls:
+              "stun:stun1.l.google.com:19302"
+          }
+        ]
+      };
+    }
 
-        await pool.query(
-          `UPDATE private_messages
-           SET is_read=true
-           WHERE sender=$1
-             AND receiver=$2
-             AND is_read=false`,
-          [
-            sender,
-            receiver
-          ]
+
+    function getMemberBySocketId(
+      socketId
+    ) {
+
+      if (!currentClub) return null;
+
+      return currentClub.members.find(
+        member =>
+          member.socketId === socketId
+      );
+    }
+
+
+    function getUsernameBySocket(
+      username
+    ) {
+
+      if (!currentClub) return null;
+
+      const member =
+        currentClub.members.find(
+          m => m.username === username
         );
 
-        for (
-          const s of io.sockets.sockets.values()
-        ) {
+      return member?.socketId || null;
+    }
+
+
+    function isSpeaker(username) {
+
+      if (!currentClub) return false;
+
+      return currentClub.seats
+        .includes(username);
+    }
+
+
+    function shouldInitiate(
+      mySocketId,
+      otherSocketId
+    ) {
+
+      /*
+        Socket ID tokko qofa offer jalqaba.
+        Kun offer lama yeroo tokkoon
+        uumamuu hir'isa.
+      */
+
+      return mySocketId <
+        otherSocketId;
+    }
+
+
+    async function getOrCreatePeer(
+      remoteSocketId,
+      initiator
+    ) {
+
+      if (
+        peers.has(remoteSocketId)
+      ) {
+
+        return peers.get(
+          remoteSocketId
+        );
+      }
+
+      const peer =
+        new RTCPeerConnection(
+          rtcConfig()
+        );
+
+      peers.set(
+        remoteSocketId,
+        peer
+      );
+
+
+      /* LOCAL AUDIO */
+
+      if (localStream) {
+
+        localStream
+          .getAudioTracks()
+          .forEach(
+            track => {
+
+              try {
+
+                peer.addTrack(
+                  track,
+                  localStream
+                );
+
+              } catch (e) {}
+            }
+          );
+      }
+
+
+      /* REMOTE AUDIO */
+
+      peer.ontrack =
+        event => {
+
+          const stream =
+            event.streams[0];
+
+          if (!stream) return;
+
+          let audio =
+            remoteAudios.get(
+              remoteSocketId
+            );
+
+          if (!audio) {
+
+            audio =
+              document.createElement(
+                "audio"
+              );
+
+            audio.autoplay = true;
+
+            audio.playsInline = true;
+
+            audio.controls = false;
+
+            audio.style.display =
+              "none";
+
+            $("audioContainer")
+              .appendChild(audio);
+
+            remoteAudios.set(
+              remoteSocketId,
+              audio
+            );
+          }
+
+          audio.srcObject =
+            stream;
+
+          audio.play()
+            .catch(
+              () => {}
+            );
+        };
+
+
+      /* ICE */
+
+      peer.onicecandidate =
+        event => {
+
           if (
-            s.username === sender
+            event.candidate &&
+            socket
           ) {
-            s.emit(
-              "messageRead",
+
+            socket.emit(
+              "webrtc-ice",
               {
-                by: receiver
+                target:
+                  remoteSocketId,
+
+                candidate:
+                  event.candidate
               }
             );
           }
-        }
-      } catch (error) {
-        console.error(
-          "READ ERROR:",
-          error
-        );
-      }
-    }
-  );
+        };
 
-  /* =========================
-     DELETE MESSAGE
-  ========================= */
 
-  socket.on(
-    "deleteMessage",
-    async ({ id }) => {
-      try {
-        const username =
-          cleanUsername(
-            socket.username
-          );
+      peer.onconnectionstatechange =
+        () => {
 
-        const result =
-          await pool.query(
-            `UPDATE private_messages
-             SET
-               deleted=true,
-               message='Ergaan haqameera.'
-             WHERE
-               id=$1
-               AND sender=$2
-             RETURNING
-               id,
-               sender,
-               receiver,
-               message,
-               deleted`,
-            [
-              id,
-              username
-            ]
-          );
+          const state =
+            peer.connectionState;
 
-        if (!result.rows.length) {
-          return;
-        }
-
-        const item =
-          result.rows[0];
-
-        for (
-          const s of io.sockets.sockets.values()
-        ) {
           if (
-            s.username === item.sender ||
-            s.username === item.receiver
+            state === "failed" ||
+            state === "closed" ||
+            state === "disconnected"
           ) {
-            s.emit(
-              "messageDeleted",
-              item
+
+            removePeer(
+              remoteSocketId
+            );
+          }
+        };
+
+
+      /* OFFER */
+
+      if (initiator) {
+
+        try {
+
+          const offer =
+            await peer.createOffer();
+
+          await peer.setLocalDescription(
+            offer
+          );
+
+          socket.emit(
+            "webrtc-offer",
+            {
+              target:
+                remoteSocketId,
+
+              offer:
+                peer.localDescription
+            }
+          );
+
+        } catch (error) {
+
+          console.error(
+            "Create offer error:",
+            error
+          );
+        }
+      }
+
+      return peer;
+    }
+
+
+    async function createPeerConnection(
+      remoteSocketId
+    ) {
+
+      if (!socket) return;
+
+      if (
+        remoteSocketId === socket.id
+      ) return;
+
+      const member =
+        getMemberBySocketId(
+          remoteSocketId
+        );
+
+      if (!member) return;
+
+      /*
+        Sagalee dhugaa dabarsuuf:
+        speaker qofa peer keessa gala.
+      */
+
+      if (
+        !isSpeaker(
+          member.username
+        )
+      ) {
+
+        return;
+      }
+
+      const initiator =
+        shouldInitiate(
+          socket.id,
+          remoteSocketId
+        );
+
+      await getOrCreatePeer(
+        remoteSocketId,
+        initiator
+      );
+    }
+
+
+    async function syncVoiceConnections() {
+
+      if (
+        !socket ||
+        !currentClub
+      ) return;
+
+      /*
+        Speaker members qofa.
+      */
+
+      const speakers =
+        currentClub.members.filter(
+          member =>
+            isSpeaker(
+              member.username
+            ) &&
+            member.socketId &&
+            member.socketId !==
+              socket.id
+        );
+
+      const wanted =
+        new Set(
+          speakers.map(
+            m => m.socketId
+          )
+        );
+
+      /*
+        Peer hin barbaachifne cufi.
+      */
+
+      for (
+        const [
+          socketId,
+          peer
+        ] of peers.entries()
+      ) {
+
+        if (
+          !wanted.has(socketId)
+        ) {
+
+          try {
+            peer.close();
+          } catch (e) {}
+
+          peers.delete(
+            socketId
+          );
+
+          const audio =
+            remoteAudios.get(
+              socketId
+            );
+
+          if (audio) {
+
+            audio.srcObject =
+              null;
+
+            audio.remove();
+
+            remoteAudios.delete(
+              socketId
             );
           }
         }
-      } catch (error) {
-        console.error(
-          "DELETE MESSAGE:",
-          error
-        );
       }
-    }
-  );
 
-  /* =========================
-     VOICE / VIDEO CALL
-  ========================= */
 
-  socket.on(
-    "callUser",
-    ({
-      username,
-      callType
-    }) => {
-      const caller =
-        cleanUsername(
-          socket.username
-        );
-
-      const target =
-        cleanUsername(username);
-
-      const targets =
-        userSockets(target);
-
-      if (!targets.size) {
-        socket.emit(
-          "callUnavailable",
-          {
-            username: target,
-            message:
-              "User kun online miti."
-          }
-        );
-
-        return;
-      }
+      /*
+        Peer barbaachisu uumi.
+      */
 
       for (
-        const targetSocket
-        of targets
+        const member of speakers
       ) {
-        io.to(
-          targetSocket
-        ).emit(
-          "incomingCall",
-          {
-            from: caller,
-            callType:
-              callType === "video"
-                ? "video"
-                : "voice",
-            callerSocketId:
-              socket.id
-          }
+
+        await createPeerConnection(
+          member.socketId
         );
       }
     }
-  );
 
-  socket.on(
-    "acceptCall",
-    ({
-      callerSocketId,
-      callType
-    }) => {
-      io.to(
-        callerSocketId
-      ).emit(
-        "callAccepted",
-        {
-          targetSocketId:
-            socket.id,
-          callType:
-            callType === "video"
-              ? "video"
-              : "voice"
-        }
-      );
-    }
-  );
 
-  socket.on(
-    "rejectCall",
-    ({
-      callerSocketId
-    }) => {
-      io.to(
-        callerSocketId
-      ).emit(
-        "callRejected",
-        {
-          from:
-            socket.username
-        }
-      );
-    }
-  );
+    async function updatePeerTracks() {
 
-  socket.on(
-    "endCall",
-    ({
-      targetSocketId
-    }) => {
-      if (
-        !targetSocketId
-      ) {
-        return;
-      }
-
-      io.to(
-        targetSocketId
-      ).emit(
-        "callEnded",
-        {
-          from:
-            socket.username
-        }
-      );
-    }
-  );
-
-  /* =========================
-     WEBRTC
-  ========================= */
-
-  socket.on(
-    "webrtc-offer",
-    ({
-      target,
-      offer
-    }) => {
-      if (
-        !target ||
-        !offer
-      ) {
-        return;
-      }
-
-      io.to(target).emit(
-        "webrtc-offer",
-        {
-          from: socket.id,
-          offer
-        }
-      );
-    }
-  );
-
-  socket.on(
-    "webrtc-answer",
-    ({
-      target,
-      answer
-    }) => {
-      if (
-        !target ||
-        !answer
-      ) {
-        return;
-      }
-
-      io.to(target).emit(
-        "webrtc-answer",
-        {
-          from: socket.id,
-          answer
-        }
-      );
-    }
-  );
-
-  socket.on(
-    "webrtc-ice",
-    ({
-      target,
-      candidate
-    }) => {
-      if (
-        !target ||
-        !candidate
-      ) {
-        return;
-      }
-
-      io.to(target).emit(
-        "webrtc-ice",
-        {
-          from: socket.id,
-          candidate
-        }
-      );
-    }
-  );
-
-  /* =========================
-     CREATE CLUB
-  ========================= */
-
-  socket.on(
-    "createClub",
-    ({
-      name,
-      username
-    }, callback) => {
-
-      username =
-        cleanUsername(username);
-
-      name =
-        cleanText(
-          name,
-          100
-        );
-
-      if (
-        !username ||
-        !name
-      ) {
-        return callback?.({
-          ok: false,
-          error:
-            "Maqaa club galchi."
-        });
-      }
-
-      const clubId =
-        makeId();
-
-      const seats =
-        Array.from(
-          {
-            length: 15
-          },
-          (_, index) => ({
-            seat: index,
-            username:
-              index === 0
-                ? username
-                : null,
-            muted: false
-          })
-        );
-
-      const club = {
-        id: clubId,
-        name,
-        owner: username,
-        members:
-          new Set([
-            username
-          ]),
-        seats,
-        messages: []
-      };
-
-      clubs.set(
-        clubId,
-        club
-      );
-
-      socket.join(
-        `club:${clubId}`
-      );
-
-      socket.clubId =
-        clubId;
-
-      socket.username =
-        username;
-
-      callback?.({
-        ok: true,
-        club
-      });
-
-      io.to(
-        `club:${clubId}`
-      ).emit(
-        "clubUpdated",
-        clubData(club)
-      );
-    }
-  );
-
-  /* =========================
-     JOIN CLUB
-  ========================= */
-
-  socket.on(
-    "joinClub",
-    ({
-      clubId,
-      username
-    }, callback) => {
-
-      username =
-        cleanUsername(username);
-
-      clubId =
-        cleanText(
-          clubId,
-          100
-        );
-
-      const club =
-        clubs.get(clubId);
-
-      if (!club) {
-        return callback?.({
-          ok: false,
-          error:
-            "Club hin argamne."
-        });
-      }
-
-      club.members.add(
-        username
-      );
-
-      socket.join(
-        `club:${clubId}`
-      );
-
-      socket.clubId =
-        clubId;
-
-      socket.username =
-        username;
-
-      callback?.({
-        ok: true,
-        club:
-          clubData(club)
-      });
-
-      io.to(
-        `club:${clubId}`
-      ).emit(
-        "clubMemberUpdate",
-        clubData(club)
-      );
-    }
-  );
-
-  /* =========================
-     REQUEST SEAT
-  ========================= */
-
-  socket.on(
-    "requestSeat",
-    () => {
-      const club =
-        clubs.get(
-          socket.clubId
-        );
-
-      if (!club) return;
-
-      io.to(
-        `club:${club.id}`
-      ).emit(
-        "seatRequest",
-        {
-          username:
-            socket.username
-        }
-      );
-    }
-  );
-
-  /* =========================
-     GIVE SEAT
-  ========================= */
-
-  socket.on(
-    "giveSeat",
-    ({
-      username,
-      seat
-    }) => {
-
-      const club =
-        clubs.get(
-          socket.clubId
-        );
-
-      if (!club) return;
-
-      if (
-        club.owner !==
-        socket.username
-      ) {
-        return;
-      }
-
-      username =
-        cleanUsername(username);
-
-      seat =
-        Number(seat);
-
-      if (
-        seat < 0 ||
-        seat > 14
-      ) {
-        return;
-      }
-
-      if (
-        !club.members.has(
-          username
-        )
-      ) {
-        return;
-      }
+      if (!localStream) return;
 
       for (
-        const s of club.seats
+        const [
+          socketId,
+          peer
+        ] of peers.entries()
       ) {
-        if (
-          s.username ===
-          username
-        ) {
-          s.username =
-            null;
 
-          s.muted =
-            false;
+        const sender =
+          peer.getSenders()
+            .find(
+              s =>
+                s.track &&
+                s.track.kind ===
+                  "audio"
+            );
+
+        const track =
+          localStream
+            .getAudioTracks()[0];
+
+        if (
+          sender &&
+          track
+        ) {
+
+          try {
+
+            await sender.replaceTrack(
+              track
+            );
+
+          } catch (e) {}
         }
       }
-
-      const occupied =
-        club.seats[seat]
-          .username;
-
-      if (
-        occupied &&
-        occupied !== username
-      ) {
-        return;
-      }
-
-      club.seats[seat]
-        .username =
-        username;
-
-      club.seats[seat]
-        .muted =
-        false;
-
-      io.to(
-        `club:${club.id}`
-      ).emit(
-        "clubUpdated",
-        clubData(club)
-      );
     }
-  );
 
-  /* =========================
-     LEAVE SEAT
-  ========================= */
 
-  socket.on(
-    "leaveSeat",
-    () => {
-      const club =
-        clubs.get(
-          socket.clubId
+    async function flushCandidates(
+      remoteSocketId
+    ) {
+
+      const list =
+        pendingCandidates.get(
+          remoteSocketId
         );
 
-      if (!club) return;
+      if (!list) return;
 
-      for (
-        const s of club.seats
-      ) {
-        if (
-          s.username ===
-          socket.username
-        ) {
-          s.username =
-            null;
-
-          s.muted =
-            false;
-        }
-      }
-
-      io.to(
-        `club:${club.id}`
-      ).emit(
-        "clubUpdated",
-        clubData(club)
-      );
-    }
-  );
-
-  /* =========================
-     SELF MUTE
-  ========================= */
-
-  socket.on(
-    "muteSelf",
-    ({
-      muted
-    }) => {
-
-      const club =
-        clubs.get(
-          socket.clubId
+      const peer =
+        peers.get(
+          remoteSocketId
         );
 
-      if (!club) return;
+      if (!peer) return;
 
       for (
-        const s of club.seats
+        const candidate of list
       ) {
-        if (
-          s.username ===
-          socket.username
-        ) {
-          s.muted =
-            !!muted;
-        }
-      }
-
-      io.to(
-        `club:${club.id}`
-      ).emit(
-        "clubUpdated",
-        clubData(club)
-      );
-    }
-  );
-
-  /* =========================
-     OWNER MUTE
-  ========================= */
-
-  socket.on(
-    "ownerMute",
-    ({
-      username
-    }) => {
-
-      const club =
-        clubs.get(
-          socket.clubId
-        );
-
-      if (!club) return;
-
-      if (
-        club.owner !==
-        socket.username
-      ) {
-        return;
-      }
-
-      username =
-        cleanUsername(username);
-
-      for (
-        const s of club.seats
-      ) {
-        if (
-          s.username ===
-          username
-        ) {
-          s.muted =
-            !s.muted;
-        }
-      }
-
-      io.to(
-        `club:${club.id}`
-      ).emit(
-        "clubUpdated",
-        clubData(club)
-      );
-    }
-  );
-
-  /* =========================
-     REMOVE MEMBER
-  ========================= */
-
-  socket.on(
-    "removeMember",
-    ({
-      username
-    }) => {
-
-      const club =
-        clubs.get(
-          socket.clubId
-        );
-
-      if (!club) return;
-
-      if (
-        club.owner !==
-        socket.username
-      ) {
-        return;
-      }
-
-      username =
-        cleanUsername(username);
-
-      if (
-        username ===
-        club.owner
-      ) {
-        return;
-      }
-
-      club.members.delete(
-        username
-      );
-
-      for (
-        const s of club.seats
-      ) {
-        if (
-          s.username ===
-          username
-        ) {
-          s.username =
-            null;
-
-          s.muted =
-            false;
-        }
-      }
-
-      for (
-        const s
-        of io.sockets.sockets.values()
-      ) {
-        if (
-          s.username ===
-            username &&
-          s.clubId ===
-            club.id
-        ) {
-          s.leave(
-            `club:${club.id}`
-          );
-
-          s.clubId =
-            null;
-
-          s.emit(
-            "removedFromClub"
-          );
-        }
-      }
-
-      io.to(
-        `club:${club.id}`
-      ).emit(
-        "clubUpdated",
-        clubData(club)
-      );
-    }
-  );
-
-  /* =========================
-     CLUB CHAT
-  ========================= */
-
-  socket.on(
-    "chatMessage",
-    ({
-      message
-    }) => {
-
-      const club =
-        clubs.get(
-          socket.clubId
-        );
-
-      if (!club) return;
-
-      message =
-        cleanText(message);
-
-      if (!message) {
-        return;
-      }
-
-      const item = {
-        id:
-          makeId(),
-
-        username:
-          socket.username,
-
-        message,
-
-        created_at:
-          new Date()
-            .toISOString()
-      };
-
-      club.messages.push(
-        item
-      );
-
-      if (
-        club.messages.length >
-        200
-      ) {
-        club.messages.shift();
-      }
-
-      io.to(
-        `club:${club.id}`
-      ).emit(
-        "clubChatMessage",
-        item
-      );
-    }
-  );
-
-  /* =========================
-     GIFT
-  ========================= */
-
-  socket.on(
-    "sendGift",
-    async ({
-      gift
-    }) => {
-
-      try {
-        const club =
-          clubs.get(
-            socket.clubId
-          );
-
-        if (!club) return;
-
-        const allowed = [
-          "❤️",
-          "🌹",
-          "🎁",
-          "⭐",
-          "👑"
-        ];
-
-        if (
-          !allowed.includes(
-            gift
-          )
-        ) {
-          return;
-        }
-
-        /* DATABASE */
 
         try {
-          await pool.query(
-            `INSERT INTO gifts
-             (sender,receiver,gift)
-             VALUES($1,$2,$3)`,
-            [
-              socket.username,
-              club.owner,
-              gift
-            ]
+
+          await peer.addIceCandidate(
+            new RTCIceCandidate(
+              candidate
+            )
           );
-        } catch (
-          giftDbError
-        ) {
-          console.error(
-            "⚠️ GIFT DATABASE ERROR:",
-            giftDbError.message
-          );
+
+        } catch (e) {}
+      }
+
+      pendingCandidates.delete(
+        remoteSocketId
+      );
+    }
+
+
+    function removePeer(
+      remoteSocketId
+    ) {
+
+      const peer =
+        peers.get(
+          remoteSocketId
+        );
+
+      if (peer) {
+
+        try {
+          peer.close();
+        } catch (e) {}
+      }
+
+      peers.delete(
+        remoteSocketId
+      );
+
+      const audio =
+        remoteAudios.get(
+          remoteSocketId
+        );
+
+      if (audio) {
+
+        audio.srcObject =
+          null;
+
+        audio.remove();
+
+        remoteAudios.delete(
+          remoteSocketId
+        );
+      }
+    }
+
+
+    /* =========================================
+       CHAT
+    ========================================= */
+
+    function sendChat() {
+
+      const input =
+        $("chatInput");
+
+      const message =
+        input.value.trim();
+
+      if (!message) return;
+
+      socket.emit(
+        "chatMessage",
+        {
+          message
         }
+      );
 
-        /* REAL-TIME GIFT */
+      input.value = "";
+    }
 
-        io.to(
-          `club:${club.id}`
-        ).emit(
-          "giftReceived",
+
+    function addChatMessage(item) {
+
+      const box =
+        $("chatMessages");
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "message";
+
+      div.innerHTML = `
+        <b>${escapeHtml(item.username)}:</b>
+        ${escapeHtml(item.message)}
+      `;
+
+      box.appendChild(div);
+
+      box.scrollTop =
+        box.scrollHeight;
+    }
+
+
+    /* =========================================
+       GIFTS
+    ========================================= */
+
+    function sendGift(gift) {
+
+      if (!socket) return;
+
+      socket.emit(
+        "sendGift",
+        {
+          gift
+        }
+      );
+    }
+
+
+    function addGiftMessage(item) {
+
+      const box =
+        $("chatMessages");
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "message";
+
+      div.innerHTML = `
+        🎁 <b>${escapeHtml(item.username)}</b>
+        ${item.gift}
+      `;
+
+      box.appendChild(div);
+
+      box.scrollTop =
+        box.scrollHeight;
+    }
+
+
+    /* =========================================
+       OWNER CONTROLS
+    ========================================= */
+
+    function ownerMute(username) {
+
+      username =
+        decodeURIComponent(username);
+
+      socket.emit(
+        "ownerMute",
+        {
+          username
+        }
+      );
+    }
+
+
+    function removeMember(username) {
+
+      username =
+        decodeURIComponent(username);
+
+      if (
+        !confirm(
+          "Nama kana room keessaa baasuu?"
+        )
+      ) return;
+
+      socket.emit(
+        "removeMember",
+        {
+          username
+        }
+      );
+    }
+
+
+    /* =========================================
+       SHARE
+    ========================================= */
+
+    async function shareRoom() {
+
+      if (!currentClub) return;
+
+      const url =
+        location.origin +
+        location.pathname +
+        "?club=" +
+        encodeURIComponent(
+          currentClub.id
+        );
+
+      const text =
+        "Waliin-GM Room: " +
+        currentClub.name +
+        "\nID: " +
+        currentClub.id +
+        "\n" +
+        url;
+
+      if (
+        navigator.share
+      ) {
+
+        try {
+
+          await navigator.share({
+            title:
+              currentClub.name,
+
+            text,
+
+            url
+          });
+
+          return;
+
+        } catch (e) {}
+      }
+
+      try {
+
+        await navigator.clipboard.writeText(
+          text
+        );
+
+        alert(
+          "🔗 Link fi ID copy ta'eera."
+        );
+
+      } catch (e) {
+
+        alert(
+          text
+        );
+      }
+    }
+
+
+    /* =========================================
+       LEAVE ROOM
+    ========================================= */
+
+    function leaveRoom() {
+
+      if (
+        !confirm(
+          "Room keessaa ba'uu barbaaddaa?"
+        )
+      ) return;
+
+      closeRoom();
+    }
+
+
+    function closeRoom() {
+
+      if (socket) {
+
+        socket.emit(
+          "leaveClub"
+        );
+      }
+
+      peers.forEach(
+        peer => {
+
+          try {
+            peer.close();
+          } catch (e) {}
+        }
+      );
+
+      peers.clear();
+
+      remoteAudios.forEach(
+        audio => {
+
+          try {
+            audio.pause();
+            audio.srcObject = null;
+            audio.remove();
+          } catch (e) {}
+        }
+      );
+
+      remoteAudios.clear();
+
+      stopMicrophone();
+
+      currentClub = null;
+
+      $("roomPage")
+        .classList.add("hidden");
+
+      $("homePage")
+        .classList.remove("hidden");
+    }
+
+
+    /* =========================================
+       MODAL
+    ========================================= */
+
+    function openModal(
+      title,
+      content
+    ) {
+
+      $("modalTitle").textContent =
+        title;
+
+      $("modalContent").innerHTML =
+        content;
+
+      $("modal")
+        .classList.remove("hidden");
+    }
+
+
+    function closeModal() {
+
+      $("modal")
+        .classList.add("hidden");
+    }
+
+
+    function showComing(name) {
+
+      openModal(
+        "🚧 " + name,
+        `
+          <p style="line-height:1.6">
+            ${name} feature irratti
+            itti fufnee hojjenna.
+          </p>
+        `
+      );
+    }
+
+
+    function openSettings() {
+
+      openModal(
+        "⚙️ Settings",
+        `
+          <p style="margin-bottom:12px">
+            <b>Account:</b>
+            ${escapeHtml(
+              currentUser?.username ||
+              ""
+            )}
+          </p>
+
+          <p style="margin-bottom:12px">
+            <b>Email:</b>
+            ${escapeHtml(
+              currentUser?.email ||
+              ""
+            )}
+          </p>
+
+          <button onclick="logout()">
+            🚪 Logout
+          </button>
+        `
+      );
+    }
+
+
+    /* =========================================
+       LOGOUT
+    ========================================= */
+
+    async function logout() {
+
+      try {
+
+        await fetch(
+          "/api/logout",
           {
-            from:
-              socket.username,
-            gift
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            body: JSON.stringify({
+              token:
+                currentUser?.token
+            })
           }
         );
 
-      } catch (error) {
-        console.error(
-          "GIFT ERROR:",
-          error
+      } catch (e) {}
+
+      if (socket) {
+
+        try {
+          socket.disconnect();
+        } catch (e) {}
+      }
+
+      stopMicrophone();
+
+      peers.forEach(
+        peer => {
+
+          try {
+            peer.close();
+          } catch (e) {}
+        }
+      );
+
+      peers.clear();
+
+      localStorage.removeItem(
+        "waliin_gm_user"
+      );
+
+      currentUser = null;
+
+      currentClub = null;
+
+      closeModal();
+
+      $("homePage")
+        .classList.add("hidden");
+
+      $("roomPage")
+        .classList.add("hidden");
+
+      $("authPage")
+        .classList.remove("hidden");
+    }
+
+
+    /* =========================================
+       AUTO LOGIN
+    ========================================= */
+
+    function autoLogin() {
+
+      const saved =
+        localStorage.getItem(
+          "waliin_gm_user"
+        );
+
+      if (!saved) return;
+
+      try {
+
+        currentUser =
+          JSON.parse(saved);
+
+        connectSocket();
+
+        showHome();
+
+      } catch (e) {
+
+        localStorage.removeItem(
+          "waliin_gm_user"
         );
       }
     }
-  );
 
-  /* =========================
-     CLUB MEMBERS
-  ========================= */
 
-  socket.on(
-    "getClubMembers",
-    () => {
+    /* =========================================
+       URL CLUB JOIN
+    ========================================= */
 
-      const club =
-        clubs.get(
-          socket.clubId
+    function checkRoomLink() {
+
+      const params =
+        new URLSearchParams(
+          location.search
         );
 
-      if (!club) return;
-
-      socket.emit(
-        "clubMembers",
-        clubData(club)
-      );
-    }
-  );
-
-  /* =========================
-     CLUB WEBRTC
-  ========================= */
-
-  socket.on(
-    "club-webrtc-offer",
-    ({
-      target,
-      offer
-    }) => {
+      const clubId =
+        params.get("club");
 
       if (
-        !target ||
-        !offer
+        clubId &&
+        currentUser &&
+        socket
       ) {
-        return;
+
+        setTimeout(
+          () => {
+
+            socket.emit(
+              "joinClub",
+              {
+                clubId,
+                username:
+                  currentUser.username
+              },
+              response => {
+
+                if (
+                  response &&
+                  response.success
+                ) {
+
+                  currentClub =
+                    response.club;
+
+                  openRoom();
+
+                } else {
+
+                  alert(
+                    "Room link kun sirrii miti ykn room cufameera."
+                  );
+                }
+              }
+            );
+
+          },
+          1000
+        );
       }
-
-      io.to(target).emit(
-        "club-webrtc-offer",
-        {
-          from:
-            socket.id,
-          offer
-        }
-      );
     }
-  );
 
-  socket.on(
-    "club-webrtc-answer",
-    ({
-      target,
-      answer
-    }) => {
 
-      if (
-        !target ||
-        !answer
-      ) {
-        return;
-      }
+    /* =========================================
+       ESCAPE HTML
+    ========================================= */
 
-      io.to(target).emit(
-        "club-webrtc-answer",
-        {
-          from:
-            socket.id,
-          answer
-        }
-      );
-    }
-  );
+    function escapeHtml(text) {
 
-  socket.on(
-    "club-webrtc-ice",
-    ({
-      target,
-      candidate
-    }) => {
-
-      if (
-        !target ||
-        !candidate
-      ) {
-        return;
-      }
-
-      io.to(target).emit(
-        "club-webrtc-ice",
-        {
-          from:
-            socket.id,
-          candidate
-        }
-      );
-    }
-  );
-
-  /* =========================
-     LEAVE CLUB
-  ========================= */
-
-  socket.on(
-    "leaveClub",
-    () => {
-      leaveClub(socket);
-    }
-  );
-
-  /* =========================
-     DISCONNECT
-  ========================= */
-
-  socket.on(
-    "disconnect",
-    (reason) => {
-
-      console.log(
-        "🔴 Socket disconnected:",
-        socket.id,
-        reason
-      );
-
-      const username =
-        cleanUsername(
-          socket.username
+      const div =
+        document.createElement(
+          "div"
         );
 
-      if (
-        username &&
-        onlineUsers.has(
-          username
-        )
-      ) {
-        onlineUsers
-          .get(username)
-          .delete(
-            socket.id
-          );
+      div.textContent =
+        String(text);
 
-        if (
-          onlineUsers
-            .get(username)
-            .size === 0
-        ) {
-          onlineUsers.delete(
-            username
-          );
-
-          io.emit(
-            "presenceUpdate",
-            {
-              username,
-              online: false
-            }
-          );
-        }
-      }
-
-      leaveClub(socket);
+      return div.innerHTML;
     }
-  );
-});
 
-/* =========================
-   CLUB DATA
-========================= */
 
-function clubData(club) {
-  return {
-    id: club.id,
-    name: club.name,
-    owner: club.owner,
-    members: [
-      ...club.members
-    ],
-    seats: club.seats,
-    messages: club.messages
-  };
-}
+    /* =========================================
+       START
+    ========================================= */
 
-/* =========================
-   LEAVE CLUB HELPER
-========================= */
-
-function leaveClub(socket) {
-  const clubId =
-    socket.clubId;
-
-  if (!clubId) {
-    return;
-  }
-
-  const club =
-    clubs.get(clubId);
-
-  if (!club) {
-    socket.clubId =
-      null;
-
-    return;
-  }
-
-  const username =
-    cleanUsername(
-      socket.username
-    );
-
-  club.members.delete(
-    username
-  );
-
-  for (
-    const s of club.seats
-  ) {
-    if (
-      s.username ===
-      username
-    ) {
-      s.username =
-        null;
-
-      s.muted =
-        false;
-    }
-  }
-
-  socket.leave(
-    `club:${clubId}`
-  );
-
-  socket.clubId =
-    null;
-
-  io.to(
-    `club:${clubId}`
-  ).emit(
-    "clubUpdated",
-    clubData(club)
-  );
-
-  if (
-    club.members.size ===
-    0
-  ) {
-    clubs.delete(
-      clubId
-    );
-  }
-}
-
-/* =========================
-   FRONTEND
-========================= */
-
-app.get(
-  "*",
-  (req, res) => {
-    res.sendFile(
-      path.join(
-        __dirname,
-        "public",
-        "index.html"
-      )
-    );
-  }
-);
-
-/* =========================
-   START SERVER
-========================= */
-
-initDatabase()
-  .then(() => {
-
-    server.listen(
-      PORT,
-      "0.0.0.0",
+    window.addEventListener(
+      "load",
       () => {
-        console.log(
-          `🚀 Waliin-GM server running on port ${PORT}`
+
+        autoLogin();
+
+        setTimeout(
+          checkRoomLink,
+          1200
         );
       }
     );
 
-  })
-  .catch((error) => {
+  </script>
 
-    console.error(
-      "❌ DATABASE INITIALIZATION FAILED:",
-      error.message
-    );
-
-    process.exit(1);
-  });
+</body>
+</html>
