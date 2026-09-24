@@ -6,171 +6,222 @@
 
 <title>Waliin-GM</title>
 
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/icon-192.png">
-<meta name="theme-color" content="#166943">
-
 <script src="/socket.io/socket.io.js"></script>
 
 <style>
-*{box-sizing:border-box}
-body{
+*{
+  box-sizing:border-box;
   margin:0;
-  font-family:Arial,sans-serif;
-  background:#f3f7f5;
-  color:#17231d;
+  padding:0;
 }
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.hidden{display:none!important}
-.page{min-height:100vh}
+
+body{
+  font-family:Arial,sans-serif;
+  background:#f3f6f5;
+  color:#17221f;
+}
+
+button,input,textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+  border:0;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.page{
+  min-height:100vh;
+}
 
 .auth{
+  min-height:100vh;
   display:flex;
   align-items:center;
   justify-content:center;
   padding:20px;
-  background:linear-gradient(135deg,#064d2d,#12945a);
+  background:linear-gradient(135deg,#063d2b,#0c8b5b);
 }
+
 .auth-card{
   width:100%;
-  max-width:420px;
+  max-width:430px;
   background:white;
   border-radius:24px;
-  padding:30px 22px;
-  box-shadow:0 15px 45px #0004;
-  text-align:center;
+  padding:25px;
+  box-shadow:0 20px 60px #0004;
 }
+
 .logo{
-  width:80px;
-  height:80px;
+  width:75px;
+  height:75px;
+  border-radius:50%;
   margin:auto;
-  border-radius:24px;
-  background:#087443;
-  color:white;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:45px;
+  background:#0b7a50;
+  color:white;
+  font-size:32px;
   font-weight:bold;
 }
-.auth-card h1{margin:15px 0 5px}
-.subtitle{color:#777;margin-bottom:20px}
+
+.auth-card h1{
+  text-align:center;
+  margin:15px 0 5px;
+}
+
+.subtitle{
+  text-align:center;
+  color:#718078;
+  margin-bottom:20px;
+}
 
 .tabs{
   display:flex;
   gap:8px;
-  margin-bottom:18px;
+  margin-bottom:15px;
 }
+
 .tabs button{
   flex:1;
   padding:12px;
-  border:0;
   border-radius:12px;
-  background:#e8eee9;
+  background:#e9efec;
 }
+
 .tabs button.active{
-  background:#087443;
+  background:#0b7a50;
   color:white;
 }
 
 input,textarea{
   width:100%;
   padding:13px;
-  margin:6px 0;
-  border:1px solid #ccd7d0;
+  border:1px solid #d5ddd9;
   border-radius:12px;
   outline:none;
-}
-input:focus,textarea:focus{
-  border-color:#087443;
+  margin-bottom:10px;
 }
 
-.primary,.secondary,.danger{
-  width:100%;
-  border:0;
-  border-radius:12px;
-  padding:13px;
-  margin-top:8px;
+textarea{
+  min-height:100px;
+  resize:vertical;
 }
-.primary{background:#087443;color:white}
-.secondary{background:#e8f0eb;color:#087443}
-.danger{background:#d93636;color:white}
+
+input:focus,textarea:focus{
+  border-color:#0b7a50;
+}
+
+.primary{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  background:#0b7a50;
+  color:white;
+  font-weight:bold;
+}
+
+.secondary{
+  padding:11px 14px;
+  border-radius:10px;
+  background:#e8efeb;
+}
+
+.danger{
+  padding:11px 14px;
+  border-radius:10px;
+  background:#c62828;
+  color:white;
+}
 
 .app{
   min-height:100vh;
-  background:#f4f7f5;
-  padding-bottom:75px;
+  padding-bottom:70px;
 }
+
 .topbar{
+  height:65px;
+  background:#0b7a50;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 15px;
   position:sticky;
   top:0;
   z-index:20;
-  background:#087443;
-  color:white;
-  padding:13px 16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
 }
-.topbar h2{margin:0}
+
+.topbar h2{
+  font-size:21px;
+}
+
 .top-actions{
   display:flex;
   gap:8px;
 }
+
 .icon-btn{
-  border:0;
+  width:42px;
+  height:42px;
+  border-radius:50%;
   background:#ffffff22;
   color:white;
-  border-radius:10px;
-  padding:9px;
-  position:relative;
+  font-size:19px;
 }
+
 .content{
   max-width:900px;
   margin:auto;
   padding:15px;
 }
+
 .card{
   background:white;
   border-radius:18px;
   padding:16px;
   margin-bottom:14px;
-  box-shadow:0 2px 10px #0000000d;
+  box-shadow:0 3px 15px #0000000d;
 }
+
 .welcome{
-  background:linear-gradient(135deg,#087443,#12a965);
+  background:linear-gradient(135deg,#0b7a50,#0d9d68);
   color:white;
 }
+
 .search-box{
   display:flex;
-  gap:7px;
+  gap:8px;
 }
-.search-box input{margin:0}
-.search-box button{
-  border:0;
-  background:#087443;
-  color:white;
-  border-radius:12px;
-  padding:0 16px;
+
+.search-box input{
+  margin:0;
 }
+
 .section-title{
+  font-size:18px;
   font-weight:bold;
-  margin:10px 0;
+  margin-bottom:12px;
 }
 
 .user-item{
   display:flex;
   align-items:center;
-  gap:10px;
-  padding:11px 0;
-  border-bottom:1px solid #eee;
+  gap:12px;
+  padding:12px 4px;
+  border-bottom:1px solid #edf1ef;
 }
+
 .avatar{
   width:48px;
   height:48px;
   border-radius:50%;
-  background:#087443;
+  background:#0b7a50;
   color:white;
   display:flex;
   align-items:center;
@@ -179,841 +230,1225 @@ input:focus,textarea:focus{
   overflow:hidden;
   flex:none;
 }
+
 .avatar img{
   width:100%;
   height:100%;
   object-fit:cover;
 }
-.user-info{flex:1}
-.user-info b{display:block}
-.user-info small{color:#777}
-.online-dot{
-  display:inline-block;
-  width:9px;
-  height:9px;
-  background:#20bd63;
-  border-radius:50%;
-  margin-right:5px;
+
+.user-info{
+  flex:1;
 }
-.user-item button{
-  border:0;
-  background:#087443;
-  color:white;
-  padding:8px 11px;
-  border-radius:9px;
+
+.user-info strong{
+  display:block;
+}
+
+.user-info small{
+  color:#78857f;
+}
+
+.online-dot{
+  width:10px;
+  height:10px;
+  background:#23c76a;
+  border-radius:50%;
 }
 
 .bottom-nav{
   position:fixed;
-  bottom:0;
   left:0;
   right:0;
+  bottom:0;
   height:65px;
   background:white;
   border-top:1px solid #ddd;
   display:flex;
-  justify-content:space-around;
   z-index:30;
 }
+
 .bottom-nav button{
   flex:1;
-  border:0;
   background:white;
-  color:#666;
+  color:#68756f;
 }
+
 .bottom-nav button.active{
-  color:#087443;
+  color:#0b7a50;
   font-weight:bold;
 }
 
 .badge{
-  position:absolute;
-  top:-4px;
-  right:-4px;
-  background:red;
+  background:#e53935;
   color:white;
   border-radius:20px;
+  padding:2px 7px;
   font-size:10px;
-  padding:2px 5px;
+  margin-left:3px;
 }
 
-/* CHAT */
 .chat-header{
   display:flex;
   align-items:center;
   gap:10px;
   background:white;
-  padding:10px;
+  padding:12px;
   border-radius:15px;
   margin-bottom:10px;
 }
+
 .chat-actions{
   margin-left:auto;
   display:flex;
-  gap:5px;
-}
-.chat-actions button{
-  border:0;
-  border-radius:10px;
-  padding:9px;
-}
-.chat-box{
-  background:white;
-  border-radius:15px;
-  min-height:55vh;
-  max-height:62vh;
-  overflow-y:auto;
-  padding:12px;
-}
-.message{
-  max-width:78%;
-  padding:10px;
-  margin:7px 0;
-  border-radius:14px;
-  position:relative;
-}
-.message.me{
-  margin-left:auto;
-  background:#087443;
-  color:white;
-}
-.message.other{
-  background:#e7eee9;
-}
-.message small{
-  display:block;
-  font-size:10px;
-  opacity:.7;
-  margin-top:4px;
-}
-.chat-input{
-  display:flex;
-  gap:7px;
-  margin-top:8px;
-}
-.chat-input input{margin:0}
-.chat-input button{
-  border:0;
-  background:#087443;
-  color:white;
-  border-radius:12px;
-  padding:0 17px;
+  gap:6px;
 }
 
-/* CLUB */
-.club-create{
-  display:grid;
-  gap:8px;
-}
-.club-header{
-  background:#087443;
-  color:white;
-  padding:15px;
+.chat-box{
+  height:52vh;
+  overflow-y:auto;
+  background:#edf4f0;
+  padding:12px;
   border-radius:16px;
 }
+
+.message{
+  max-width:78%;
+  padding:10px 13px;
+  border-radius:16px;
+  margin:6px 0;
+  word-wrap:break-word;
+}
+
+.message.me{
+  margin-left:auto;
+  background:#0b7a50;
+  color:white;
+  border-bottom-right-radius:4px;
+}
+
+.message.other{
+  background:white;
+  border-bottom-left-radius:4px;
+}
+
+.message small{
+  display:block;
+  opacity:.7;
+  font-size:10px;
+  margin-top:4px;
+}
+
+.chat-input{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+.chat-input input{
+  margin:0;
+}
+
+.club-header{
+  background:linear-gradient(135deg,#063d2b,#0b7a50);
+  color:white;
+  padding:18px;
+  border-radius:18px;
+  margin-bottom:12px;
+}
+
+.club-create{
+  display:flex;
+  gap:8px;
+}
+
+.club-create input{
+  margin:0;
+}
+
+.club-create button{
+  white-space:nowrap;
+  padding:12px;
+  background:#0b7a50;
+  color:white;
+  border-radius:12px;
+}
+
 .seats{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:8px;
-  margin-top:12px;
-}
-.seat{
-  min-height:70px;
-  background:#e7eee9;
-  border-radius:13px;
-  padding:7px;
-  text-align:center;
-  border:2px solid transparent;
-}
-.seat.active{
-  background:#ccebd9;
-  border-color:#087443;
-}
-.seat-number{
-  font-weight:bold;
-  color:#087443;
-}
-.seat small{
-  display:block;
-  margin-top:4px;
-  overflow:hidden;
-}
-.controls{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  margin-top:12px;
-}
-.controls button{
-  flex:1;
-  min-width:130px;
-  border:0;
-  padding:10px;
-  border-radius:10px;
-  background:#e7eee9;
-}
-
-/* CLUB VOICE */
-.club-voice{
-  background:linear-gradient(135deg,#064d2d,#087443);
-  color:white;
-  border-radius:18px;
-  padding:15px;
-  margin-top:14px;
-}
-.club-voice-title{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-}
-.voice-status{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  background:#ffffff22;
-  border-radius:20px;
-  padding:6px 10px;
-  font-size:12px;
-}
-.voice-members{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  margin-top:12px;
-}
-.voice-member{
-  background:#ffffff18;
-  border:1px solid #ffffff35;
-  border-radius:12px;
-  padding:8px 10px;
-  font-size:13px;
-}
-.voice-member.speaking{
-  border-color:#8affbd;
-  box-shadow:0 0 0 2px #8affbd33;
-}
-.voice-buttons{
-  display:flex;
-  gap:8px;
-  margin-top:12px;
-}
-.voice-buttons button{
-  flex:1;
-  border:0;
-  border-radius:11px;
-  padding:11px;
-}
-.voice-on{
-  background:white;
-  color:#087443;
-}
-.voice-off{
-  background:#d93636;
-  color:white;
-}
-.club-audience{
-  background:#eef6f1;
-  color:#087443;
-  padding:10px;
-  border-radius:12px;
-  margin-top:10px;
-  font-size:13px;
-}
-
-.club-chat{
-  background:white;
-  border-radius:15px;
-  padding:10px;
-  margin-top:12px;
-}
-.club-chat-box{
-  height:200px;
-  overflow-y:auto;
-}
-.club-message{
-  padding:7px;
-  border-bottom:1px solid #eee;
-}
-
-/* POSTS */
-.post-form textarea{
-  min-height:90px;
-  resize:vertical;
-}
-.post{
-  background:white;
-  border-radius:16px;
-  margin-bottom:13px;
-  overflow:hidden;
-  box-shadow:0 2px 8px #0001;
-}
-.post-head{
-  display:flex;
-  align-items:center;
   gap:9px;
-  padding:12px;
-}
-.post-body{
-  padding:0 13px 12px;
-  white-space:pre-wrap;
-}
-.post img{
-  width:100%;
-  max-height:450px;
-  object-fit:cover;
-}
-.post-actions{
-  display:flex;
-  border-top:1px solid #eee;
-}
-.post-actions button{
-  flex:1;
-  border:0;
-  background:white;
-  padding:11px;
-}
-.comments{
-  padding:10px 13px;
-  border-top:1px solid #eee;
-}
-.comment{
-  padding:6px 0;
+  margin:15px 0;
 }
 
-/* PROFILE */
-.profile-top{
+.seat{
+  min-height:82px;
+  background:#edf2ef;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
   text-align:center;
+  padding:5px;
 }
-.profile-big{
-  width:100px;
-  height:100px;
+
+.seat.active{
+  background:#d5f0e3;
+  border:2px solid #0b7a50;
+}
+
+.seat-number{
+  width:30px;
+  height:30px;
   border-radius:50%;
-  margin:auto;
-  background:#087443;
+  background:#0b7a50;
   color:white;
-  font-size:40px;
   display:flex;
   align-items:center;
   justify-content:center;
-  overflow:hidden;
-}
-.profile-big img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-.profile-actions{
-  display:flex;
-  gap:7px;
-  margin-top:12px;
-}
-.profile-actions button{
-  flex:1;
 }
 
-/* MODALS */
+.seat small{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.club-chat{
+  height:250px;
+  overflow-y:auto;
+  background:#f3f6f4;
+  padding:10px;
+  border-radius:14px;
+  margin-bottom:10px;
+}
+
+.club-message{
+  padding:8px;
+  border-bottom:1px solid #ddd;
+}
+
+.club-message strong{
+  color:#0b7a50;
+}
+
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:10px 0;
+}
+
+.controls button{
+  padding:10px 13px;
+  border-radius:10px;
+  background:#e8efeb;
+}
+
 .modal{
   position:fixed;
   inset:0;
   background:#0008;
-  z-index:100;
   display:flex;
   align-items:center;
   justify-content:center;
   padding:15px;
+  z-index:100;
 }
+
 .modal-card{
   width:100%;
-  max-width:500px;
+  max-width:430px;
   max-height:90vh;
   overflow:auto;
   background:white;
   border-radius:20px;
-  padding:18px;
+  padding:20px;
 }
+
 .modal-actions{
   display:flex;
   gap:8px;
+  margin-top:15px;
 }
-.modal-actions button{flex:1}
+
+.modal-actions button{
+  flex:1;
+  padding:12px;
+  border-radius:10px;
+}
 
 .video-area{
-  background:#111;
+  width:100%;
+  background:#000;
   border-radius:15px;
-  min-height:300px;
-  position:relative;
   overflow:hidden;
+  position:relative;
 }
+
 #remoteVideo{
   width:100%;
-  height:350px;
-  object-fit:cover;
+  min-height:300px;
   background:#111;
 }
+
 #localVideo{
+  width:120px;
+  height:160px;
+  object-fit:cover;
   position:absolute;
-  width:100px;
-  height:140px;
   right:10px;
   bottom:10px;
-  object-fit:cover;
   border-radius:10px;
-  background:#333;
+  background:#222;
 }
+
 .call-avatar{
-  text-align:center;
-  color:white;
-  padding:60px 10px;
-}
-.call-avatar div{
-  width:80px;
-  height:80px;
+  width:100px;
+  height:100px;
+  margin:15px auto;
   border-radius:50%;
-  background:#087443;
-  margin:auto;
+  background:#0b7a50;
+  color:white;
   display:flex;
   align-items:center;
   justify-content:center;
   font-size:35px;
 }
+
 .setting{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:14px 0;
+  padding:15px 0;
   border-bottom:1px solid #eee;
 }
+
 .toast{
   position:fixed;
   left:50%;
-  bottom:80px;
+  bottom:85px;
   transform:translateX(-50%);
   background:#222;
   color:white;
-  padding:11px 17px;
+  padding:12px 18px;
   border-radius:12px;
   z-index:200;
+  display:none;
   max-width:90%;
   text-align:center;
 }
 
-/* DARK */
-body.dark{
-  background:#101714;
-  color:#eee;
-}
-body.dark .card,
-body.dark .auth-card,
-body.dark .chat-box,
-body.dark .club-chat,
-body.dark .post,
-body.dark .modal-card,
-body.dark .bottom-nav{
-  background:#18221d;
-  color:#eee;
-}
-body.dark input,
-body.dark textarea{
-  background:#111814;
-  color:white;
-  border-color:#34463b;
-}
-body.dark .message.other,
-body.dark .seat{
-  background:#25342c;
-  color:#eee;
-}
-body.dark .post-actions button,
-body.dark .bottom-nav button{
-  background:#18221d;
-  color:#ddd;
-}
-body.dark .club-audience{
-  background:#18221d;
-  color:#b9f2d0;
+.toast.show{
+  display:block;
 }
 
-@media(max-width:600px){
+.status{
+  font-size:12px;
+  margin-left:8px;
+}
+
+.connected{
+  color:#b8ffd9;
+}
+
+.disconnected{
+  color:#ffd0d0;
+}
+
+body.dark{
+  background:#101513;
+  color:#edf5f1;
+}
+
+body.dark .card,
+body.dark .modal-card,
+body.dark .chat-header,
+body.dark .bottom-nav,
+body.dark .bottom-nav button,
+body.dark input,
+body.dark textarea{
+  background:#19211e;
+  color:#edf5f1;
+}
+
+body.dark input,
+body.dark textarea{
+  border-color:#35443e;
+}
+
+body.dark .chat-box,
+body.dark .club-chat{
+  background:#121917;
+}
+
+body.dark .user-item{
+  border-color:#2c3833;
+}
+
+body.dark .seat{
+  background:#26332e;
+}
+
+body.dark .setting{
+  border-color:#2c3833;
+}
+
+@media(max-width:500px){
   .seats{
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(5,1fr);
+    gap:5px;
   }
-  .message{max-width:88%}
+
+  .seat{
+    min-height:70px;
+    font-size:11px;
+  }
+
+  .seat-number{
+    width:25px;
+    height:25px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<!-- ================= AUTH ================= -->
+<!-- AUTH -->
+
 <div id="authPage" class="page auth">
+
   <div class="auth-card">
+
     <div class="logo">W</div>
+
     <h1>Waliin-GM</h1>
-    <div class="subtitle">Chat • Voice • Video • Club</div>
+
+    <div class="subtitle">
+      Chat • Voice • Video • Club
+    </div>
 
     <div class="tabs">
-      <button id="loginTab" class="active">Login</button>
-      <button id="registerTab">Register</button>
+      <button id="loginTab" class="active">
+        Login
+      </button>
+
+      <button id="registerTab">
+        Register
+      </button>
     </div>
 
     <div id="loginBox">
-      <input id="loginValue" placeholder="Username ykn Email">
-      <input id="loginPassword" type="password" placeholder="Password">
-      <button id="loginBtn" class="primary">Seeni</button>
-      <button id="forgotBtn" class="secondary">Password dagadhe</button>
+
+      <input
+        id="loginValue"
+        placeholder="Username ykn Email"
+        autocomplete="username"
+      >
+
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+      >
+
+      <button
+        id="loginBtn"
+        class="primary"
+      >
+        Seeni
+      </button>
+
     </div>
 
     <div id="registerBox" class="hidden">
-      <input id="regUsername" placeholder="Username">
-      <input id="regEmail" type="email" placeholder="Email">
-      <input id="regPassword" type="password" placeholder="Password">
-      <button id="registerBtn" class="primary">Account Uumi</button>
+
+      <input
+        id="regUsername"
+        placeholder="Username"
+        autocomplete="username"
+      >
+
+      <input
+        id="regEmail"
+        type="email"
+        placeholder="Email"
+        autocomplete="email"
+      >
+
+      <input
+        id="regPassword"
+        type="password"
+        placeholder="Password"
+        autocomplete="new-password"
+      >
+
+      <button
+        id="registerBtn"
+        class="primary"
+      >
+        Account Uumi
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
-<!-- ================= APP ================= -->
+
+<!-- APP -->
+
 <div id="appPage" class="app hidden">
 
-<header class="topbar">
-  <h2>Waliin-GM</h2>
-  <div class="top-actions">
-    <button class="icon-btn" id="notificationBtn">
-      🔔 <span id="notifBadge" class="badge hidden">0</span>
-    </button>
-    <button class="icon-btn" id="settingsBtn">⚙️</button>
-  </div>
-</header>
+  <header class="topbar">
 
-<main class="content">
+    <h2>Waliin-GM</h2>
 
-<!-- HOME -->
-<section id="homePage">
+    <div class="top-actions">
 
-  <div class="card welcome">
-    <h2>👋 Baga nagaan dhuftan</h2>
-    <h3 id="welcomeName">Waliin-GM</h3>
-    <p>Chat, Voice, Video, Club fi barnoota waliin.</p>
-  </div>
-
-  <div class="card">
-    <div class="section-title">🔎 Nama Barbaadi</div>
-    <div class="search-box">
-      <input id="searchInput" placeholder="Username barreessi...">
-      <button id="searchBtn">Barbaadi</button>
-    </div>
-    <div id="searchResults"></div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">🟢 Online Users</div>
-    <div id="onlineUsers"></div>
-  </div>
-
-  <div class="card post-form">
-    <div class="section-title">📝 Post Haaraa</div>
-    <textarea id="postContent" placeholder="Waan yaaddu barreessi..."></textarea>
-    <input id="postImage" placeholder="Image URL (optional)">
-    <button class="primary" id="createPostBtn">Post Godhi</button>
-  </div>
-
-  <div class="section-title">📰 Posts</div>
-  <div id="postsList"></div>
-
-</section>
-
-<!-- CHAT -->
-<section id="chatPage" class="hidden">
-
-  <div class="chat-header">
-    <div class="avatar" id="chatAvatar">U</div>
-    <div>
-      <b id="chatWith">User</b>
-      <small id="chatStatus">Offline</small>
-    </div>
-
-    <div class="chat-actions">
-      <button id="voiceCallBtn">📞</button>
-      <button id="videoCallBtn">📹</button>
-    </div>
-  </div>
-
-  <div id="chatBox" class="chat-box"></div>
-
-  <div class="chat-input">
-    <input id="messageInput" placeholder="Ergaa barreessi...">
-    <button id="sendMessageBtn">➤</button>
-  </div>
-
-</section>
-
-<!-- CLUB -->
-<section id="clubPage" class="hidden">
-
-  <div id="clubEmpty">
-
-    <div class="card">
-      <h3>🎙️ Voice Club Uumi</h3>
-
-      <div class="club-create">
-        <input id="clubName" placeholder="Maqaa Club">
-        <button id="createClubBtn" class="primary">
-          ➕ Club Uumi
-        </button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>🔗 Club Seeni</h3>
-      <input id="clubIdInput" placeholder="Club ID">
-      <button id="joinClubBtn" class="primary">
-        Seeni
+      <button
+        class="icon-btn"
+        id="notificationBtn"
+      >
+        🔔
+        <span
+          id="notifBadge"
+          class="badge hidden"
+        >0</span>
       </button>
+
+      <button
+        class="icon-btn"
+        id="settingsBtn"
+      >
+        ⚙️
+      </button>
+
     </div>
 
-  </div>
+  </header>
 
-  <div id="clubArea" class="hidden">
 
-    <div class="club-header">
-      <h2 id="clubTitle">Voice Club</h2>
-      <div>🆔 <span id="clubIdText"></span></div>
-    </div>
+  <main class="content">
 
-    <!-- REAL CLUB VOICE -->
-    <div class="club-voice">
+    <!-- HOME -->
 
-      <div class="club-voice-title">
+    <section id="homePage">
+
+      <div class="card welcome">
+
+        <h2>
+          Baga nagaan dhuftan,
+          <span id="welcomeName"></span> 👋
+        </h2>
+
+        <p style="margin-top:8px">
+          Namoota barbaadi, haasa'i,
+          club seeni, voice fi video call godhi.
+        </p>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="search-box">
+
+          <input
+            id="searchInput"
+            placeholder="Username barbaadi..."
+          >
+
+          <button
+            id="searchBtn"
+            class="secondary"
+          >
+            🔍
+          </button>
+
+        </div>
+
+        <div id="searchResults"></div>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="section-title">
+          🟢 Online Users
+        </div>
+
+        <div id="onlineUsers">
+          Namni online hin jiru.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CHAT -->
+
+    <section id="chatPage" class="hidden">
+
+      <div class="chat-header">
+
+        <div
+          class="avatar"
+          id="chatAvatar"
+        >
+          U
+        </div>
+
         <div>
-          <b>🎙️ Live Voice</b>
-          <div style="font-size:12px;margin-top:4px">
-            Speakers fi audience
+
+          <strong id="chatWith">
+            User
+          </strong>
+
+          <div
+            id="chatStatus"
+            style="font-size:12px;color:#718078"
+          >
+            Offline
           </div>
+
         </div>
 
-        <div id="clubVoiceStatus" class="voice-status">
-          🔴 Voice Off
+        <div class="chat-actions">
+
+          <button
+            id="voiceCallBtn"
+            class="secondary"
+          >
+            📞
+          </button>
+
+          <button
+            id="videoCallBtn"
+            class="secondary"
+          >
+            📹
+          </button>
+
         </div>
+
       </div>
 
-      <div id="clubVoiceMembers" class="voice-members">
-        <div class="voice-member">
-          👂 Audience
-        </div>
-      </div>
 
-      <div id="clubAudienceInfo" class="club-audience">
-        👂 Audience: club keessa jiran dhaggeeffachuu danda'u.
-      </div>
+      <div
+        id="chatBox"
+        class="chat-box"
+      ></div>
 
-      <div class="voice-buttons">
-        <button id="clubVoiceBtn" class="voice-on">
-          🎙️ Voice Seeni
-        </button>
-
-        <button id="clubVoiceMuteBtn" class="voice-on">
-          🔊 Mic On
-        </button>
-      </div>
-
-      <!-- Remote audio elements are created here by JavaScript -->
-      <div id="clubAudioContainer"></div>
-
-    </div>
-
-    <div class="card">
-      <h3>🪑 Seats 15</h3>
-      <div id="seats" class="seats"></div>
-
-      <div id="ownerControls" class="controls hidden">
-        <button id="ownerMuteBtn">🔇 Mute Member</button>
-        <button id="removeMemberBtn">🚫 Remove</button>
-      </div>
-
-      <div id="memberControls" class="controls">
-        <button id="requestSeatBtn">🙋 Raise Hand / Seat</button>
-        <button id="selfMuteBtn">🎙️ Mic On/Off</button>
-        <button id="leaveSeatBtn">🪑 Seat Gadhi</button>
-      </div>
-
-      <div class="controls">
-        <button data-gift="❤️">❤️</button>
-        <button data-gift="🌹">🌹</button>
-        <button data-gift="🎁">🎁</button>
-        <button data-gift="⭐">⭐</button>
-        <button data-gift="👑">👑</button>
-      </div>
-    </div>
-
-    <div class="club-chat">
-      <h3>💬 Club Chat</h3>
-      <div id="clubChatBox" class="club-chat-box"></div>
 
       <div class="chat-input">
-        <input id="clubMessage" placeholder="Ergaa Club...">
-        <button id="sendClubMessageBtn">➤</button>
+
+        <input
+          id="messageInput"
+          placeholder="Ergaa barreessi..."
+        >
+
+        <button
+          id="sendMessageBtn"
+          class="primary"
+          style="width:auto"
+        >
+          ➤
+        </button>
+
       </div>
-    </div>
 
-    <button id="leaveClubBtn" class="danger">
-      🚪 Club Ba'i
+    </section>
+
+
+    <!-- CLUB -->
+
+    <section id="clubPage" class="hidden">
+
+      <div
+        id="clubEmpty"
+        class="card"
+      >
+
+        <div class="section-title">
+          🎙️ Voice Club
+        </div>
+
+        <div class="club-create">
+
+          <input
+            id="clubName"
+            placeholder="Maqaa Club"
+          >
+
+          <button id="createClubBtn">
+            Uumi
+          </button>
+
+        </div>
+
+        <div
+          style="
+          text-align:center;
+          margin:15px 0;
+          color:#718078;
+          "
+        >
+          ykn
+        </div>
+
+        <div class="club-create">
+
+          <input
+            id="clubIdInput"
+            placeholder="Club ID"
+          >
+
+          <button id="joinClubBtn">
+            Seeni
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="clubArea"
+        class="hidden"
+      >
+
+        <div class="club-header">
+
+          <h2 id="clubTitle">
+            Voice Club
+          </h2>
+
+          <p>
+            ID:
+            <strong id="clubIdText"></strong>
+          </p>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="section-title">
+            🪑 Seats — 15
+          </div>
+
+          <div
+            id="seats"
+            class="seats"
+          ></div>
+
+
+          <div
+            id="ownerControls"
+            class="controls hidden"
+          >
+
+            <button id="ownerMuteBtn">
+              🔇 Mute
+            </button>
+
+            <button id="removeMemberBtn">
+              ❌ Remove
+            </button>
+
+          </div>
+
+
+          <div
+            id="memberControls"
+            class="controls"
+          >
+
+            <button id="requestSeatBtn">
+              🙋 Seat Gaafadhu
+            </button>
+
+            <button id="selfMuteBtn">
+              🎙️ Mute
+            </button>
+
+            <button id="leaveSeatBtn">
+              🚪 Seat Irraa Ba'i
+            </button>
+
+          </div>
+
+
+          <div class="controls">
+
+            <button data-gift="❤️">
+              ❤️
+            </button>
+
+            <button data-gift="🌹">
+              🌹
+            </button>
+
+            <button data-gift="🎁">
+              🎁
+            </button>
+
+            <button data-gift="⭐">
+              ⭐
+            </button>
+
+            <button data-gift="👑">
+              👑
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="section-title">
+            💬 Club Chat
+          </div>
+
+          <div
+            id="clubChatBox"
+            class="club-chat"
+          ></div>
+
+          <div class="chat-input">
+
+            <input
+              id="clubMessage"
+              placeholder="Club keessatti barreessi..."
+            >
+
+            <button
+              id="sendClubMessageBtn"
+              class="primary"
+              style="width:auto"
+            >
+              ➤
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <button
+          id="leaveClubBtn"
+          class="danger"
+          style="width:100%"
+        >
+          🚪 Club Irraa Ba'i
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- PROFILE -->
+
+    <section id="profilePage" class="hidden">
+
+      <div class="card" style="text-align:center">
+
+        <div
+          id="profileAvatar"
+          class="avatar"
+          style="
+          width:90px;
+          height:90px;
+          margin:auto;
+          font-size:30px;
+          "
+        >
+          U
+        </div>
+
+        <h2
+          id="profileUsername"
+          style="margin-top:12px"
+        >
+          User
+        </h2>
+
+        <p id="profileEmail"></p>
+
+      </div>
+
+
+      <div class="card">
+
+        <label>
+          Bio
+        </label>
+
+        <textarea
+          id="bioInput"
+          placeholder="Waa'ee kee barreessi..."
+        ></textarea>
+
+        <label>
+          Avatar URL ykn data
+        </label>
+
+        <input
+          id="avatarInput"
+          placeholder="https://..."
+        >
+
+        <button
+          id="saveProfileBtn"
+          class="primary"
+        >
+          💾 Save Profile
+        </button>
+
+      </div>
+
+
+      <div class="card">
+
+        <button
+          id="followProfileBtn"
+          class="secondary"
+          style="width:100%"
+        >
+          ➕ Follow
+        </button>
+
+        <br><br>
+
+        <button
+          id="blockProfileBtn"
+          class="danger"
+          style="width:100%"
+        >
+          🚫 Block
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- BOTTOM NAV -->
+
+  <nav class="bottom-nav">
+
+    <button
+      id="navHome"
+      class="active"
+    >
+      🏠<br>
+      Home
     </button>
 
-  </div>
-
-</section>
-
-<!-- PROFILE -->
-<section id="profilePage" class="hidden">
-
-  <div class="card profile-top">
-    <div id="profileAvatar" class="profile-big">U</div>
-
-    <h2 id="profileUsername">Username</h2>
-    <p id="profileEmail"></p>
-
-    <div class="profile-actions">
-      <button id="followProfileBtn" class="primary">➕ Follow</button>
-      <button id="blockProfileBtn" class="danger">🚫 Block</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>👤 Profile</h3>
-    <textarea id="bioInput" placeholder="Waa'ee kee barreessi..."></textarea>
-
-    <input id="avatarInput" placeholder="Profile image URL">
-
-    <button id="saveProfileBtn" class="primary">
-      💾 Save Profile
+    <button id="navChat">
+      💬<br>
+      Chat
     </button>
-  </div>
 
-</section>
+    <button id="navClub">
+      🎙️<br>
+      Club
+    </button>
 
-</main>
+    <button id="navProfile">
+      👤<br>
+      Profile
+    </button>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <button id="navHome" class="active">🏠<br>Home</button>
-  <button id="navChat">💬<br>Chat</button>
-  <button id="navClub">🎙️<br>Club</button>
-  <button id="navProfile">👤<br>Profile</button>
-</nav>
+  </nav>
 
 </div>
 
-<!-- ================= NOTIFICATIONS ================= -->
-<div id="notificationModal" class="modal hidden">
+
+<!-- NOTIFICATIONS -->
+
+<div
+  id="notificationModal"
+  class="modal hidden"
+>
+
   <div class="modal-card">
-    <h2>🔔 Notifications</h2>
-    <div id="notifications"></div>
+
+    <h2>
+      🔔 Notifications
+    </h2>
+
+    <div
+      id="notifications"
+      style="margin-top:15px"
+    ></div>
 
     <div class="modal-actions">
-      <button id="readNotificationsBtn" class="primary">
-        Read All
-      </button>
-      <button id="closeNotificationBtn" class="secondary">
+
+      <button
+        id="closeNotificationBtn"
+        class="secondary"
+      >
         Cufi
       </button>
+
+      <button
+        id="readNotificationsBtn"
+        class="primary"
+      >
+        Hundaa Akka Dubbifame
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
-<!-- ================= USER PROFILE ================= -->
-<div id="userModal" class="modal hidden">
+
+<!-- USER MODAL -->
+
+<div
+  id="userModal"
+  class="modal hidden"
+>
+
   <div class="modal-card">
+
     <div id="userProfileContent"></div>
 
     <div class="modal-actions">
-      <button id="openUserChatBtn" class="primary">
-        💬 Chat
-      </button>
-      <button id="closeUserModalBtn" class="secondary">
+
+      <button
+        id="closeUserModalBtn"
+        class="secondary"
+      >
         Cufi
       </button>
+
+      <button
+        id="openUserChatBtn"
+        class="primary"
+      >
+        💬 Chat
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
-<!-- ================= SETTINGS ================= -->
-<div id="settingsModal" class="modal hidden">
+
+<!-- SETTINGS -->
+
+<div
+  id="settingsModal"
+  class="modal hidden"
+>
+
   <div class="modal-card">
 
-    <h2>⚙️ Settings</h2>
+    <h2>
+      ⚙️ Settings
+    </h2>
 
     <div class="setting">
-      <span>🌙 Dark Mode</span>
-      <input type="checkbox" id="darkModeToggle">
+
+      <span>
+        🌙 Dark Mode
+      </span>
+
+      <input
+        type="checkbox"
+        id="darkModeToggle"
+        style="width:auto"
+      >
+
     </div>
 
     <div class="setting">
-      <span>🔔 Notifications</span>
-      <input type="checkbox" id="notificationToggle">
+
+      <span>
+        🔔 Notifications
+      </span>
+
+      <input
+        type="checkbox"
+        id="notificationToggle"
+        checked
+        style="width:auto"
+      >
+
     </div>
 
-    <button id="logoutBtn" class="danger">
-      🚪 Logout
-    </button>
+    <div
+      class="modal-actions"
+    >
 
-    <button id="closeSettingsBtn" class="secondary">
-      Cufi
-    </button>
+      <button
+        id="logoutBtn"
+        class="danger"
+      >
+        🚪 Logout
+      </button>
+
+      <button
+        id="closeSettingsBtn"
+        class="secondary"
+      >
+        Cufi
+      </button>
+
+    </div>
 
   </div>
+
 </div>
 
-<!-- ================= INCOMING CALL ================= -->
-<div id="incomingCallModal" class="modal hidden">
+
+<!-- INCOMING CALL -->
+
+<div
+  id="incomingCallModal"
+  class="modal hidden"
+>
+
   <div class="modal-card" style="text-align:center">
 
-    <h2>📞 Call dhufaa jira</h2>
-    <h3 id="callerName">User</h3>
-    <p id="callerType">Voice Call</p>
+    <h2>
+      📞 Incoming Call
+    </h2>
+
+    <div
+      id="callerName"
+      class="call-avatar"
+    >
+      U
+    </div>
+
+    <h3 id="callerType">
+      Voice Call
+    </h3>
 
     <div class="modal-actions">
-      <button id="rejectCallBtn" class="danger">
+
+      <button
+        id="rejectCallBtn"
+        class="danger"
+      >
         ❌ Diddaa
       </button>
 
-      <button id="acceptCallBtn" class="primary">
+      <button
+        id="acceptCallBtn"
+        class="primary"
+      >
         ✅ Fudhadhu
       </button>
+
     </div>
 
   </div>
+
 </div>
 
-<!-- ================= CALL ================= -->
-<div id="callModal" class="modal hidden">
+
+<!-- CALL -->
+
+<div
+  id="callModal"
+  class="modal hidden"
+>
+
   <div class="modal-card">
 
-    <h2 id="callTitle">Call</h2>
+    <h2 id="callTitle">
+      Call
+    </h2>
 
-    <div id="videoArea" class="video-area">
-      <video id="remoteVideo" autoplay playsinline></video>
-      <video id="localVideo" autoplay playsinline muted></video>
 
-      <div id="voiceCallInfo" class="call-avatar hidden">
-        <div id="callAvatar">U</div>
-        <h3 id="voiceCaller">User</h3>
-      </div>
+    <div
+      id="videoArea"
+      class="video-area hidden"
+    >
+
+      <video
+        id="remoteVideo"
+        autoplay
+        playsinline
+      ></video>
+
+      <video
+        id="localVideo"
+        autoplay
+        muted
+        playsinline
+      ></video>
+
     </div>
 
-    <button id="endCallBtn" class="danger">
-      📵 Call Cuti
-    </button>
+
+    <div
+      id="voiceCallInfo"
+      style="text-align:center"
+    >
+
+      <div
+        id="callAvatar"
+        class="call-avatar"
+      >
+        U
+      </div>
+
+      <h3 id="voiceCaller">
+        Calling...
+      </h3>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <button
+        id="endCallBtn"
+        class="danger"
+      >
+        📵 Call Cufi
+      </button>
+
+    </div>
 
   </div>
+
 </div>
 
-<div id="toast" class="toast hidden"></div>
+
+<div
+  id="toast"
+  class="toast"
+></div>
+
 
 <script>
 "use strict";
 
-/* ================= GLOBALS ================= */
+/* =========================
+   GLOBAL STATE
+========================= */
 
 const $ = id => document.getElementById(id);
 
@@ -1028,128 +1463,175 @@ let selectedSeat = null;
 
 let incomingCallData = null;
 let currentCallTarget = null;
-let currentCallTargetSocketId = null;
 let currentCallType = null;
 
 let localStream = null;
 let peerConnection = null;
 
-let remoteDescriptionReady = false;
-let pendingIceCandidates = [];
-
 let notificationEnabled =
   localStorage.getItem("waliin_notifications") !== "false";
 
 const rtcConfig = {
-  iceServers:[
-    {urls:"stun:stun.l.google.com:19302"},
-    {urls:"stun:stun1.l.google.com:19302"}
+  iceServers: [
+    {
+      urls: "stun:stun.l.google.com:19302"
+    },
+    {
+      urls: "stun:stun1.l.google.com:19302"
+    }
   ]
 };
 
-/* ================= CLUB VOICE GLOBALS ================= */
 
-let clubVoiceStream = null;
-let clubVoiceReady = false;
-let clubVoiceMuted = false;
-let clubVoicePeers = new Map();
-let clubVoiceConnections = new Map();
-let clubVoicePendingIce = new Map();
-
-/* ================= SOCKET ================= */
+/* =========================
+   SOCKET
+========================= */
 
 const socket = io({
-  autoConnect:true,
-  reconnection:true,
-  reconnectionAttempts:Infinity,
-  reconnectionDelay:1000,
-  reconnectionDelayMax:5000,
-  transports:["websocket","polling"]
+  autoConnect: true,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  transports: ["websocket", "polling"]
 });
 
-socket.on("connect",()=>{
-  console.log("🟢 Connected:",socket.id);
 
-  if(currentUser){
-    socket.emit("identify",{
-      username:currentUser.username
+socket.on("connect", () => {
+
+  console.log("🟢 Connected:", socket.id);
+
+  showToast("🟢 Server waliin walqabate.");
+
+  if (currentUser) {
+    socket.emit("identify", {
+      username: currentUser.username
     });
   }
 
   updateConnectionStatus(true);
-
-  if(currentClub){
-    setTimeout(()=>{
-      refreshClubVoice();
-    },500);
-  }
 });
 
-socket.on("disconnect",()=>{
+
+socket.on("disconnect", (reason) => {
+
+  console.log(
+    "❌ Disconnected:",
+    socket.id,
+    reason
+  );
+
+  updateConnectionStatus(false);
+
+  showToast(
+    "🔴 Connection cite. Irra deebiin walqabsiisaa..."
+  );
+});
+
+
+socket.on("connect_error", error => {
+
+  console.error(
+    "❌ Socket connection error:",
+    error.message
+  );
+
   updateConnectionStatus(false);
 });
 
-socket.on("connect_error",err=>{
-  console.error("Socket:",err.message);
-  updateConnectionStatus(false);
+
+socket.io.on("reconnect_attempt", attempt => {
+
+  console.log(
+    "🔄 Reconnect attempt:",
+    attempt
+  );
 });
 
-function updateConnectionStatus(online){
-  if($("chatStatus") && currentChatUser){
-    $("chatStatus").textContent =
-      online ? "Online system" : "Connection cite";
+
+function updateConnectionStatus(connected){
+
+  const el = $("chatStatus");
+
+  if (!el) return;
+
+  if (connected) {
+    el.classList.add("connected");
+    el.classList.remove("disconnected");
+  } else {
+    el.classList.add("disconnected");
+    el.classList.remove("connected");
   }
 }
 
-/* ================= TOAST ================= */
+
+/* =========================
+   TOAST
+========================= */
 
 let toastTimer;
 
 function showToast(message){
-  const t=$("toast");
-  t.textContent=message;
-  t.classList.remove("hidden");
+
+  const toast = $("toast");
+
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.classList.add("show");
 
   clearTimeout(toastTimer);
 
-  toastTimer=setTimeout(()=>{
-    t.classList.add("hidden");
-  },3000);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
 }
 
-/* ================= API ================= */
 
-async function api(url,options={}){
-  const headers={
+/* =========================
+   API
+========================= */
+
+async function api(url, options = {}){
+
+  const headers = {
     "Content-Type":"application/json",
-    ...(options.headers||{})
+    ...(options.headers || {})
   };
 
-  if(token){
-    headers.Authorization=`Bearer ${token}`;
+  if (token) {
+    headers.Authorization =
+      `Bearer ${token}`;
   }
 
-  const response=await fetch(url,{
-    ...options,
-    headers
-  });
+  const response =
+    await fetch(url,{
+      ...options,
+      headers
+    });
 
-  let data={};
+  let data = {};
 
-  try{
-    data=await response.json();
-  }catch{}
+  try {
+    data = await response.json();
+  } catch {}
 
-  if(!response.ok){
-    throw new Error(data.error||"Request failed.");
+  if (!response.ok) {
+    throw new Error(
+      data.error || "Request failed."
+    );
   }
 
   return data;
 }
 
-/* ================= AUTH ================= */
 
-$("loginTab").onclick=()=>{
+/* =========================
+   AUTH TABS
+========================= */
+
+$("loginTab").onclick = () => {
+
   $("loginTab").classList.add("active");
   $("registerTab").classList.remove("active");
 
@@ -1157,7 +1639,9 @@ $("loginTab").onclick=()=>{
   $("registerBox").classList.add("hidden");
 };
 
-$("registerTab").onclick=()=>{
+
+$("registerTab").onclick = () => {
+
   $("registerTab").classList.add("active");
   $("loginTab").classList.remove("active");
 
@@ -1165,30 +1649,51 @@ $("registerTab").onclick=()=>{
   $("loginBox").classList.add("hidden");
 };
 
-$("registerBtn").onclick=async()=>{
-  const username=$("regUsername").value.trim();
-  const email=$("regEmail").value.trim();
-  const password=$("regPassword").value;
 
-  if(!username||!email||!password){
-    showToast("⚠️ Odeeffannoo guuti.");
-    return;
-  }
+/* =========================
+   REGISTER
+========================= */
 
-  try{
-    const data=await api("/api/register",{
-      method:"POST",
-      body:JSON.stringify({
-        username,
-        email,
-        password
-      })
-    });
+$("registerBtn").onclick = async () => {
 
-    token=data.token;
-    currentUser=data.user;
+  try {
 
-    localStorage.setItem("waliin_token",token);
+    const username =
+      $("regUsername").value.trim();
+
+    const email =
+      $("regEmail").value.trim();
+
+    const password =
+      $("regPassword").value;
+
+    if (!username || !email || !password) {
+      showToast("⚠️ Odeeffannoo guuti.");
+      return;
+    }
+
+    $("registerBtn").disabled = true;
+
+    const data = await api(
+      "/api/register",
+      {
+        method:"POST",
+        body:JSON.stringify({
+          username,
+          email,
+          password
+        })
+      }
+    );
+
+    token = data.token;
+    currentUser = data.user;
+
+    localStorage.setItem(
+      "waliin_token",
+      token
+    );
+
     localStorage.setItem(
       "waliin_user",
       JSON.stringify(currentUser)
@@ -1196,34 +1701,61 @@ $("registerBtn").onclick=async()=>{
 
     enterApp();
 
-  }catch(err){
-    showToast("❌ "+err.message);
+    showToast("✅ Account uumame.");
+
+  } catch(error){
+
+    showToast("❌ " + error.message);
+
+  } finally {
+
+    $("registerBtn").disabled = false;
   }
 };
 
-$("loginBtn").onclick=async()=>{
-  const login=$("loginValue").value.trim();
-  const password=$("loginPassword").value;
 
-  if(!login||!password){
-    showToast("⚠️ Username/email fi password guuti.");
-    return;
-  }
+/* =========================
+   LOGIN
+========================= */
 
-  try{
-    const data=await api("/api/login",{
-      method:"POST",
-      body:JSON.stringify({
-        login,
-        value:login,
-        password
-      })
-    });
+$("loginBtn").onclick = async () => {
 
-    token=data.token;
-    currentUser=data.user;
+  try {
 
-    localStorage.setItem("waliin_token",token);
+    const login =
+      $("loginValue").value.trim();
+
+    const password =
+      $("loginPassword").value;
+
+    if (!login || !password) {
+      showToast(
+        "⚠️ Username/email fi password galchi."
+      );
+      return;
+    }
+
+    $("loginBtn").disabled = true;
+
+    const data = await api(
+      "/api/login",
+      {
+        method:"POST",
+        body:JSON.stringify({
+          login,
+          password
+        })
+      }
+    );
+
+    token = data.token;
+    currentUser = data.user;
+
+    localStorage.setItem(
+      "waliin_token",
+      token
+    );
+
     localStorage.setItem(
       "waliin_user",
       JSON.stringify(currentUser)
@@ -1231,918 +1763,1806 @@ $("loginBtn").onclick=async()=>{
 
     enterApp();
 
-  }catch(err){
-    showToast("❌ "+err.message);
+    showToast("✅ Baga nagaan dhuftan.");
+
+  } catch(error){
+
+    showToast("❌ " + error.message);
+
+  } finally {
+
+    $("loginBtn").disabled = false;
   }
 };
 
-/* ================= FORGOT ================= */
 
-$("forgotBtn").onclick=async()=>{
-  const email=prompt("Email kee galchi:");
-
-  if(!email)return;
-
-  try{
-    const data=await api("/api/forgot-password",{
-      method:"POST",
-      body:JSON.stringify({email})
-    });
-
-    showToast(data.message||"Reset request ergame.");
-  }catch(err){
-    showToast("❌ "+err.message);
-  }
-};
-
-/* ================= ENTER APP ================= */
+/* =========================
+   ENTER APP
+========================= */
 
 function enterApp(){
 
   $("authPage").classList.add("hidden");
   $("appPage").classList.remove("hidden");
 
-  $("welcomeName").textContent=
-    currentUser?.username||"User";
+  $("welcomeName").textContent =
+    currentUser.username;
 
-  socket.emit("identify",{
-    username:currentUser.username
+  socket.emit("identify", {
+    username: currentUser.username
   });
 
   loadOnlineUsers();
-  loadNotifications();
-  loadNotificationCount();
-  loadPosts();
+  loadUnreadNotifications();
 
   showPage("home");
 }
 
-/* ================= RESTORE ================= */
+
+/* =========================
+   AUTO LOGIN
+========================= */
 
 function restoreLogin(){
 
-  const savedUser=
+  const saved =
     localStorage.getItem("waliin_user");
 
-  if(token&&savedUser){
+  if (!token || !saved) return;
 
-    try{
-      currentUser=JSON.parse(savedUser);
+  try {
+
+    currentUser = JSON.parse(saved);
+
+    if (currentUser?.username) {
       enterApp();
-    }catch{
-      logoutLocal();
     }
 
+  } catch {
+
+    localStorage.removeItem("waliin_user");
+    localStorage.removeItem("waliin_token");
   }
 }
 
-restoreLogin();
 
-/* ================= NAVIGATION ================= */
+/* =========================
+   NAVIGATION
+========================= */
 
 function showPage(page){
 
-  ["home","chat","club","profile"].forEach(p=>{
-    const el=$(p+"Page");
-    if(el)el.classList.add("hidden");
-  });
+  $("homePage").classList.add("hidden");
+  $("chatPage").classList.add("hidden");
+  $("clubPage").classList.add("hidden");
+  $("profilePage").classList.add("hidden");
 
-  document.querySelectorAll(".bottom-nav button")
-    .forEach(b=>b.classList.remove("active"));
+  $("navHome").classList.remove("active");
+  $("navChat").classList.remove("active");
+  $("navClub").classList.remove("active");
+  $("navProfile").classList.remove("active");
 
-  if(page==="home"){
+  if(page === "home"){
     $("homePage").classList.remove("hidden");
     $("navHome").classList.add("active");
-    loadPosts();
-    loadOnlineUsers();
   }
 
-  if(page==="chat"){
+  if(page === "chat"){
     $("chatPage").classList.remove("hidden");
     $("navChat").classList.add("active");
   }
 
-  if(page==="club"){
+  if(page === "club"){
     $("clubPage").classList.remove("hidden");
     $("navClub").classList.add("active");
   }
 
-  if(page==="profile"){
+  if(page === "profile"){
     $("profilePage").classList.remove("hidden");
     $("navProfile").classList.add("active");
 
-    if(currentUser){
-      loadProfile(currentUser.username);
-    }
+    loadMyProfile();
   }
 }
 
-$("navHome").onclick=()=>{
-  showPage("home");
-};
 
-$("navChat").onclick=()=>{
-  if(!currentChatUser){
-    showToast("💬 Nama tokko jalqaba filadhu.");
-    showPage("home");
+$("navHome").onclick =
+  () => showPage("home");
+
+$("navChat").onclick = () => {
+
+  if (!currentChatUser) {
+    showToast("Nama user filadhu.");
     return;
   }
 
   showPage("chat");
 };
 
-$("navClub").onclick=()=>{
-  showPage("club");
-};
+$("navClub").onclick =
+  () => showPage("club");
 
-$("navProfile").onclick=()=>{
-  showPage("profile");
-};
+$("navProfile").onclick =
+  () => showPage("profile");
 
-/* ================= SEARCH ================= */
 
-$("searchBtn").onclick=searchUsers;
+/* =========================
+   SEARCH
+========================= */
 
-$("searchInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter")searchUsers();
-});
+$("searchBtn").onclick =
+  searchUsers;
+
+$("searchInput").addEventListener(
+  "keydown",
+  e => {
+    if(e.key === "Enter"){
+      searchUsers();
+    }
+  }
+);
+
 
 async function searchUsers(){
 
-  const q=$("searchInput").value.trim();
+  const q =
+    $("searchInput").value.trim();
 
-  if(!q)return;
+  if(!q){
+    $("searchResults").innerHTML = "";
+    return;
+  }
 
   try{
 
-    const data=await api(
-      "/api/users/search?q="+
-      encodeURIComponent(q)
-    );
+    const users =
+      await api(
+        "/api/users/search?q=" +
+        encodeURIComponent(q)
+      );
 
-    const users=Array.isArray(data)
-      ?data
-      :(data.users||[]);
+    const box =
+      $("searchResults");
 
-    renderUsers(users,$("searchResults"));
+    box.innerHTML = "";
 
-  }catch(err){
-    showToast("❌ "+err.message);
+    if(!users.length){
+
+      box.innerHTML =
+        "<p style='padding:12px'>User hin argamne.</p>";
+
+      return;
+    }
+
+    users.forEach(user => {
+
+      box.appendChild(
+        createUserItem(user)
+      );
+
+    });
+
+  }catch(error){
+
+    showToast("❌ " + error.message);
+
   }
 }
 
-/* ================= ONLINE USERS ================= */
+
+/* =========================
+   ONLINE USERS
+========================= */
 
 async function loadOnlineUsers(){
 
   try{
 
-    const data=await api("/api/users/online");
+    const users =
+      await api(
+        "/api/users/online"
+      );
 
-    const users=Array.isArray(data)
-      ?data
-      :(data.users||[]);
+    const box =
+      $("onlineUsers");
 
-    renderUsers(users,$("onlineUsers"),true);
+    box.innerHTML = "";
 
-  }catch(err){
-    console.log(err.message);
+    if(!users.length){
+
+      box.textContent =
+        "Namni online hin jiru.";
+
+      return;
+    }
+
+    users.forEach(user => {
+
+      box.appendChild(
+        createUserItem(
+          user,
+          true
+        )
+      );
+
+    });
+
+  }catch(error){
+
+    console.error(error);
   }
 }
 
-function renderUsers(users,container,showOnline=true){
 
-  container.innerHTML="";
+function createUserItem(
+  user,
+  showOnline = false
+){
 
-  if(!users.length){
-    container.innerHTML=
-      "<p style='color:#777'>Namni hin argamne.</p>";
-    return;
-  }
+  const row =
+    document.createElement("div");
 
-  users.forEach(user=>{
-    container.appendChild(
-      createUserItem(user,showOnline)
-    );
-  });
-}
+  row.className = "user-item";
 
-function createUserItem(user,showOnline=true){
+  const avatar =
+    document.createElement("div");
 
-  const div=document.createElement("div");
-  div.className="user-item";
-
-  const avatar=document.createElement("div");
-  avatar.className="avatar";
+  avatar.className = "avatar";
 
   if(user.avatar){
-    avatar.innerHTML=
-      `<img src="${escapeAttribute(user.avatar)}">`;
+
+    const img =
+      document.createElement("img");
+
+    img.src = user.avatar;
+    avatar.appendChild(img);
+
   }else{
-    avatar.textContent=
-      (user.username||"U")[0].toUpperCase();
+
+    avatar.textContent =
+      (user.username || "U")
+      .charAt(0)
+      .toUpperCase();
   }
 
-  const info=document.createElement("div");
-  info.className="user-info";
+  const info =
+    document.createElement("div");
 
-  info.innerHTML=`
-    <b>${escapeHtml(user.username||"User")}</b>
-    <small>
-      ${
-        showOnline
-        ?'<span class="online-dot"></span>Online'
-        :(escapeHtml(user.bio||""))
-      }
-    </small>
+  info.className = "user-info";
+
+  info.innerHTML = `
+    <strong>${escapeHtml(user.username)}</strong>
+    <small>${escapeHtml(user.bio || "")}</small>
   `;
 
-  const btn=document.createElement("button");
-  btn.textContent="💬 Chat";
+  const dot =
+    document.createElement("div");
 
-  btn.onclick=e=>{
-    e.stopPropagation();
+  dot.className = "online-dot";
+
+  if(!showOnline){
+    dot.style.opacity = "0";
+  }
+
+  const button =
+    document.createElement("button");
+
+  button.className = "secondary";
+  button.textContent = "Chat";
+
+  button.onclick = () => {
+
     openChat(user.username);
+
   };
 
-  div.appendChild(avatar);
-  div.appendChild(info);
-  div.appendChild(btn);
+  row.appendChild(avatar);
+  row.appendChild(info);
+  row.appendChild(dot);
+  row.appendChild(button);
 
-  div.onclick=()=>{
+  row.onclick = e => {
+
+    if(e.target === button) return;
+
     openUserProfile(user.username);
+
   };
 
-  return div;
+  return row;
 }
 
-/* ================= CHAT ================= */
+
+/* =========================
+   CHAT
+========================= */
 
 async function openChat(username){
 
-  currentChatUser=username;
+  username = String(username)
+    .trim()
+    .toLowerCase();
 
-  $("chatWith").textContent=username;
-  $("chatStatus").textContent="Loading...";
+  if(!username) return;
+
+  currentChatUser = username;
 
   showPage("chat");
 
-  try{
+  $("chatWith").textContent =
+    username;
 
-    const profile=
-      await api("/api/profile/"+encodeURIComponent(username));
+  $("chatAvatar").textContent =
+    username.charAt(0).toUpperCase();
 
-    if(profile.user){
-      setChatAvatar(profile.user);
-    }else{
-      setChatAvatar(profile);
-    }
-
-  }catch{
-    $("chatAvatar").textContent=
-      username[0]?.toUpperCase()||"U";
-  }
-
-  await loadMessages();
-
-  socket.emit("messageRead",{
-    sender:username
-  });
-}
-
-function setChatAvatar(user){
-
-  if(user.avatar){
-
-    $("chatAvatar").innerHTML=
-      `<img src="${escapeAttribute(user.avatar)}">`;
-
-  }else{
-
-    $("chatAvatar").textContent=
-      (user.username||"U")[0].toUpperCase();
-
-  }
-}
-
-async function loadMessages(){
-
-  if(!currentChatUser)return;
+  $("chatBox").innerHTML =
+    "<p style='text-align:center'>Loading...</p>";
 
   try{
 
-    const data=await api(
-      "/api/messages?user1="+
-      encodeURIComponent(currentUser.username)+
-      "&user2="+
-      encodeURIComponent(currentChatUser)
-    );
-
-    const messages=Array.isArray(data)
-      ?data
-      :(data.messages||[]);
+    const messages =
+      await api(
+        `/api/messages?user1=${encodeURIComponent(
+          currentUser.username
+        )}&user2=${encodeURIComponent(username)}`
+      );
 
     renderMessages(messages);
 
-  }catch(err){
-    showToast("❌ Chat history: "+err.message);
+    socket.emit(
+      "messageRead",
+      {
+        sender: username
+      }
+    );
+
+  }catch(error){
+
+    showToast(
+      "❌ Chat baname."
+    );
+
   }
 }
 
+
 function renderMessages(messages){
 
-  $("chatBox").innerHTML="";
+  const box = $("chatBox");
 
-  messages.forEach(addMessageToUI);
+  box.innerHTML = "";
+
+  messages.forEach(
+    message => {
+
+      addMessageToUI(
+        message,
+        false
+      );
+
+    }
+  );
 
   scrollChat();
 }
 
-function addMessageToUI(item){
 
-  const div=document.createElement("div");
+function addMessageToUI(
+  item,
+  scroll = true
+){
 
-  const me=
-    item.sender===currentUser.username;
+  if(
+    !item ||
+    !currentChatUser
+  ) return;
 
-  div.className=
-    "message "+(me?"me":"other");
+  const box =
+    $("chatBox");
 
-  div.dataset.id=item.id||"";
+  const me =
+    item.sender ===
+    currentUser.username;
 
-  const time=formatTime(item.created_at);
+  const div =
+    document.createElement("div");
 
-  div.innerHTML=`
-    <div>${escapeHtml(item.message||"")}</div>
+  div.className =
+    "message " +
+    (me ? "me" : "other");
+
+  div.dataset.id =
+    item.id;
+
+  const text =
+    escapeHtml(
+      item.message
+    );
+
+  div.innerHTML = `
+    <div>${text}</div>
     <small>
-      ${time}
-      ${me?(item.is_read?" ✓✓":" ✓"):""}
+      ${formatTime(item.created_at)}
+      ${me
+        ? (item.is_read ? " ✓✓" : " ✓")
+        : ""}
     </small>
   `;
 
   if(me){
 
-    div.addEventListener("contextmenu",e=>{
-      e.preventDefault();
+    div.title =
+      "Message haqsuuf long press/right click";
 
-      if(confirm("Ergaa kana haqaa?")){
+    div.addEventListener(
+      "contextmenu",
+      e => {
 
-        socket.emit("deleteMessage",{
-          id:item.id
-        });
+        e.preventDefault();
+
+        if(
+          confirm(
+            "Ergaa kana haqaa?"
+          )
+        ){
+
+          socket.emit(
+            "deleteMessage",
+            {
+              id:item.id
+            }
+          );
+
+        }
 
       }
-    });
-
+    );
   }
 
-  $("chatBox").appendChild(div);
+  box.appendChild(div);
+
+  if(scroll){
+    scrollChat();
+  }
 }
 
-$("sendMessageBtn").onclick=sendMessage;
 
-$("messageInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    e.preventDefault();
-    sendMessage();
+$("sendMessageBtn").onclick =
+  sendMessage;
+
+$("messageInput").addEventListener(
+  "keydown",
+  e => {
+
+    if(
+      e.key === "Enter" &&
+      !e.shiftKey
+    ){
+
+      e.preventDefault();
+      sendMessage();
+
+    }
+
   }
-});
+);
+
 
 function sendMessage(){
 
-  const message=$("messageInput")
-    .value.trim();
+  if(!currentChatUser){
+    showToast("User filadhu.");
+    return;
+  }
 
-  if(!message||!currentChatUser)return;
+  const input =
+    $("messageInput");
 
-  socket.emit("privateMessage",{
-    receiver:currentChatUser,
-    message
-  });
+  const message =
+    input.value.trim();
 
-  $("messageInput").value="";
-}
+  if(!message) return;
 
-socket.on("privateMessage",item=>{
+  if(!socket.connected){
 
-  if(!currentUser)return;
-
-  const belongs=
-    (
-      item.sender===currentChatUser &&
-      item.receiver===currentUser.username
-    )||
-    (
-      item.receiver===currentChatUser &&
-      item.sender===currentUser.username
+    showToast(
+      "🔴 Server waliin wal hin qabamne."
     );
 
-  if(belongs){
+    return;
+  }
 
-    addMessageToUI(item);
-    scrollChat();
+  socket.emit(
+    "privateMessage",
+    {
+      receiver: currentChatUser,
+      message
+    }
+  );
+
+  input.value = "";
+}
+
+
+socket.on(
+  "privateMessage",
+  item => {
 
     if(
-      item.sender===currentChatUser
+      !currentChatUser
+    ) return;
+
+    const belongs =
+      (
+        item.sender ===
+          currentUser.username &&
+        item.receiver ===
+          currentChatUser
+      )
+      ||
+      (
+        item.receiver ===
+          currentUser.username &&
+        item.sender ===
+          currentChatUser
+      );
+
+    if(!belongs) return;
+
+    addMessageToUI(item);
+
+    if(
+      item.receiver ===
+      currentUser.username
     ){
-      socket.emit("messageRead",{
-        sender:currentChatUser
-      });
+
+      socket.emit(
+        "messageRead",
+        {
+          sender:item.sender
+        }
+      );
     }
+  }
+);
+
+
+socket.on(
+  "messageRead",
+  ({by}) => {
+
+    if(by !== currentChatUser)
+      return;
+
+    document
+      .querySelectorAll(
+        ".message.me"
+      )
+      .forEach(el => {
+
+        const small =
+          el.querySelector("small");
+
+        if(small){
+
+          small.textContent =
+            small.textContent
+              .replace(" ✓","") +
+            " ✓✓";
+
+        }
+
+      });
+  }
+);
+
+
+socket.on(
+  "messageDeleted",
+  item => {
+
+    const el =
+      document.querySelector(
+        `.message[data-id="${item.id}"]`
+      );
+
+    if(!el) return;
+
+    el.innerHTML = `
+      <div><i>Ergaan haqameera.</i></div>
+      <small>${formatTime(
+        new Date().toISOString()
+      )}</small>
+    `;
+  }
+);
+
+
+socket.on(
+  "messageError",
+  data => {
+
+    showToast(
+      "❌ " +
+      (data.message ||
+      "Ergaa erguu hin dandeenye.")
+    );
+  }
+);
+
+
+/* =========================
+   PRESENCE
+========================= */
+
+socket.on(
+  "presenceUpdate",
+  data => {
+
+    if(
+      currentChatUser ===
+      data.username
+    ){
+
+      $("chatStatus").textContent =
+        data.online
+          ? "🟢 Online"
+          : "⚪ Offline";
+
+    }
+
+    loadOnlineUsers();
+  }
+);
+
+
+/* =========================
+   PROFILE
+========================= */
+
+async function loadMyProfile(){
+
+  if(!currentUser) return;
+
+  try{
+
+    const user =
+      await api(
+        "/api/profile/" +
+        encodeURIComponent(
+          currentUser.username
+        )
+      );
+
+    renderProfile(user);
+
+  }catch(error){
+
+    showToast(
+      "❌ Profile baname."
+    );
+  }
+}
+
+
+function renderProfile(user){
+
+  $("profileUsername").textContent =
+    user.username;
+
+  $("profileEmail").textContent =
+    user.email || "";
+
+  $("bioInput").value =
+    user.bio || "";
+
+  $("avatarInput").value =
+    user.avatar || "";
+
+  const avatar =
+    $("profileAvatar");
+
+  avatar.innerHTML = "";
+
+  if(user.avatar){
+
+    const img =
+      document.createElement("img");
+
+    img.src = user.avatar;
+
+    avatar.appendChild(img);
 
   }else{
 
-    loadNotificationCount();
-
+    avatar.textContent =
+      user.username
+        .charAt(0)
+        .toUpperCase();
   }
+}
 
-});
 
-socket.on("messageRead",data=>{
+$("saveProfileBtn").onclick =
+  async () => {
 
-  document
-    .querySelectorAll(".message.me")
-    .forEach(el=>{
+    try{
 
-      const small=el.querySelector("small");
+      const data =
+        await api(
+          "/api/profile/update",
+          {
+            method:"POST",
+            body:JSON.stringify({
+              username:
+                currentUser.username,
 
-      if(
-        small &&
-        !small.textContent.includes("✓✓")
-      ){
-        small.textContent=
-          small.textContent+" ✓✓";
+              bio:
+                $("bioInput").value,
+
+              avatar:
+                $("avatarInput").value
+            })
+          }
+        );
+
+      currentUser = {
+        ...currentUser,
+        ...data.user
+      };
+
+      localStorage.setItem(
+        "waliin_user",
+        JSON.stringify(currentUser)
+      );
+
+      renderProfile(data.user);
+
+      showToast(
+        "✅ Profile save ta'e."
+      );
+
+    }catch(error){
+
+      showToast(
+        "❌ " + error.message
+      );
+    }
+  };
+
+
+/* =========================
+   USER PROFILE
+========================= */
+
+async function openUserProfile(username){
+
+  try{
+
+    currentProfileUser =
+      username;
+
+    const user =
+      await api(
+        "/api/profile/" +
+        encodeURIComponent(username)
+      );
+
+    const box =
+      $("userProfileContent");
+
+    box.innerHTML = `
+      <div style="text-align:center">
+        <div class="avatar"
+             style="width:90px;height:90px;margin:auto;font-size:30px">
+          ${
+            user.avatar
+              ? `<img src="${escapeAttribute(user.avatar)}">`
+              : escapeHtml(
+                  user.username
+                    .charAt(0)
+                    .toUpperCase()
+                )
+          }
+        </div>
+
+        <h2 style="margin-top:12px">
+          ${escapeHtml(user.username)}
+        </h2>
+
+        <p>${escapeHtml(user.bio || "")}</p>
+
+        <p style="margin-top:10px">
+          👥 Followers:
+          ${user.followers || 0}
+          <br>
+          ➕ Following:
+          ${user.following || 0}
+        </p>
+      </div>
+    `;
+
+    $("userModal")
+      .classList.remove("hidden");
+
+  }catch(error){
+
+    showToast(
+      "❌ User hin argamne."
+    );
+  }
+}
+
+
+$("closeUserModalBtn").onclick =
+  () => {
+
+    $("userModal")
+      .classList.add("hidden");
+
+  };
+
+
+$("openUserChatBtn").onclick =
+  () => {
+
+    if(!currentProfileUser)
+      return;
+
+    $("userModal")
+      .classList.add("hidden");
+
+    openChat(
+      currentProfileUser
+    );
+  };
+
+
+/* =========================
+   FOLLOW
+========================= */
+
+$("followProfileBtn").onclick =
+  async () => {
+
+    if(!currentProfileUser)
+      return;
+
+    try{
+
+      const data =
+        await api(
+          "/api/follow",
+          {
+            method:"POST",
+            body:JSON.stringify({
+              follower:
+                currentUser.username,
+
+              following:
+                currentProfileUser
+            })
+          }
+        );
+
+      showToast(
+        data.following
+          ? "✅ Followed."
+          : "Follow irraa baate."
+      );
+
+    }catch(error){
+
+      showToast(
+        "❌ " + error.message
+      );
+    }
+  };
+
+
+/* =========================
+   BLOCK
+========================= */
+
+$("blockProfileBtn").onclick =
+  async () => {
+
+    if(!currentProfileUser)
+      return;
+
+    if(
+      !confirm(
+        "User kana block/unblock gochuu barbaaddaa?"
+      )
+    ) return;
+
+    try{
+
+      const data =
+        await api(
+          "/api/block",
+          {
+            method:"POST",
+            body:JSON.stringify({
+              username:
+                currentUser.username,
+
+              blocked:
+                currentProfileUser
+            })
+          }
+        );
+
+      showToast(
+        data.blocked
+          ? "🚫 User blocked."
+          : "User unblock ta'e."
+      );
+
+    }catch(error){
+
+      showToast(
+        "❌ " + error.message
+      );
+    }
+  };
+
+
+/* =========================
+   CLUB
+========================= */
+
+$("createClubBtn").onclick =
+  () => {
+
+    const name =
+      $("clubName").value.trim();
+
+    if(!name){
+
+      showToast(
+        "Maqaa club galchi."
+      );
+
+      return;
+    }
+
+    socket.emit(
+      "createClub",
+      {
+        name,
+        username:
+          currentUser.username
+      },
+      response => {
+
+        if(!response?.ok){
+
+          showToast(
+            "❌ " +
+            (response?.error ||
+             "Club uumamuu dide.")
+          );
+
+          return;
+        }
+
+        openClub(
+          response.club
+        );
+
+        showToast(
+          "✅ Club uumame."
+        );
       }
+    );
+  };
 
-    });
 
-});
+$("joinClubBtn").onclick =
+  () => {
 
-socket.on("messageDeleted",data=>{
+    const clubId =
+      $("clubIdInput").value.trim();
 
-  const el=document.querySelector(
-    `.message[data-id="${data.id}"]`
+    if(!clubId){
+
+      showToast(
+        "Club ID galchi."
+      );
+
+      return;
+    }
+
+    socket.emit(
+      "joinClub",
+      {
+        clubId,
+        username:
+          currentUser.username
+      },
+      response => {
+
+        if(!response?.ok){
+
+          showToast(
+            "❌ " +
+            (response?.error ||
+             "Club seenuu dide.")
+          );
+
+          return;
+        }
+
+        openClub(
+          response.club
+        );
+      }
+    );
+  };
+
+
+function openClub(club){
+
+  currentClub =
+    club;
+
+  $("clubEmpty")
+    .classList.add("hidden");
+
+  $("clubArea")
+    .classList.remove("hidden");
+
+  $("clubTitle").textContent =
+    club.name;
+
+  $("clubIdText").textContent =
+    club.id;
+
+  renderSeats(club);
+  renderClubMessages(
+    club.messages || []
   );
 
-  if(el){
+  showPage("club");
+}
 
-    el.innerHTML=
-      "<i>Ergaan haqameera.</i>";
+
+function renderSeats(club){
+
+  const box =
+    $("seats");
+
+  box.innerHTML = "";
+
+  club.seats.forEach(
+    seat => {
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "seat";
+
+      if(seat.username){
+        div.classList.add("active");
+      }
+
+      if(
+        seat.username ===
+        currentUser.username
+      ){
+        selectedSeat =
+          seat.seat;
+      }
+
+      div.innerHTML = `
+        <div class="seat-number">
+          ${seat.seat + 1}
+        </div>
+
+        <small>
+          ${
+            seat.username
+              ? escapeHtml(
+                  seat.username
+                )
+              : "Duwwaa"
+          }
+        </small>
+
+        ${
+          seat.muted
+            ? "<span>🔇</span>"
+            : "<span>🎙️</span>"
+        }
+      `;
+
+      div.onclick = () => {
+
+        if(
+          club.owner ===
+          currentUser.username
+        ){
+
+          const username =
+            prompt(
+              "Username seat kanaaf kennamu:"
+            );
+
+          if(!username) return;
+
+          const seatNumber =
+            prompt(
+              "Seat 1-15:"
+            );
+
+          const number =
+            Number(seatNumber);
+
+          if(
+            number < 1 ||
+            number > 15
+          ){
+
+            showToast(
+              "Seat 1 hanga 15."
+            );
+
+            return;
+          }
+
+          socket.emit(
+            "giveSeat",
+            {
+              username:
+                username.trim()
+                  .toLowerCase(),
+
+              seat:number - 1
+            }
+          );
+        }
+      };
+
+      box.appendChild(div);
+    }
+  );
+
+  $("ownerControls")
+    .classList.toggle(
+      "hidden",
+      club.owner !==
+      currentUser.username
+    );
+}
+
+
+$("requestSeatBtn").onclick =
+  () => {
+
+    socket.emit(
+      "requestSeat"
+    );
+
+    showToast(
+      "🙋 Seat request ergame."
+    );
+  };
+
+
+$("leaveSeatBtn").onclick =
+  () => {
+
+    socket.emit(
+      "leaveSeat"
+    );
+  };
+
+
+$("selfMuteBtn").onclick =
+  () => {
+
+    const muted =
+      $("selfMuteBtn")
+        .dataset.muted !== "true";
+
+    $("selfMuteBtn")
+      .dataset.muted =
+      String(muted);
+
+    $("selfMuteBtn").textContent =
+      muted
+        ? "🔊 Unmute"
+        : "🎙️ Mute";
+
+    socket.emit(
+      "muteSelf",
+      { muted }
+    );
+  };
+
+
+$("ownerMuteBtn").onclick =
+  () => {
+
+    if(!currentClub) return;
+
+    const username =
+      prompt(
+        "Username mute godhu:"
+      );
+
+    if(!username) return;
+
+    socket.emit(
+      "ownerMute",
+      {
+        username:
+          username.trim()
+            .toLowerCase()
+      }
+    );
+  };
+
+
+$("removeMemberBtn").onclick =
+  () => {
+
+    const username =
+      prompt(
+        "Username remove godhu:"
+      );
+
+    if(!username) return;
+
+    socket.emit(
+      "removeMember",
+      {
+        username:
+          username.trim()
+            .toLowerCase()
+      }
+    );
+  };
+
+
+$("leaveClubBtn").onclick =
+  () => {
+
+    socket.emit(
+      "leaveClub"
+    );
+
+    currentClub = null;
+
+    $("clubArea")
+      .classList.add("hidden");
+
+    $("clubEmpty")
+      .classList.remove("hidden");
+  };
+
+
+socket.on(
+  "clubUpdated",
+  club => {
+
+    if(
+      !currentClub ||
+      club.id !== currentClub.id
+    ) return;
+
+    currentClub = club;
+
+    renderSeats(club);
+
+    renderClubMessages(
+      club.messages || []
+    );
+  }
+);
+
+
+socket.on(
+  "clubMemberUpdate",
+  club => {
+
+    if(
+      !currentClub ||
+      club.id !== currentClub.id
+    ) return;
+
+    currentClub = club;
+
+    renderSeats(club);
+  }
+);
+
+
+socket.on(
+  "removedFromClub",
+  () => {
+
+    currentClub = null;
+
+    $("clubArea")
+      .classList.add("hidden");
+
+    $("clubEmpty")
+      .classList.remove("hidden");
+
+    showToast(
+      "🚫 Club keessaa si baasan."
+    );
+  }
+);
+
+
+/* =========================
+   CLUB CHAT
+========================= */
+
+$("sendClubMessageBtn").onclick =
+  sendClubMessage;
+
+
+$("clubMessage").addEventListener(
+  "keydown",
+  e => {
+
+    if(
+      e.key === "Enter"
+    ){
+
+      e.preventDefault();
+
+      sendClubMessage();
+    }
 
   }
+);
 
-});
 
-socket.on("messageError",data=>{
-  showToast("❌ "+(data.error||"Message error"));
-});
+function sendClubMessage(){
 
-socket.on("presenceUpdate",()=>{
-  loadOnlineUsers();
+  const input =
+    $("clubMessage");
 
-  if(currentChatUser){
-    $("chatStatus").textContent="Online";
+  const message =
+    input.value.trim();
+
+  if(!message) return;
+
+  socket.emit(
+    "chatMessage",
+    {
+      message
+    }
+  );
+
+  input.value = "";
+}
+
+
+socket.on(
+  "clubChatMessage",
+  message => {
+
+    if(!currentClub) return;
+
+    addClubMessage(
+      message
+    );
   }
-});
+);
 
-/* ================= CALL ================= */
 
-$("voiceCallBtn").onclick=()=>{
-  startCall("voice");
-};
+function renderClubMessages(
+  messages
+){
 
-$("videoCallBtn").onclick=()=>{
-  startCall("video");
-};
+  $("clubChatBox").innerHTML = "";
+
+  messages.forEach(
+    addClubMessage
+  );
+}
+
+
+function addClubMessage(
+  message
+){
+
+  const box =
+    $("clubChatBox");
+
+  const div =
+    document.createElement("div");
+
+  div.className =
+    "club-message";
+
+  div.innerHTML = `
+    <strong>
+      ${escapeHtml(message.username)}
+    </strong>
+    :
+    ${escapeHtml(message.message)}
+    <small style="float:right">
+      ${formatTime(message.created_at)}
+    </small>
+  `;
+
+  box.appendChild(div);
+
+  box.scrollTop =
+    box.scrollHeight;
+}
+
+
+/* =========================
+   GIFTS
+========================= */
+
+document
+  .querySelectorAll(
+    "[data-gift]"
+  )
+  .forEach(button => {
+
+    button.onclick = () => {
+
+      if(!currentClub){
+
+        showToast(
+          "Jalqaba club seeni."
+        );
+
+        return;
+      }
+
+      socket.emit(
+        "sendGift",
+        {
+          gift:
+            button.dataset.gift
+        }
+      );
+    };
+  });
+
+
+socket.on(
+  "giftReceived",
+  data => {
+
+    showToast(
+      `${data.from} ${data.gift} erge!`
+    );
+  }
+);
+
+
+/* =========================
+   CALLS
+========================= */
+
+$("voiceCallBtn").onclick =
+  () => startCall("voice");
+
+
+$("videoCallBtn").onclick =
+  () => startCall("video");
+
 
 async function startCall(type){
 
   if(!currentChatUser){
-    showToast("User hin filatamne.");
-    return;
-  }
-
-  try{
-
-    currentCallTarget=currentChatUser;
-    currentCallTargetSocketId=null;
-    currentCallType=type;
-
-    await getMedia(type);
-
-    showCallModal(type);
-
-    socket.emit("callUser",{
-      username:currentChatUser,
-      callType:type
-    });
-
-    showToast("📞 Call waamamaa jira...");
-
-  }catch(err){
 
     showToast(
-      "❌ Camera/Mic hayyami: "+
-      err.message
+      "Jalqaba user filadhu."
     );
 
-    cleanupCall();
-  }
-}
-
-async function getMedia(type){
-
-  if(localStream){
-
-    localStream.getTracks().forEach(
-      t=>t.stop()
-    );
-
-  }
-
-  localStream=
-    await navigator.mediaDevices.getUserMedia({
-      audio:true,
-      video:type==="video"
-    });
-
-  $("localVideo").srcObject=localStream;
-
-}
-
-function showCallModal(type){
-
-  $("callModal").classList.remove("hidden");
-
-  $("callTitle").textContent=
-    type==="video"
-    ?"📹 Video Call"
-    :"📞 Voice Call";
-
-  if(type==="video"){
-
-    $("videoArea").classList.remove("hidden");
-    $("remoteVideo").classList.remove("hidden");
-    $("localVideo").classList.remove("hidden");
-    $("voiceCallInfo").classList.add("hidden");
-
-  }else{
-
-    $("remoteVideo").classList.add("hidden");
-    $("localVideo").classList.add("hidden");
-    $("voiceCallInfo").classList.remove("hidden");
-
-    $("voiceCaller").textContent=
-      currentCallTarget||"User";
-
-  }
-}
-
-socket.on("incomingCall",data=>{
-
-  incomingCallData=data;
-
-  $("callerName").textContent=
-    data.from||"User";
-
-  $("callerType").textContent=
-    data.callType==="video"
-    ?"📹 Video Call"
-    :"📞 Voice Call";
-
-  $("incomingCallModal")
-    .classList.remove("hidden");
-
-});
-
-socket.on("callUser",data=>{
-
-  incomingCallData=data;
-
-  $("callerName").textContent=
-    data.from||"User";
-
-  $("callerType").textContent=
-    data.callType==="video"
-    ?"📹 Video Call"
-    :"📞 Voice Call";
-
-  $("incomingCallModal")
-    .classList.remove("hidden");
-
-});
-
-$("rejectCallBtn").onclick=()=>{
-
-  if(incomingCallData){
-
-    socket.emit("rejectCall",{
-      callerSocketId:
-        incomingCallData.callerSocketId
-    });
-
-  }
-
-  incomingCallData=null;
-
-  $("incomingCallModal")
-    .classList.add("hidden");
-};
-
-$("acceptCallBtn").onclick=async()=>{
-
-  if(!incomingCallData)return;
-
-  try{
-
-    currentCallTarget=
-      incomingCallData.from;
-
-    currentCallTargetSocketId=
-      incomingCallData.callerSocketId;
-
-    currentCallType=
-      incomingCallData.callType;
-
-    await getMedia(currentCallType);
-
-    $("incomingCallModal")
-      .classList.add("hidden");
-
-    showCallModal(currentCallType);
-
-    socket.emit("acceptCall",{
-      callerSocketId:
-        incomingCallData.callerSocketId,
-      username:
-        incomingCallData.from
-    });
-
-  }catch(err){
-
-    showToast("❌ "+err.message);
-    cleanupCall();
-
-  }
-
-};
-
-socket.on("callAccepted",async data=>{
-
-  currentCallTargetSocketId=
-    data.targetSocketId||
-    data.callerSocketId||
-    null;
-
-  try{
-
-    await createPeerConnection(
-      currentCallTargetSocketId
-    );
-
-    const offer=
-      await peerConnection.createOffer();
-
-    await peerConnection.setLocalDescription(
-      offer
-    );
-
-    socket.emit("webrtc-offer",{
-      target:currentCallTargetSocketId,
-      offer
-    });
-
-  }catch(err){
-
-    console.error(err);
-    showToast("❌ Call connection error.");
-
-  }
-
-});
-
-async function createPeerConnection(targetSocketId){
-
-  peerConnection=
-    new RTCPeerConnection(rtcConfig);
-
-  remoteDescriptionReady=false;
-  pendingIceCandidates=[];
-
-  if(localStream){
-
-    localStream.getTracks().forEach(track=>{
-      peerConnection.addTrack(
-        track,
-        localStream
-      );
-    });
-
-  }
-
-  peerConnection.ontrack=event=>{
-
-    if(event.streams[0]){
-      $("remoteVideo").srcObject=
-        event.streams[0];
-    }
-
-  };
-
-  peerConnection.onicecandidate=event=>{
-
-    if(
-      event.candidate &&
-      targetSocketId
-    ){
-
-      socket.emit("webrtc-ice",{
-        target:targetSocketId,
-        candidate:event.candidate
-      });
-
-    }
-
-  };
-
-  peerConnection.onconnectionstatechange=()=>{
-
-    const state=
-      peerConnection.connectionState;
-
-    console.log("RTC:",state);
-
-    if(
-      state==="failed"||
-      state==="closed"||
-      state==="disconnected"
-    ){
-      showToast("🔴 Call connection cite.");
-    }
-
-  };
-
-}
-
-socket.on("webrtc-offer",async data=>{
-
-  try{
-
-    currentCallTargetSocketId=
-      data.from||
-      data.senderSocketId||
-      currentCallTargetSocketId;
-
-    if(!peerConnection){
-
-      await createPeerConnection(
-        currentCallTargetSocketId
-      );
-
-    }
-
-    await peerConnection.setRemoteDescription(
-      new RTCSessionDescription(data.offer)
-    );
-
-    remoteDescriptionReady=true;
-
-    await flushIce();
-
-    const answer=
-      await peerConnection.createAnswer();
-
-    await peerConnection.setLocalDescription(
-      answer
-    );
-
-    socket.emit("webrtc-answer",{
-      target:
-        data.from||
-        data.senderSocketId||
-        currentCallTargetSocketId,
-      answer
-    });
-
-  }catch(err){
-
-    console.error("Offer:",err);
-    showToast("❌ Offer error.");
-
-  }
-
-});
-
-socket.on("webrtc-answer",async data=>{
-
-  try{
-
-    if(!peerConnection)return;
-
-    await peerConnection.setRemoteDescription(
-      new RTCSessionDescription(data.answer)
-    );
-
-    remoteDescriptionReady=true;
-
-    await flushIce();
-
-  }catch(err){
-
-    console.error("Answer:",err);
-
-  }
-
-});
-
-socket.on("webrtc-ice",async data=>{
-
-  if(!peerConnection||
-     !data.candidate){
     return;
   }
 
-  if(remoteDescriptionReady){
+  if(!socket.connected){
+
+    showToast(
+      "🔴 Server waliin wal hin qabamne."
+    );
+
+    return;
+  }
+
+  currentCallTarget =
+    currentChatUser;
+
+  currentCallType =
+    type;
+
+  try{
+
+    localStream =
+      await navigator.mediaDevices
+        .getUserMedia({
+          audio:true,
+          video:type === "video"
+        });
+
+    showCallModal(
+      type,
+      currentChatUser
+    );
+
+    socket.emit(
+      "callUser",
+      {
+        username:
+          currentChatUser,
+
+        callType:type
+      }
+    );
+
+  }catch(error){
+
+    console.error(error);
+
+    showToast(
+      "❌ Camera/Microphone eeyyama gaafadhu."
+    );
+  }
+}
+
+
+socket.on(
+  "incomingCall",
+  data => {
+
+    incomingCallData =
+      data;
+
+    $("callerName")
+      .textContent =
+      data.from;
+
+    $("callerType")
+      .textContent =
+      data.callType === "video"
+        ? "📹 Video Call"
+        : "📞 Voice Call";
+
+    $("incomingCallModal")
+      .classList.remove(
+        "hidden"
+      );
+  }
+);
+
+
+$("acceptCallBtn").onclick =
+  async () => {
+
+    if(!incomingCallData)
+      return;
+
+    const data =
+      incomingCallData;
+
+    $("incomingCallModal")
+      .classList.add(
+        "hidden"
+      );
+
+    currentCallTarget =
+      data.from;
+
+    currentCallType =
+      data.callType;
 
     try{
 
-      await peerConnection.addIceCandidate(
-        new RTCIceCandidate(data.candidate)
+      localStream =
+        await navigator.mediaDevices
+          .getUserMedia({
+            audio:true,
+            video:
+              data.callType === "video"
+          });
+
+      showCallModal(
+        data.callType,
+        data.from
       );
 
-    }catch(err){
-      console.error("ICE:",err);
+      socket.emit(
+        "acceptCall",
+        {
+          callerSocketId:
+            data.callerSocketId,
+
+          callType:
+            data.callType
+        }
+      );
+
+    }catch(error){
+
+      showToast(
+        "❌ Camera/Microphone eeyyama dhabde."
+      );
     }
 
-  }else{
+    incomingCallData =
+      null;
+  };
 
-    pendingIceCandidates.push(
-      data.candidate
+
+$("rejectCallBtn").onclick =
+  () => {
+
+    if(!incomingCallData)
+      return;
+
+    socket.emit(
+      "rejectCall",
+      {
+        callerSocketId:
+          incomingCallData.callerSocketId
+      }
     );
 
+    $("incomingCallModal")
+      .classList.add(
+        "hidden"
+      );
+
+    incomingCallData = null;
+  };
+
+
+socket.on(
+  "callAccepted",
+  async data => {
+
+    if(!currentCallTarget)
+      return;
+
+    await createPeerConnection(
+      data.targetSocketId
+    );
+
+    const offer =
+      await peerConnection
+        .createOffer();
+
+    await peerConnection
+      .setLocalDescription(
+        offer
+      );
+
+    socket.emit(
+      "webrtc-offer",
+      {
+        target:
+          data.targetSocketId,
+
+        offer
+      }
+    );
   }
+);
 
-});
 
-async function flushIce(){
-
-  if(!peerConnection)return;
-
-  for(
-    const candidate of pendingIceCandidates
-  ){
+socket.on(
+  "webrtc-offer",
+  async data => {
 
     try{
 
-      await peerConnection.addIceCandidate(
-        new RTCIceCandidate(candidate)
+      await createPeerConnection(
+        data.from
       );
 
-    }catch(err){
-      console.error(err);
+      await peerConnection
+        .setRemoteDescription(
+          new RTCSessionDescription(
+            data.offer
+          )
+        );
+
+      const answer =
+        await peerConnection
+          .createAnswer();
+
+      await peerConnection
+        .setLocalDescription(
+          answer
+        );
+
+      socket.emit(
+        "webrtc-answer",
+        {
+          target:
+            data.from,
+
+          answer
+        }
+      );
+
+    }catch(error){
+
+      console.error(
+        "WEBRTC OFFER:",
+        error
+      );
     }
-
   }
+);
 
-  pendingIceCandidates=[];
-}
 
-$("endCallBtn").onclick=endCall;
+socket.on(
+  "webrtc-answer",
+  async data => {
 
-function endCall(){
+    if(!peerConnection)
+      return;
 
-  if(currentCallTargetSocketId){
+    try{
 
-    socket.emit("endCall",{
-      targetSocketId:
-        currentCallTargetSocketId
-    });
+      await peerConnection
+        .setRemoteDescription(
+          new RTCSessionDescription(
+            data.answer
+          )
+        );
 
+    }catch(error){
+
+      console.error(
+        "WEBRTC ANSWER:",
+        error
+      );
+    }
   }
+);
 
-  cleanupCall();
-}
 
-socket.on("callEnded",()=>{
-  cleanupCall();
-});
+socket.on(
+  "webrtc-ice",
+  async data => {
 
-socket.on("callRejected",()=>{
-  showToast("❌ Call hin fudhatamne.");
-  cleanupCall();
-});
+    if(!peerConnection)
+      return;
 
-function cleanupCall(){
+    try{
 
-  if(localStream){
+      if(
+        peerConnection.remoteDescription
+      ){
 
-    localStream.getTracks().forEach(
-      track=>track.stop()
-    );
+        await peerConnection
+          .addIceCandidate(
+            data.candidate
+          );
+      }
 
+    }catch(error){
+
+      console.error(
+        "ICE:",
+        error
+      );
+    }
   }
+);
 
-  localStream=null;
+
+async function createPeerConnection(
+  targetSocketId
+){
 
   if(peerConnection){
 
@@ -2150,2349 +3570,626 @@ function cleanupCall(){
 
   }
 
-  peerConnection=null;
-
-  remoteDescriptionReady=false;
-  pendingIceCandidates=[];
-
-  $("remoteVideo").srcObject=null;
-  $("localVideo").srcObject=null;
-
-  $("callModal").classList.add("hidden");
-
-  currentCallTarget=null;
-  currentCallTargetSocketId=null;
-  currentCallType=null;
-
-}
-
-/* =========================================================
-   ================= REAL CLUB VOICE =======================
-   ========================================================= */
-
-/*
-  Speaker:
-  - Mic qaba
-  - clubVoiceReady = true
-  - offer erga
-
-  Audience:
-  - Mic hin qabu
-  - offer speaker irraa fudhata
-  - answer deebisa
-  - audio qofa dhaggeeffata
-*/
-
-async function startClubVoice(){
-
-  if(!currentClub){
-    showToast("🎙️ Jalqaba Club seeni.");
-    return;
-  }
-
-  if(!hasClubSeat()){
-
-    showToast(
-      "🪑 Voice dubbachuuf seat qabaachuu qabda. Audience ta'ee dhaggeeffachuu garuu dandeessa."
+  peerConnection =
+    new RTCPeerConnection(
+      rtcConfig
     );
 
-    return;
-  }
+  if(localStream){
 
-  if(!navigator.mediaDevices ||
-     !navigator.mediaDevices.getUserMedia){
-
-    showToast(
-      "❌ Browser kee microphone hin deeggaru."
-    );
-
-    return;
-  }
-
-  try{
-
-    if(!clubVoiceStream){
-
-      clubVoiceStream=
-        await navigator.mediaDevices.getUserMedia({
-          audio:{
-            echoCancellation:true,
-            noiseSuppression:true,
-            autoGainControl:true
-          },
-          video:false
-        });
-
-    }
-
-    clubVoiceStream
-      .getAudioTracks()
-      .forEach(track=>{
-        track.enabled=!clubVoiceMuted;
-      });
-
-    clubVoiceReady=true;
-
-    $("clubVoiceStatus").innerHTML=
-      "🟢 Speaker";
-
-    $("clubVoiceBtn").textContent=
-      "🔴 Voice Cufi";
-
-    $("clubVoiceMuteBtn").textContent=
-      clubVoiceMuted
-      ?"🔇 Mic Off"
-      :"🔊 Mic On";
-
-    socket.emit("clubVoiceReady",{
-      clubId:currentClub.id,
-      username:currentUser.username
-    });
-
-    showToast("🎙️ Voice keessatti seente.");
-
-  }catch(err){
-
-    console.error("Club microphone:",err);
-
-    showToast(
-      "❌ Microphone hayyami: "+
-      err.message
-    );
-
-  }
-
-}
-
-function stopClubVoice(){
-
-  clubVoiceReady=false;
-
-  if(clubVoiceStream){
-
-    clubVoiceStream
+    localStream
       .getTracks()
-      .forEach(track=>track.stop());
+      .forEach(
+        track => {
 
+          peerConnection
+            .addTrack(
+              track,
+              localStream
+            );
+
+        }
+      );
   }
 
-  clubVoiceStream=null;
+  peerConnection.ontrack =
+    event => {
 
-  clubVoiceConnections
-    .forEach(pc=>{
-      try{
-        pc.close();
-      }catch{}
-    });
+      const video =
+        $("remoteVideo");
 
-  clubVoiceConnections.clear();
-  clubVoicePeers.clear();
-  clubVoicePendingIce.clear();
+      if(
+        event.streams &&
+        event.streams[0]
+      ){
 
-  if($("clubAudioContainer")){
-    $("clubAudioContainer").innerHTML="";
-  }
+        video.srcObject =
+          event.streams[0];
 
-  if(currentClub){
+      }
+    };
 
-    socket.emit("clubVoiceStop",{
-      clubId:currentClub.id,
-      username:currentUser?.username
-    });
 
-  }
+  peerConnection.onicecandidate =
+    event => {
 
-  if($("clubVoiceStatus")){
-    $("clubVoiceStatus").innerHTML=
-      "🔴 Voice Off";
-  }
+      if(
+        event.candidate
+      ){
 
-  if($("clubVoiceBtn")){
-    $("clubVoiceBtn").textContent=
-      "🎙️ Voice Seeni";
-  }
+        socket.emit(
+          "webrtc-ice",
+          {
+            target:
+              targetSocketId,
 
-  if($("clubVoiceMuteBtn")){
-    $("clubVoiceMuteBtn").textContent=
-      "🔊 Mic On";
-  }
-
-}
-
-function hasClubSeat(){
-
-  if(!currentClub||!currentUser)return false;
-
-  return (currentClub.seats||[]).some(
-    seat =>
-      seat?.username === currentUser.username
-  );
-
-}
-
-async function toggleClubVoice(){
-
-  if(clubVoiceReady){
-
-    stopClubVoice();
-
-    showToast("🔴 Voice cufame.");
-
-  }else{
-
-    await startClubVoice();
-
-  }
-
-}
-
-async function toggleClubVoiceMute(){
-
-  if(!clubVoiceReady){
-
-    await startClubVoice();
-
-    if(!clubVoiceReady)return;
-
-  }
-
-  clubVoiceMuted=!clubVoiceMuted;
-
-  if(clubVoiceStream){
-
-    clubVoiceStream
-      .getAudioTracks()
-      .forEach(track=>{
-        track.enabled=!clubVoiceMuted;
-      });
-
-  }
-
-  if($("clubVoiceMuteBtn")){
-
-    $("clubVoiceMuteBtn").textContent=
-      clubVoiceMuted
-      ?"🔇 Mic Off"
-      :"🔊 Mic On";
-
-  }
-
-  if(currentClub){
-
-    socket.emit("muteSelf",{
-      clubId:currentClub.id,
-      username:currentUser.username,
-      muted:clubVoiceMuted
-    });
-
-  }
-
-}
-
-/* ===== create peer ===== */
-
-async function createClubVoicePeer(peer){
-
-  if(!peer||
-     !peer.socketId||
-     peer.socketId===socket.id){
-
-    return null;
-  }
-
-  if(
-    !currentClub ||
-    !peer
-  ){
-
-    return null;
-  }
-
-  if(clubVoiceConnections.has(peer.socketId)){
-
-    return clubVoiceConnections.get(
-      peer.socketId
-    );
-
-  }
-
-  const pc=
-    new RTCPeerConnection(rtcConfig);
-
-  clubVoiceConnections.set(
-    peer.socketId,
-    pc
-  );
-
-  clubVoicePendingIce.set(
-    peer.socketId,
-    []
-  );
-
-  /*
-    Only speaker adds microphone track.
-    Audience has no local track.
-  */
-
-  if(
-    clubVoiceStream &&
-    clubVoiceReady
-  ){
-
-    clubVoiceStream
-      .getAudioTracks()
-      .forEach(track=>{
-
-        pc.addTrack(
-          track,
-          clubVoiceStream
+            candidate:
+              event.candidate
+          }
         );
+      }
+    };
 
-      });
 
-  }
+  peerConnection.onconnectionstatechange =
+    () => {
 
-  pc.ontrack=event=>{
-
-    if(!event.streams||
-       !event.streams[0]){
-
-      return;
-    }
-
-    const stream=
-      event.streams[0];
-
-    attachClubRemoteAudio(
-      peer.socketId,
-      stream,
-      peer.username
-    );
-
-  };
-
-  pc.onicecandidate=event=>{
-
-    if(!event.candidate)return;
-
-    socket.emit("club-webrtc-ice",{
-      clubId:currentClub?.id,
-      target:peer.socketId,
-      candidate:event.candidate
-    });
-
-  };
-
-  pc.onconnectionstatechange=()=>{
-
-    console.log(
-      "Club Voice",
-      peer.username,
-      pc.connectionState
-    );
-
-    if(
-      pc.connectionState==="failed"
-    ){
-
-      try{
-        pc.restartIce();
-      }catch{}
-
-    }
-
-    if(
-      pc.connectionState==="closed" ||
-      pc.connectionState==="disconnected"
-    ){
-
-      removeClubRemoteAudio(
-        peer.socketId
+      console.log(
+        "WebRTC:",
+        peerConnection
+          .connectionState
       );
 
-    }
+      if(
+        [
+          "failed",
+          "disconnected",
+          "closed"
+        ].includes(
+          peerConnection.connectionState
+        )
+      ){
 
-  };
-
-  return pc;
+        showToast(
+          "📵 Call connection cite."
+        );
+      }
+    };
 }
 
-/* ===== create offer ===== */
 
-async function createClubVoiceOffer(peer){
-
-  if(!clubVoiceReady)return;
-
-  if(!peer||
-     !peer.socketId||
-     peer.socketId===socket.id){
-
-    return;
-  }
-
-  /*
-    Speakers initiate:
-    - to audience: yes
-    - speaker to speaker: lower socket id starts
-  */
-
-  if(peer.voiceReady){
-
-    if(
-      String(socket.id)>
-      String(peer.socketId)
-    ){
-
-      return;
-    }
-
-  }
-
-  try{
-
-    const pc=
-      await createClubVoicePeer(peer);
-
-    if(!pc)return;
-
-    if(
-      pc.signalingState!=="stable"
-    ){
-
-      return;
-    }
-
-    const offer=
-      await pc.createOffer();
-
-    await pc.setLocalDescription(
-      offer
-    );
-
-    socket.emit("club-webrtc-offer",{
-      clubId:currentClub.id,
-      target:peer.socketId,
-      offer
-    });
-
-  }catch(err){
-
-    console.error(
-      "Club offer:",
-      err
-    );
-
-  }
-
-}
-
-/* ===== remote audio ===== */
-
-function attachClubRemoteAudio(
-  socketId,
-  stream,
+function showCallModal(
+  type,
   username
 ){
 
-  let audio=
-    document.querySelector(
-      `audio[data-club-peer="${socketId}"]`
+  $("callTitle").textContent =
+    type === "video"
+      ? "📹 Video Call"
+      : "📞 Voice Call";
+
+  $("voiceCaller").textContent =
+    username;
+
+  $("voiceCallInfo")
+    .classList.toggle(
+      "hidden",
+      type === "video"
     );
 
-  if(!audio){
-
-    audio=
-      document.createElement("audio");
-
-    audio.autoplay=true;
-    audio.playsInline=true;
-    audio.controls=false;
-
-    audio.dataset.clubPeer=
-      socketId;
-
-    audio.style.display="none";
-
-    $("clubAudioContainer")
-      .appendChild(audio);
-
-  }
-
-  audio.srcObject=stream;
-
-  const playPromise=
-    audio.play();
-
-  if(playPromise){
-
-    playPromise.catch(()=>{
-      showToast(
-        "🔊 Sagalee "+
-        username+
-        " dhaggeeffachuuf screen tuqi."
-      );
-    });
-
-  }
-
-}
-
-/* ===== remove remote audio ===== */
-
-function removeClubRemoteAudio(socketId){
-
-  const audio=
-    document.querySelector(
-      `audio[data-club-peer="${socketId}"]`
+  $("videoArea")
+    .classList.toggle(
+      "hidden",
+      type !== "video"
     );
 
-  if(audio){
+  $("localVideo")
+    .classList.toggle(
+      "hidden",
+      type !== "video"
+    );
 
-    audio.srcObject=null;
-    audio.remove();
-
-  }
-
-  const pc=
-    clubVoiceConnections.get(socketId);
-
-  if(pc){
-
-    try{
-      pc.close();
-    }catch{}
-
-  }
-
-  clubVoiceConnections.delete(socketId);
-  clubVoicePendingIce.delete(socketId);
-
-}
-
-/* ===== flush club ICE ===== */
-
-async function flushClubVoiceIce(socketId){
-
-  const pc=
-    clubVoiceConnections.get(socketId);
-
-  const list=
-    clubVoicePendingIce.get(socketId)||[];
-
-  if(!pc)return;
-
-  for(
-    const candidate of list
-  ){
-
-    try{
-
-      await pc.addIceCandidate(
-        new RTCIceCandidate(candidate)
-      );
-
-    }catch(err){
-
-      console.error(
-        "Club ICE:",
-        err
-      );
-
-    }
-
-  }
-
-  clubVoicePendingIce.set(
-    socketId,
-    []
-  );
-
-}
-
-/* ===== peer list from server ===== */
-
-socket.on("clubVoicePeers",async data=>{
-
-  if(!currentClub)return;
-
-  const clubId=
-    data?.clubId||
-    data?.id;
+  $("callModal")
+    .classList.remove(
+      "hidden"
+    );
 
   if(
-    clubId &&
-    clubId!==currentClub.id
+    type === "video" &&
+    localStream
   ){
 
-    return;
+    $("localVideo")
+      .srcObject =
+      localStream;
   }
+}
 
-  const peers=
-    Array.isArray(data)
-    ?data
-    :(data?.peers||[]);
 
-  clubVoicePeers.clear();
+$("endCallBtn").onclick =
+  endCall;
 
-  peers.forEach(peer=>{
 
-    if(
-      peer.socketId!==socket.id
-    ){
+function endCall(){
 
-      clubVoicePeers.set(
-        peer.socketId,
-        peer
-      );
+  if(currentCallTarget){
 
-    }
+    const sockets =
+      [...socket.connected
+        ? []
+        : []];
 
-  });
-
-  renderClubVoiceMembers(
-    peers
-  );
-
-  /*
-    If I am a speaker:
-    connect to audience and other speakers.
-  */
-
-  if(clubVoiceReady){
-
-    for(
-      const peer of peers
-    ){
-
-      if(
-        peer.socketId===socket.id
-      ){
-
-        continue;
+    socket.emit(
+      "endCall",
+      {
+        targetSocketId:
+          currentCallTarget
       }
-
-      await createClubVoiceOffer(
-        peer
-      );
-
-    }
-
-  }
-
-});
-
-/* ===== server says voice stopped ===== */
-
-socket.on("clubVoiceStopped",data=>{
-
-  if(!currentClub)return;
-
-  if(
-    data?.socketId
-  ){
-
-    removeClubRemoteAudio(
-      data.socketId
     );
-
   }
 
-  if(
-    data?.username
-  ){
+  cleanupCall();
+}
+
+
+socket.on(
+  "callRejected",
+  () => {
 
     showToast(
-      "🔴 "+
-      data.username+
-      " Voice keessaa ba'e."
+      "❌ Call diddaa ta'e."
     );
 
-  }
-
-});
-
-/* ===== incoming club offer ===== */
-
-socket.on(
-  "club-webrtc-offer",
-  async data=>{
-
-    if(!currentClub)return;
-
-    if(
-      data.clubId &&
-      data.clubId!==currentClub.id
-    ){
-
-      return;
-    }
-
-    const from=
-      data.from||
-      data.senderSocketId||
-      data.socketId;
-
-    if(!from||!data.offer)return;
-
-    try{
-
-      let peer=
-        clubVoicePeers.get(from);
-
-      if(!peer){
-
-        peer={
-          socketId:from,
-          username:"Speaker",
-          voiceReady:true
-        };
-
-        clubVoicePeers.set(
-          from,
-          peer
-        );
-
-      }
-
-      const pc=
-        await createClubVoicePeer(
-          peer
-        );
-
-      if(!pc)return;
-
-      /*
-        If old connection is making an offer,
-        close it before accepting a new offer.
-      */
-
-      if(
-        pc.signalingState===
-        "have-local-offer"
-      ){
-
-        try{
-          await pc.setLocalDescription({
-            type:"rollback"
-          });
-        }catch{}
-
-      }
-
-      await pc.setRemoteDescription(
-        new RTCSessionDescription(
-          data.offer
-        )
-      );
-
-      await flushClubVoiceIce(from);
-
-      const answer=
-        await pc.createAnswer();
-
-      await pc.setLocalDescription(
-        answer
-      );
-
-      socket.emit(
-        "club-webrtc-answer",
-        {
-          clubId:currentClub.id,
-          target:from,
-          answer
-        }
-      );
-
-    }catch(err){
-
-      console.error(
-        "Club incoming offer:",
-        err
-      );
-
-    }
-
+    cleanupCall();
   }
 );
 
-/* ===== incoming club answer ===== */
 
 socket.on(
-  "club-webrtc-answer",
-  async data=>{
+  "callUnavailable",
+  data => {
 
-    const from=
-      data.from||
-      data.senderSocketId||
-      data.socketId;
+    showToast(
+      "⚠️ " +
+      (data.message ||
+       "User online miti.")
+    );
 
-    if(!from||!data.answer)return;
-
-    const pc=
-      clubVoiceConnections.get(from);
-
-    if(!pc)return;
-
-    try{
-
-      await pc.setRemoteDescription(
-        new RTCSessionDescription(
-          data.answer
-        )
-      );
-
-      await flushClubVoiceIce(from);
-
-    }catch(err){
-
-      console.error(
-        "Club answer:",
-        err
-      );
-
-    }
-
+    cleanupCall();
   }
 );
 
-/* ===== incoming club ICE ===== */
 
 socket.on(
-  "club-webrtc-ice",
-  async data=>{
+  "callEnded",
+  () => {
 
-    const from=
-      data.from||
-      data.senderSocketId||
-      data.socketId;
+    showToast(
+      "📵 Call xumurame."
+    );
 
-    if(!from||!data.candidate)return;
+    cleanupCall();
+  }
+);
 
-    const pc=
-      clubVoiceConnections.get(from);
 
-    if(!pc){
+function cleanupCall(){
 
-      if(!clubVoicePendingIce.has(from)){
+  if(localStream){
 
-        clubVoicePendingIce.set(
-          from,
-          []
-        );
+    localStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
 
-      }
+    localStream = null;
+  }
 
-      clubVoicePendingIce
-        .get(from)
-        .push(data.candidate);
+  if(peerConnection){
 
-      return;
-    }
+    peerConnection.close();
+    peerConnection = null;
+  }
 
-    if(
-      pc.remoteDescription &&
-      pc.remoteDescription.type
-    ){
+  $("remoteVideo").srcObject =
+    null;
 
-      try{
+  $("localVideo").srcObject =
+    null;
 
-        await pc.addIceCandidate(
-          new RTCIceCandidate(
-            data.candidate
-          )
-        );
+  $("callModal")
+    .classList.add(
+      "hidden"
+    );
 
-      }catch(err){
+  currentCallTarget = null;
+  currentCallType = null;
+}
 
-        console.error(
-          "Club ICE:",
-          err
-        );
 
-      }
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+$("notificationBtn").onclick =
+  openNotifications;
+
+
+async function openNotifications(){
+
+  try{
+
+    const data =
+      await api(
+        "/api/notifications/" +
+        encodeURIComponent(
+          currentUser.username
+        )
+      );
+
+    const box =
+      $("notifications");
+
+    box.innerHTML = "";
+
+    if(!data.length){
+
+      box.innerHTML =
+        "<p>Notification hin jiru.</p>";
 
     }else{
 
-      if(!clubVoicePendingIce.has(from)){
+      data.forEach(item => {
 
-        clubVoicePendingIce.set(
-          from,
-          []
-        );
+        const div =
+          document.createElement("div");
 
-      }
+        div.className =
+          "card";
 
-      clubVoicePendingIce
-        .get(from)
-        .push(data.candidate);
+        div.style.marginBottom =
+          "8px";
 
+        div.innerHTML = `
+          <strong>
+            ${escapeHtml(
+              item.from_user || "Waliin-GM"
+            )}
+          </strong>
+
+          <p>
+            ${escapeHtml(
+              item.message || ""
+            )}
+          </p>
+
+          <small>
+            ${formatTime(
+              item.created_at
+            )}
+          </small>
+        `;
+
+        box.appendChild(div);
+
+      });
     }
 
+    $("notificationModal")
+      .classList.remove(
+        "hidden"
+      );
+
+  }catch(error){
+
+    showToast(
+      "❌ Notification baname."
+    );
+  }
+}
+
+
+$("closeNotificationBtn").onclick =
+  () => {
+
+    $("notificationModal")
+      .classList.add(
+        "hidden"
+      );
+  };
+
+
+$("readNotificationsBtn").onclick =
+  async () => {
+
+    try{
+
+      await api(
+        "/api/notifications/read",
+        {
+          method:"POST",
+          body:JSON.stringify({
+            username:
+              currentUser.username
+          })
+        }
+      );
+
+      $("notifBadge")
+        .classList.add(
+          "hidden"
+        );
+
+      $("notificationModal")
+        .classList.add(
+          "hidden"
+        );
+
+    }catch(error){
+
+      console.error(error);
+    }
+  };
+
+
+async function loadUnreadNotifications(){
+
+  try{
+
+    const data =
+      await api(
+        "/api/notifications/unread-count/" +
+        encodeURIComponent(
+          currentUser.username
+        )
+      );
+
+    const badge =
+      $("notifBadge");
+
+    if(data.count > 0){
+
+      badge.textContent =
+        data.count > 99
+          ? "99+"
+          : data.count;
+
+      badge.classList.remove(
+        "hidden"
+      );
+
+    }else{
+
+      badge.classList.add(
+        "hidden"
+      );
+    }
+
+  }catch(error){
+
+    console.error(error);
+  }
+}
+
+
+socket.on(
+  "notification",
+  data => {
+
+    if(
+      notificationEnabled
+    ){
+
+      showToast(
+        "🔔 " +
+        (data.message || "Notification haaraa")
+      );
+    }
+
+    loadUnreadNotifications();
   }
 );
 
-/* ===== render voice members ===== */
 
-function renderClubVoiceMembers(peers){
+/* =========================
+   SETTINGS
+========================= */
 
-  const container=
-    $("clubVoiceMembers");
+$("settingsBtn").onclick =
+  () => {
 
-  if(!container)return;
-
-  container.innerHTML="";
-
-  if(!peers.length){
-
-    container.innerHTML=`
-      <div class="voice-member">
-        👂 Namni voice keessa hin jiru.
-      </div>
-    `;
-
-    return;
-  }
-
-  peers.forEach(peer=>{
-
-    const div=
-      document.createElement("div");
-
-    div.className=
-      "voice-member";
-
-    if(peer.voiceReady){
-
-      div.classList.add(
-        "speaking"
+    $("settingsModal")
+      .classList.remove(
+        "hidden"
       );
+  };
 
-    }
 
-    const role=
-      peer.owner
-      ?"👑 Host"
-      :peer.voiceReady
-      ?"🎙️ Speaker"
-      :"👂 Audience";
+$("closeSettingsBtn").onclick =
+  () => {
 
-    const mute=
-      peer.muted
-      ?" 🔇"
-      :"";
+    $("settingsModal")
+      .classList.add(
+        "hidden"
+      );
+  };
 
-    div.innerHTML=
-      `${role} ${escapeHtml(
-        peer.username||"User"
-      )}${mute}`;
 
-    container.appendChild(div);
+$("darkModeToggle").checked =
+  localStorage.getItem(
+    "waliin_dark"
+  ) === "true";
 
-  });
 
-}
-
-/* ===== ask server for current peers ===== */
-
-function refreshClubVoice(){
-
-  if(!currentClub)return;
-
-  socket.emit(
-    "getClubVoicePeers",
-    {
-      clubId:currentClub.id
-    }
+if($("darkModeToggle").checked){
+  document.body.classList.add(
+    "dark"
   );
-
 }
 
-/* Club Voice buttons */
 
-$("clubVoiceBtn").onclick=async()=>{
+$("darkModeToggle").onchange =
+  () => {
 
-  await toggleClubVoice();
+    const enabled =
+      $("darkModeToggle").checked;
 
-};
-
-$("clubVoiceMuteBtn").onclick=async()=>{
-
-  await toggleClubVoiceMute();
-
-};
-
-/* ================= CLUB ================= */
-
-$("createClubBtn").onclick=()=>{
-
-  const name=$("clubName")
-    .value.trim();
-
-  if(!name){
-    showToast("Maqaa Club galchi.");
-    return;
-  }
-
-  socket.emit("createClub",{
-    name,
-    username:currentUser.username
-  },result=>{
-
-    if(result?.error){
-      showToast("❌ "+result.error);
-      return;
-    }
-
-    openClub(result);
-
-  });
-
-};
-
-$("joinClubBtn").onclick=()=>{
-
-  const clubId=
-    $("clubIdInput").value.trim();
-
-  if(!clubId){
-    showToast("Club ID galchi.");
-    return;
-  }
-
-  socket.emit("joinClub",{
-    clubId,
-    username:currentUser.username
-  },result=>{
-
-    if(result?.error){
-      showToast("❌ "+result.error);
-      return;
-    }
-
-    openClub(result);
-
-  });
-
-};
-
-function openClub(club){
-
-  currentClub=club;
-
-  $("clubEmpty").classList.add("hidden");
-  $("clubArea").classList.remove("hidden");
-
-  $("clubTitle").textContent=
-    club.name||"Voice Club";
-
-  $("clubIdText").textContent=
-    club.id||club.clubId||"";
-
-  $("ownerControls")
-    .classList.toggle(
-      "hidden",
-      club.owner!==currentUser.username
+    document.body.classList.toggle(
+      "dark",
+      enabled
     );
-
-  renderSeats(club);
-  renderClubMessages(club.messages||[]);
-
-  /*
-    If user already had voice state from old club,
-    reset local audio before entering new club.
-  */
-
-  if(clubVoiceReady){
-
-    stopClubVoice();
-
-  }
-
-  clubVoiceMuted=false;
-
-  if($("clubVoiceStatus")){
-    $("clubVoiceStatus").innerHTML=
-      "🔴 Voice Off";
-  }
-
-  if($("clubVoiceBtn")){
-    $("clubVoiceBtn").textContent=
-      "🎙️ Voice Seeni";
-  }
-
-  if($("clubVoiceMuteBtn")){
-    $("clubVoiceMuteBtn").textContent=
-      "🔊 Mic On";
-  }
-
-  setTimeout(()=>{
-    refreshClubVoice();
-  },300);
-
-}
-
-function renderSeats(club){
-
-  const container=$("seats");
-
-  container.innerHTML="";
-
-  const seats=club.seats||[];
-
-  for(let i=1;i<=15;i++){
-
-    const seat=seats.find(
-      s=>Number(s.seat)===i
-    );
-
-    const div=document.createElement("div");
-
-    div.className=
-      "seat "+(seat?.username?"active":"");
-
-    div.innerHTML=`
-      <div class="seat-number">${i}</div>
-      <small>
-        ${
-          seat?.username
-          ?"👤 "+escapeHtml(seat.username)
-          :"🪑 Duwwaa"
-        }
-      </small>
-      ${
-        seat?.muted
-        ?"🔇"
-        :""
-      }
-    `;
-
-    if(
-      currentClub?.owner===
-      currentUser.username
-    ){
-
-      div.onclick=()=>{
-
-        const username=prompt(
-          "Username seat kanaaf kennu:"
-        );
-
-        if(!username)return;
-
-        socket.emit("giveSeat",{
-          clubId:currentClub.id,
-          username,
-          seat:i
-        });
-
-      };
-
-    }
-
-    container.appendChild(div);
-  }
-
-}
-
-$("requestSeatBtn").onclick=()=>{
-
-  if(!currentClub)return;
-
-  socket.emit("requestSeat",{
-    clubId:currentClub.id,
-    username:currentUser.username
-  });
-
-  showToast("🙋 Gaaffiin seat ergame.");
-
-};
-
-/*
-  Old self mute button is now connected
-  to the real microphone.
-*/
-
-$("selfMuteBtn").onclick=async()=>{
-
-  await toggleClubVoiceMute();
-
-};
-
-$("leaveSeatBtn").onclick=()=>{
-
-  if(!currentClub)return;
-
-  /*
-    Seat keessaa yoo ba'e voice speaker
-    dhaabna.
-  */
-
-  if(clubVoiceReady){
-
-    stopClubVoice();
-
-  }
-
-  socket.emit("leaveSeat",{
-    clubId:currentClub.id,
-    username:currentUser.username
-  });
-
-};
-
-$("ownerMuteBtn").onclick=()=>{
-
-  if(!currentClub)return;
-
-  const username=prompt(
-    "Username mute godhu:"
-  );
-
-  if(!username)return;
-
-  socket.emit("ownerMute",{
-    clubId:currentClub.id,
-    username
-  });
-
-};
-
-$("removeMemberBtn").onclick=()=>{
-
-  if(!currentClub)return;
-
-  const username=prompt(
-    "Username remove godhu:"
-  );
-
-  if(!username)return;
-
-  socket.emit("removeMember",{
-    clubId:currentClub.id,
-    username
-  });
-
-};
-
-$("leaveClubBtn").onclick=()=>{
-
-  if(clubVoiceReady){
-
-    stopClubVoice();
-
-  }
-
-  if(currentClub){
-
-    socket.emit("leaveClub",{
-      clubId:currentClub.id,
-      username:currentUser.username
-    });
-
-  }
-
-  currentClub=null;
-
-  clubVoicePeers.clear();
-
-  clubVoiceConnections
-    .forEach(pc=>{
-      try{
-        pc.close();
-      }catch{}
-    });
-
-  clubVoiceConnections.clear();
-
-  $("clubAudioContainer").innerHTML="";
-
-  $("clubArea").classList.add("hidden");
-  $("clubEmpty").classList.remove("hidden");
-
-};
-
-socket.on("clubUpdated",club=>{
-
-  if(
-    currentClub &&
-    (
-      club.id===currentClub.id ||
-      club.clubId===currentClub.id
-    )
-  ){
-
-    currentClub=club;
-    renderSeats(club);
-
-    /*
-      If current user no longer has a seat,
-      stop speaking but remain audience.
-    */
-
-    if(
-      clubVoiceReady &&
-      !hasClubSeat()
-    ){
-
-      stopClubVoice();
-
-      showToast(
-        "🪑 Seat irraa kaafamte. Amma audience taate."
-      );
-
-    }
-
-    refreshClubVoice();
-
-  }
-
-});
-
-socket.on("clubMemberUpdate",club=>{
-
-  if(
-    currentClub &&
-    club.id===currentClub.id
-  ){
-
-    currentClub=club;
-    renderSeats(club);
-
-    if(
-      clubVoiceReady &&
-      !hasClubSeat()
-    ){
-
-      stopClubVoice();
-
-      showToast(
-        "🪑 Seat irraa kaafamte."
-      );
-
-    }
-
-    refreshClubVoice();
-
-  }
-
-});
-
-socket.on("removedFromClub",data=>{
-
-  if(clubVoiceReady){
-
-    stopClubVoice();
-
-  }
-
-  showToast("🚫 Club keessaa baafamte.");
-
-  currentClub=null;
-
-  $("clubArea").classList.add("hidden");
-  $("clubEmpty").classList.remove("hidden");
-
-});
-
-$("sendClubMessageBtn").onclick=sendClubMessage;
-
-$("clubMessage").addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    e.preventDefault();
-    sendClubMessage();
-  }
-});
-
-function sendClubMessage(){
-
-  const message=
-    $("clubMessage").value.trim();
-
-  if(!message||!currentClub)return;
-
-  socket.emit("chatMessage",{
-    clubId:currentClub.id,
-    message
-  });
-
-  $("clubMessage").value="";
-
-}
-
-socket.on("clubChatMessage",message=>{
-
-  if(
-    currentClub &&
-    (
-      !message.clubId ||
-      message.clubId===currentClub.id
-    )
-  ){
-
-    addClubMessage(message);
-
-  }
-
-});
-
-function renderClubMessages(messages){
-
-  $("clubChatBox").innerHTML="";
-
-  messages.forEach(addClubMessage);
-
-}
-
-function addClubMessage(message){
-
-  const div=document.createElement("div");
-
-  div.className="club-message";
-
-  div.innerHTML=`
-    <b>${escapeHtml(message.username||message.sender||"User")}</b>:
-    ${escapeHtml(message.message||"")}
-  `;
-
-  $("clubChatBox").appendChild(div);
-
-  $("clubChatBox").scrollTop=
-    $("clubChatBox").scrollHeight;
-
-}
-
-/* GIFTS */
-
-document
-  .querySelectorAll("[data-gift]")
-  .forEach(btn=>{
-
-    btn.onclick=()=>{
-
-      if(!currentClub)return;
-
-      socket.emit("sendGift",{
-        clubId:currentClub.id,
-        gift:btn.dataset.gift,
-        username:currentUser.username
-      });
-
-      showToast(
-        "🎁 Gift ergame: "+
-        btn.dataset.gift
-      );
-
-    };
-
-  });
-
-/* ================= PROFILE ================= */
-
-async function loadProfile(username){
-
-  try{
-
-    const data=
-      await api(
-        "/api/profile/"+
-        encodeURIComponent(username)
-      );
-
-    const user=data.user||data;
-
-    renderOwnProfile(user);
-
-  }catch(err){
-
-    showToast("❌ Profile: "+err.message);
-
-  }
-
-}
-
-function renderOwnProfile(user){
-
-  $("profileUsername").textContent=
-    user.username||"";
-
-  $("profileEmail").textContent=
-    user.email||"";
-
-  $("bioInput").value=
-    user.bio||"";
-
-  $("avatarInput").value=
-    user.avatar||"";
-
-  if(user.avatar){
-
-    $("profileAvatar").innerHTML=
-      `<img src="${escapeAttribute(user.avatar)}">`;
-
-  }else{
-
-    $("profileAvatar").textContent=
-      (user.username||"U")[0].toUpperCase();
-
-  }
-
-}
-
-$("saveProfileBtn").onclick=async()=>{
-
-  try{
-
-    const data=
-      await api("/api/profile/update",{
-        method:"POST",
-        body:JSON.stringify({
-          username:currentUser.username,
-          bio:$("bioInput").value.trim(),
-          avatar:$("avatarInput").value.trim()
-        })
-      });
-
-    currentUser=data.user||currentUser;
 
     localStorage.setItem(
-      "waliin_user",
-      JSON.stringify(currentUser)
+      "waliin_dark",
+      String(enabled)
     );
+  };
 
-    showToast("✅ Profile save ta'e.");
 
-  }catch(err){
+$("notificationToggle").checked =
+  notificationEnabled;
 
-    showToast("❌ "+err.message);
 
-  }
+$("notificationToggle").onchange =
+  () => {
 
-};
+    notificationEnabled =
+      $("notificationToggle")
+        .checked;
 
-/* ================= USER PROFILE MODAL ================= */
+    localStorage.setItem(
+      "waliin_notifications",
+      String(notificationEnabled)
+    );
+  };
 
-async function openUserProfile(username){
 
-  currentProfileUser=username;
+/* =========================
+   LOGOUT
+========================= */
 
-  try{
+$("logoutBtn").onclick =
+  async () => {
 
-    const data=
+    try{
+
       await api(
-        "/api/profile/"+
-        encodeURIComponent(username)
+        "/api/logout",
+        {
+          method:"POST",
+          body:JSON.stringify({
+            username:
+              currentUser.username
+          })
+        }
       );
 
-    const user=data.user||data;
+    }catch(error){
 
-    $("userProfileContent").innerHTML=`
+      console.error(error);
 
-      <div style="text-align:center">
+    }finally{
 
-        <div class="profile-big">
-          ${
-            user.avatar
-            ?`<img src="${escapeAttribute(user.avatar)}">`
-            :escapeHtml(
-              (user.username||"U")[0]
-                .toUpperCase()
-            )
-          }
-        </div>
+      cleanupCall();
 
-        <h2>${escapeHtml(user.username||"")}</h2>
+      currentUser = null;
+      token = null;
 
-        <p>${escapeHtml(user.bio||"")}</p>
+      localStorage.removeItem(
+        "waliin_token"
+      );
 
-        <p>
-          👥 Followers:
-          ${user.followers_count||0}
-          &nbsp;
-          Following:
-          ${user.following_count||0}
-        </p>
+      localStorage.removeItem(
+        "waliin_user"
+      );
 
-      </div>
-    `;
-
-    $("userModal").classList.remove("hidden");
-
-  }catch(err){
-
-    showToast("❌ "+err.message);
-
-  }
-
-}
-
-$("closeUserModalBtn").onclick=()=>{
-  $("userModal").classList.add("hidden");
-};
-
-$("openUserChatBtn").onclick=()=>{
-
-  $("userModal").classList.add("hidden");
-
-  if(currentProfileUser){
-    openChat(currentProfileUser);
-  }
-
-};
-
-/* FOLLOW */
-
-$("followProfileBtn").onclick=async()=>{
-
-  if(!currentProfileUser)return;
-
-  try{
-
-    const data=
-      await api("/api/follow",{
-        method:"POST",
-        body:JSON.stringify({
-          follower:currentUser.username,
-          following:currentProfileUser
-        })
-      });
-
-    showToast(
-      data.message||
-      "Follow jijjiirame."
-    );
-
-  }catch(err){
-
-    showToast("❌ "+err.message);
-
-  }
-
-};
-
-/* BLOCK */
-
-$("blockProfileBtn").onclick=async()=>{
-
-  if(!currentProfileUser)return;
-
-  if(!confirm(
-    "Nama kana block gochuu barbaaddaa?"
-  ))return;
-
-  try{
-
-    const data=
-      await api("/api/block",{
-        method:"POST",
-        body:JSON.stringify({
-          username:currentProfileUser,
-          blocked:true
-        })
-      });
-
-    showToast(
-      data.message||
-      "Block jijjiirame."
-    );
-
-  }catch(err){
-
-    showToast("❌ "+err.message);
-
-  }
-
-};
-
-/* ================= POSTS ================= */
-
-async function loadPosts(){
-
-  try{
-
-    const data=
-      await api("/api/posts");
-
-    const posts=
-      Array.isArray(data)
-      ?data
-      :(data.posts||[]);
-
-    renderPosts(posts);
-
-  }catch(err){
-
-    console.log("Posts:",err.message);
-
-  }
-
-}
-
-function renderPosts(posts){
-
-  const list=$("postsList");
-
-  list.innerHTML="";
-
-  if(!posts.length){
-
-    list.innerHTML=
-      `<div class="card">
-        📝 Post hin jiru.
-      </div>`;
-
-    return;
-  }
-
-  posts.forEach(post=>{
-
-    const div=document.createElement("article");
-
-    div.className="post";
-
-    const username=
-      post.username||"User";
-
-    div.innerHTML=`
-
-      <div class="post-head">
-
-        <div class="avatar">
-          ${escapeHtml(
-            username[0]?.toUpperCase()||"U"
-          )}
-        </div>
-
-        <div>
-          <b>${escapeHtml(username)}</b>
-          <small style="display:block;color:#777">
-            ${formatTime(post.created_at)}
-          </small>
-        </div>
-
-      </div>
-
-      ${
-        post.image
-        ?`<img src="${escapeAttribute(post.image)}">`
-        :""
-      }
-
-      <div class="post-body">
-        ${escapeHtml(post.content||"")}
-      </div>
-
-      <div class="post-actions">
-
-        <button data-like>
-          ❤️ Like
-        </button>
-
-        <button data-comment>
-          💬 Comment
-        </button>
-
-        <button data-share>
-          🔗 Share
-        </button>
-
-        ${
-          username===currentUser.username
-          ?`<button data-delete>
-              🗑️ Delete
-            </button>`
-          :""
-        }
-
-      </div>
-
-      <div class="comments hidden">
-        <div class="comment-list"></div>
-
-        <div class="chat-input">
-          <input placeholder="Comment barreessi...">
-          <button data-send-comment>➤</button>
-        </div>
-      </div>
-    `;
-
-    const likeBtn=
-      div.querySelector("[data-like]");
-
-    likeBtn.onclick=async()=>{
-
-      try{
-
-        await api(
-          "/api/posts/"+post.id+"/like",
-          {method:"POST"}
+      $("settingsModal")
+        .classList.add(
+          "hidden"
         );
 
-        showToast("❤️ Like godhame.");
-
-      }catch(err){
-
-        showToast("❌ "+err.message);
-
-      }
-
-    };
-
-    const comments=
-      div.querySelector(".comments");
-
-    div.querySelector("[data-comment]")
-      .onclick=async()=>{
-
-        comments.classList.toggle("hidden");
-
-        if(!comments.classList.contains("hidden")){
-
-          await loadComments(
-            post.id,
-            comments.querySelector(".comment-list")
-          );
-
-        }
-
-      };
-
-    div.querySelector("[data-share]")
-      .onclick=async()=>{
-
-        const shareText=
-          `${username}: ${post.content||""}`;
-
-        if(navigator.share){
-
-          try{
-
-            await navigator.share({
-              title:"Waliin-GM",
-              text:shareText
-            });
-
-          }catch{}
-
-        }else{
-
-          await navigator.clipboard
-            ?.writeText(shareText);
-
-          showToast("🔗 Share text copy ta'e.");
-
-        }
-
-      };
-
-    const deleteBtn=
-      div.querySelector("[data-delete]");
-
-    if(deleteBtn){
-
-      deleteBtn.onclick=async()=>{
-
-        if(!confirm("Post haqaa?"))return;
-
-        try{
-
-          await api(
-            "/api/posts/"+post.id,
-            {method:"DELETE"}
-          );
-
-          div.remove();
-
-        }catch(err){
-
-          showToast("❌ "+err.message);
-
-        }
-
-      };
-
-    }
-
-    const commentInput=
-      comments.querySelector("input");
-
-    const sendComment=async()=>{
-
-      const comment=
-        commentInput.value.trim();
-
-      if(!comment)return;
-
-      try{
-
-        await api(
-          "/api/posts/"+post.id+"/comments",
-          {
-            method:"POST",
-            body:JSON.stringify({
-              username:currentUser.username,
-              comment
-            })
-          }
+      $("appPage")
+        .classList.add(
+          "hidden"
         );
 
-        commentInput.value="";
-
-        await loadComments(
-          post.id,
-          comments.querySelector(".comment-list")
+      $("authPage")
+        .classList.remove(
+          "hidden"
         );
 
-      }catch(err){
-
-        showToast("❌ "+err.message);
-
-      }
-
-    };
-
-    comments
-      .querySelector("[data-send-comment]")
-      .onclick=sendComment;
-
-    commentInput.addEventListener(
-      "keydown",
-      e=>{
-        if(e.key==="Enter"){
-          e.preventDefault();
-          sendComment();
-        }
-      }
-    );
-
-    list.appendChild(div);
-
-  });
-
-}
-
-$("createPostBtn").onclick=async()=>{
-
-  const content=
-    $("postContent").value.trim();
-
-  const image=
-    $("postImage").value.trim();
-
-  if(!content&&!image){
-
-    showToast("Post barreessi ykn image galchi.");
-
-    return;
-  }
-
-  try{
-
-    await api("/api/posts",{
-      method:"POST",
-      body:JSON.stringify({
-        username:currentUser.username,
-        content,
-        image
-      })
-    });
-
-    $("postContent").value="";
-    $("postImage").value="";
-
-    showToast("✅ Post kee maxxanfame.");
-
-    loadPosts();
-
-  }catch(err){
-
-    showToast("❌ "+err.message);
-
-  }
-
-};
-
-async function loadComments(postId,container){
-
-  try{
-
-    const data=
-      await api(
-        "/api/posts/"+postId+"/comments"
+      showToast(
+        "Ati baate."
       );
-
-    const comments=
-      Array.isArray(data)
-      ?data
-      :(data.comments||[]);
-
-    container.innerHTML="";
-
-    comments.forEach(comment=>{
-
-      const div=document.createElement("div");
-
-      div.className="comment";
-
-      div.innerHTML=`
-        <b>${escapeHtml(comment.username)}</b>
-        ${escapeHtml(comment.comment)}
-      `;
-
-      container.appendChild(div);
-
-    });
-
-  }catch(err){
-
-    console.log(err.message);
-
-  }
-
-}
-
-/* ================= NOTIFICATIONS ================= */
-
-$("notificationBtn").onclick=async()=>{
-
-  await loadNotifications();
-
-  $("notificationModal")
-    .classList.remove("hidden");
-
-};
-
-$("closeNotificationBtn").onclick=()=>{
-  $("notificationModal")
-    .classList.add("hidden");
-};
-
-async function loadNotifications(){
-
-  if(!currentUser)return;
-
-  try{
-
-    const data=
-      await api(
-        "/api/notifications/"+
-        encodeURIComponent(currentUser.username)
-      );
-
-    const list=
-      Array.isArray(data)
-      ?data
-      :(data.notifications||[]);
-
-    $("notifications").innerHTML="";
-
-    if(!list.length){
-
-      $("notifications").innerHTML=
-        "<p>🔕 Notification hin jiru.</p>";
-
-      return;
-
     }
+  };
 
-    list.forEach(n=>{
 
-      const div=document.createElement("div");
-
-      div.className="card";
-
-      div.innerHTML=`
-        <b>${escapeHtml(n.type||"Notification")}</b>
-        <p>${escapeHtml(
-          n.message||
-          n.description||
-          ""
-        )}</p>
-        <small>${formatTime(n.created_at)}</small>
-      `;
-
-      $("notifications")
-        .appendChild(div);
-
-    });
-
-  }catch(err){
-
-    console.log(err.message);
-
-  }
-
-}
-
-async function loadNotificationCount(){
-
-  if(!currentUser)return;
-
-  try{
-
-    const data=
-      await api(
-        "/api/notifications/unread-count/"+
-        encodeURIComponent(currentUser.username)
-      );
-
-    const count=
-      Number(
-        data.count||
-        data.unread||
-        0
-      );
-
-    $("notifBadge").textContent=count;
-
-    $("notifBadge")
-      .classList.toggle(
-        "hidden",
-        count<=0
-      );
-
-  }catch{}
-
-}
-
-$("readNotificationsBtn").onclick=async()=>{
-
-  try{
-
-    await api("/api/notifications/read",{
-      method:"POST",
-      body:JSON.stringify({
-        username:currentUser.username
-      })
-    });
-
-    $("notifBadge").classList.add("hidden");
-
-    await loadNotifications();
-
-    showToast("✅ Hundi hundi dubbifame.");
-
-  }catch(err){
-
-    showToast("❌ "+err.message);
-
-  }
-
-};
-
-socket.on("notification",data=>{
-
-  if(notificationEnabled){
-
-    showToast(
-      "🔔 "+
-      (
-        data.message||
-        data.description||
-        "Notification haaraa"
-      )
-    );
-
-  }
-
-  loadNotificationCount();
-
-});
-
-/* ================= SETTINGS ================= */
-
-$("settingsBtn").onclick=()=>{
-
-  $("darkModeToggle").checked=
-    localStorage.getItem(
-      "waliin_dark"
-    )==="true";
-
-  $("notificationToggle").checked=
-    notificationEnabled;
-
-  $("settingsModal")
-    .classList.remove("hidden");
-
-};
-
-$("closeSettingsBtn").onclick=()=>{
-  $("settingsModal").classList.add("hidden");
-};
-
-$("darkModeToggle").onchange=e=>{
-
-  const enabled=e.target.checked;
-
-  document.body.classList.toggle(
-    "dark",
-    enabled
-  );
-
-  localStorage.setItem(
-    "waliin_dark",
-    enabled
-  );
-
-};
-
-$("notificationToggle").onchange=e=>{
-
-  notificationEnabled=e.target.checked;
-
-  localStorage.setItem(
-    "waliin_notifications",
-    notificationEnabled
-  );
-
-};
-
-function applyDarkMode(){
-
-  const enabled=
-    localStorage.getItem(
-      "waliin_dark"
-    )==="true";
-
-  document.body.classList.toggle(
-    "dark",
-    enabled
-  );
-
-}
-
-applyDarkMode();
-
-/* ================= LOGOUT ================= */
-
-$("logoutBtn").onclick=async()=>{
-
-  try{
-
-    if(clubVoiceReady){
-      stopClubVoice();
-    }
-
-    await api("/api/logout",{
-      method:"POST"
-    });
-
-  }catch{}
-
-  cleanupCall();
-  logoutLocal();
-
-};
-
-function logoutLocal(){
-
-  if(clubVoiceReady){
-    stopClubVoice();
-  }
-
-  token=null;
-  currentUser=null;
-  currentChatUser=null;
-  currentClub=null;
-
-  localStorage.removeItem("waliin_token");
-  localStorage.removeItem("waliin_user");
-
-  $("appPage").classList.add("hidden");
-  $("authPage").classList.remove("hidden");
-
-  $("loginValue").value="";
-  $("loginPassword").value="";
-
-}
-
-/* ================= HELPERS ================= */
+/* =========================
+   HELPERS
+========================= */
 
 function escapeHtml(value){
 
-  return String(value??"")
+  return String(value || "")
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
-
 }
+
 
 function escapeAttribute(value){
 
-  return String(value??"")
+  return String(value || "")
     .replaceAll("&","&amp;")
     .replaceAll('"',"&quot;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;");
-
 }
 
-function formatTime(value){
 
-  if(!value)return "";
+function formatTime(date){
 
   try{
 
-    return new Date(value)
-      .toLocaleString();
+    return new Date(date)
+      .toLocaleTimeString(
+        [],
+        {
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
 
   }catch{
 
     return "";
-
   }
-
 }
+
 
 function scrollChat(){
 
-  const box=$("chatBox");
+  const box =
+    $("chatBox");
 
-  box.scrollTop=box.scrollHeight;
+  if(box){
 
-}
-
-/* ================= SERVICE WORKER ================= */
-
-if("serviceWorker" in navigator){
-
-  window.addEventListener("load",()=>{
-
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then(()=>{
-        console.log(
-          "🟢 Service Worker registered"
-        );
-      })
-      .catch(err=>{
-        console.log(
-          "SW error:",
-          err
-        );
-      });
-
-  });
-
-}
-
-/* ================= AUTO REFRESH ================= */
-
-setInterval(()=>{
-
-  if(currentUser){
-
-    loadOnlineUsers();
-    loadNotificationCount();
-
-    if(currentClub){
-      refreshClubVoice();
-    }
-
+    box.scrollTop =
+      box.scrollHeight;
   }
+}
 
-},30000);
+
+/* =========================
+   START
+========================= */
+
+restoreLogin();
 
 </script>
 
