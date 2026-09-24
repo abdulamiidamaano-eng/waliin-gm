@@ -186,43 +186,42 @@ function removeOnline(socketId) {
 
     if (sockets.size === 0) {
       onlineUsers.delete(username);
-    }
-  } function getClubVoicePeers(club) {
+    } function getClubVoicePeers(club) {
   const peers = [];
 
-  for (const [socketId, s] of io.sockets.sockets) {
+  if (!club) return peers;
+
+  for (let i = 1; i <= 15; i++) {
+    const seat = club.seats?.find(
+      s => Number(s.seat) === i
+    );
+
+    if (!seat?.username) continue;
+
+    const socketId = onlineUsers.get(seat.username);
+
+    if (!socketId) continue;
+
+    const s = io.sockets.sockets.get(socketId);
 
     if (!s) continue;
 
-    if (s.clubId !== club.id) {
+    if (!s.clubId || s.clubId !== club.id) {
       continue;
     }
 
-    const username =
-      socketUsers.get(socketId) ||
-      s.username;
-
-    if (!username) continue;
-
-    const seat =
-      club.seats?.find(
-        x => x?.username === username
-      );
-
     peers.push({
       socketId,
-      username,
-      seat: seat?.seat || null,
-      muted: Boolean(seat?.muted),
-      owner: username === club.owner,
-      voiceReady: Boolean(
-        s.clubVoiceReady
-      )
+      username: seat.username,
+      seat: i,
+      muted: Boolean(seat.muted),
+      owner: seat.username === club.owner,
+      voiceReady: Boolean(s.clubVoiceReady)
     });
   }
 
   return peers;
-      }
+    }
 
   return username;
 }
