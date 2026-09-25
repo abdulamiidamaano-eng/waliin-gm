@@ -1,14 +1,19 @@
 {
   "name": "waliin-gm",
-  "version": "4.0.0",
-  "description": "Waliin-GM Communication, Voice Club, Chat and Social App",
+  "version": "3.0.0",
+  "description": "Waliin-GM Chat, Voice, Video, Club and Calling App",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.21.2",
-    "socket.io": "^4.8.1",
-    "pg": "^8.16.3"
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "socket.io": "^4.8.1"
   }
 }
