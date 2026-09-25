@@ -61,7 +61,11 @@ async function initDatabase() {
       status VARCHAR(30) DEFAULT 'offline',
       last_seen TIMESTAMPTZ DEFAULT NOW(),
       created_at TIMESTAMPTZ DEFAULT NOW()
-    );
+   ALTER TABLE users
+ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'offline';
+UPDATE users
+SET status = 'offline'
+WHERE status IS NULL; );
 
     CREATE TABLE IF NOT EXISTS messages (
       id BIGSERIAL PRIMARY KEY,
@@ -87,6 +91,16 @@ async function initDatabase() {
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE(blocker, blocked)
     );
+    CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    bio TEXT DEFAULT '',
+    avatar TEXT DEFAULT '',
+    status TEXT DEFAULT 'offline',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
     CREATE TABLE IF NOT EXISTS notifications (
       id BIGSERIAL PRIMARY KEY,
