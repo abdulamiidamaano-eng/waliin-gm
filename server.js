@@ -91,7 +91,8 @@ WHERE status IS NULL; );
       created_at TIMESTAMPTZ DEFAULT NOW(),
       UNIQUE(blocker, blocked)
     );
-    CREATE TABLE IF NOT EXISTS users (
+    await pool.query(`
+  CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE NOT NULL,
@@ -100,7 +101,8 @@ WHERE status IS NULL; );
     avatar TEXT DEFAULT '',
     status TEXT DEFAULT 'offline',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  )
+`);
 
     CREATE TABLE IF NOT EXISTS notifications (
       id BIGSERIAL PRIMARY KEY,
